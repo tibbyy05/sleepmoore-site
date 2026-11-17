@@ -314,8 +314,8 @@ footer a:hover { color: var(--gold); }
 .prose dd { margin: 6px 0 22px; color: var(--text-2); }
 .prose .eyebrow, .prose > footer { display: none; }
 
-/* Reveal on scroll: a scroll-driven animation where supported, plain content elsewhere. */
-@keyframes reveal { from { opacity: 0.35; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+/* Reveal on scroll: a gentle lift driven by scroll where supported, static elsewhere. Transform only, so text is never dimmed. */
+@keyframes reveal { from { transform: translateY(26px); } to { transform: none; } }
 @supports (animation-timeline: view()) {
   .reveal { animation: reveal 1s var(--ease) both; animation-timeline: view(); animation-range: entry 0% entry 45%; }
 }
