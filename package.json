@@ -1,0 +1,14 @@
+{
+  "name": "sleepmoore-site",
+  "private": true,
+  "description": "The public website for the Sleep Moore app, served by GitHub Pages.",
+  "scripts": {
+    "serve": "python -m http.server 8080",
+    "test": "node test/check.mjs && html-validate index.html support/index.html privacy/index.html",
+    "test:visual": "node test/screens.mjs test/screens"
+  },
+  "devDependencies": {
+    "html-validate": "^9.0.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}
