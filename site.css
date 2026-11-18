@@ -405,8 +405,9 @@ footer a:hover { color: var(--gold); }
 @media (max-width: 760px) {
   .nav, .top-actions .pill { display: none; }
   .menu-btn { display: inline-flex; }
+  /* The menu is a sibling of the header on purpose: inside the blurred fixed bar, Safari clips a fixed overlay to the bar. */
   .menu {
-    position: fixed; inset: 0; z-index: 0; padding: 110px var(--gutter) 40px;
+    position: fixed; inset: 0; z-index: 19; padding: 110px var(--gutter) 40px;
     background: rgba(11, 14, 21, 0.96); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
     flex-direction: column; gap: 6px;
   }
