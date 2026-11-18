@@ -212,6 +212,7 @@ button:hover .play-ring { background: var(--text); color: var(--gold-ink); borde
 .mixer-world { font: 400 28px/1 var(--serif); }
 .mixer-state { font: 500 11px/1.4 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: right; }
 .mixer.is-playing .mixer-state { color: var(--gold); }
+.mixer.has-problem .mixer-state { color: var(--gold); text-transform: none; letter-spacing: 0; font-size: 13px; }
 .layers { display: flex; flex-direction: column; gap: 22px; }
 .layer { display: grid; grid-template-columns: 22px 108px 1fr 44px; align-items: center; gap: 16px; }
 .layer svg { width: 22px; height: 22px; fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }

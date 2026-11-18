@@ -74,46 +74,93 @@
 
   if (!player || !mixer) return; // text pages: header and menu only
 
-  /* ---------- Audio engine ---------- */
+  /* ---------- Audio engine ----------
+     Web Audio, created inside the first tap (iOS needs that), with a format
+     chain: Opus first, then FLAC, then AAC. If a browser fails to decode one
+     format we drop it and try the next, so every browser ends up with sound. */
   var AC = window.AudioContext || window.webkitAudioContext;
   var ctx = null, master = null;
+  var bytes = {};            // sound id -> { ext, data: ArrayBuffer }
   var buffers = {};          // sound id -> AudioBuffer
   var pending = {};          // sound id -> Promise
   var live = {};             // sound id -> { src, gain, level }
   var current = 'rainy-cabin';
   var playing = false;
   var muted = false;
+  var problem = '';          // message shown in the mixer when sound fails
   var timerMinutes = 45;
   var timerEnd = null;       // ms timestamp
   var fadeStarted = false;
   var FADE_SECONDS = 20;
   var probe = document.createElement('audio');
-  var ext = (probe.canPlayType && probe.canPlayType('audio/ogg; codecs=opus')) ? 'opus' : 'flac';
+  var can = function (type) { return !!(probe.canPlayType && probe.canPlayType(type)); };
+  var formats = [];
+  if (can('audio/ogg; codecs=opus')) formats.push('opus');
+  if (can('audio/flac') || can('audio/x-flac')) formats.push('flac');
+  formats.push('m4a');
+  var forced = (location.search.match(/[?&]audio=(opus|flac|m4a)/) || [])[1];
+  if (forced) formats = [forced];
+  var blobCount = 0;
 
   function ensureContext() {
+    if (!AC) throw new Error('Web Audio is not available in this browser');
     if (!ctx) {
       ctx = new AC();
       master = ctx.createGain();
       master.gain.value = muted ? 0 : 1;
       master.connect(ctx.destination);
+      ctx.onstatechange = function () { if (ctx.state === 'running' && problem === 'Tap play again to allow sound') { problem = ''; render(); } };
     }
-    if (ctx.state === 'suspended') ctx.resume();
+    if (ctx.state !== 'running' && ctx.resume) ctx.resume().catch(function () {});
     return ctx;
+  }
+
+  // iOS and some Android browsers only let sound start from inside a tap. Create the
+  // context and play one silent sample on the first gesture of any kind.
+  function unlock() {
+    try {
+      var c = ensureContext();
+      var b = c.createBuffer(1, 1, c.sampleRate);
+      var s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0);
+    } catch (e) { /* no audio in this browser; play() reports it */ }
+    ['touchend', 'pointerdown', 'keydown'].forEach(function (ev) { document.removeEventListener(ev, unlock, true); });
+  }
+  ['touchend', 'pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, unlock, true); });
+
+  function fetchBytes(id) {
+    if (bytes[id] && formats.indexOf(bytes[id].ext) !== -1) return Promise.resolve(bytes[id]);
+    var ext = formats[0];
+    return fetch('/audio/' + id + '.' + ext).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + id + '.' + ext);
+      return r.arrayBuffer();
+    }).then(function (data) { bytes[id] = { ext: ext, data: data }; return bytes[id]; });
+  }
+
+  function decode(data) {
+    return new Promise(function (resolve, reject) {
+      var copy = data.slice(0); // Safari detaches the buffer it decodes
+      var done = ensureContext().decodeAudioData(copy, resolve, reject);
+      if (done && done.then) done.then(resolve, reject);
+    });
   }
 
   function load(id) {
     if (buffers[id]) return Promise.resolve(buffers[id]);
     if (pending[id]) return pending[id];
-    pending[id] = fetch('/audio/' + id + '.' + ext)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + id); return r.arrayBuffer(); })
-      .then(function (ab) {
-        return new Promise(function (resolve, reject) {
-          var done = ensureContext().decodeAudioData(ab, resolve, reject);
-          if (done && done.then) done.then(resolve, reject);
-        });
-      })
-      .then(function (buf) { buffers[id] = buf; delete pending[id]; return buf; })
-      .catch(function (err) { delete pending[id]; throw err; });
+    pending[id] = fetchBytes(id).then(function (b) {
+      return decode(b.data).catch(function (err) {
+        // This browser cannot decode this format: drop it for the session and try the next one.
+        if (formats.length > 1 && formats[0] === b.ext) {
+          formats.shift();
+          if (window.console) console.warn('Sleep Moore: ' + b.ext + ' did not decode here, trying ' + formats[0], err);
+          delete bytes[id];
+          return fetchBytes(id).then(function (b2) { return decode(b2.data); });
+        }
+        throw err;
+      });
+    }).then(function (buf) {
+      buffers[id] = buf; delete pending[id]; blobCount++; return buf;
+    }).catch(function (err) { delete pending[id]; throw err; });
     return pending[id];
   }
 
@@ -158,10 +205,13 @@
   function play(worldId) {
     var world = WORLDS[worldId];
     if (!world) return Promise.resolve();
+    try { ensureContext(); } catch (e) { problem = 'This browser cannot play sound here'; render(); return Promise.resolve(); }
     var switching = worldId !== current;
     if (switching) { current = worldId; renderLayers(world); }
     var levels = currentLevels();
+    problem = '';
     setBusy(true);
+    stateEl.textContent = 'Loading';
     return Promise.all(levels.map(function (l) { return load(l[0]); })).then(function () {
       ensureContext();
       var wanted = {};
@@ -175,10 +225,14 @@
       if (timerMinutes > 0) timerEnd = Date.now() + timerMinutes * 60000; else timerEnd = null;
       setBusy(false);
       render();
+      // If the browser kept the context suspended (no gesture reached it), say so.
+      setTimeout(function () {
+        if (playing && ctx && ctx.state !== 'running') { ctx.resume().catch(function () {}); problem = 'Tap play again to allow sound'; render(); }
+      }, 700);
     }).catch(function (err) {
       setBusy(false);
       playing = false;
-      if (stateEl) stateEl.textContent = 'Sound could not load';
+      problem = 'Sound could not load. Check your connection and try again';
       render();
       if (window.console) console.error('Sleep Moore: audio failed', err);
     });
@@ -238,6 +292,12 @@
     return m + ':' + (r < 10 ? '0' : '') + r;
   }
 
+  function stateText() {
+    if (problem) return problem;
+    if (!playing) return 'Press play to hear it';
+    return timerMinutes > 0 ? 'Playing · fades out in ' + fmt(timerEnd - Date.now()) : 'Playing all night';
+  }
+
   function render() {
     var world = WORLDS[current];
     nowEls.forEach(function (el) { el.textContent = world.name; });
@@ -249,9 +309,10 @@
     });
     player.classList.toggle('is-playing', playing);
     mixer.classList.toggle('is-playing', playing);
+    mixer.classList.toggle('has-problem', !!problem);
     var tgl = $('[data-toggle]');
     tgl.setAttribute('aria-label', playing ? 'Pause' : 'Play');
-    if (stateEl) stateEl.textContent = playing ? (timerMinutes > 0 ? 'Playing · fades out in ' + fmt(timerEnd - Date.now()) : 'Playing all night') : 'Press play to hear it';
+    stateEl.textContent = stateText();
     tick();
   }
 
@@ -276,14 +337,14 @@
       knobEl.style.left = '100%';
     }
   }
-  setInterval(function () { if (playing) { tick(); if (stateEl && timerEnd) stateEl.textContent = 'Playing · fades out in ' + fmt(timerEnd - Date.now()); } }, 1000);
+  setInterval(function () { if (playing) { tick(); stateEl.textContent = stateText(); } }, 1000);
 
   /* ---------- Wire up ---------- */
   worldButtons.forEach(function (b) {
     b.addEventListener('click', function () { toggle(b.dataset.playWorld); });
   });
   $('[data-toggle]').addEventListener('click', function () { toggle(); });
-  $('[data-mute]').addEventListener('click', function () { ensureContext(); setMuted(!muted); });
+  $('[data-mute]').addEventListener('click', function () { try { ensureContext(); } catch (e) {} setMuted(!muted); });
   timerChips.forEach(function (chip) {
     chip.addEventListener('click', function () {
       timerChips.forEach(function (c) { c.setAttribute('aria-checked', 'false'); });
@@ -299,13 +360,16 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === ' ' && !/INPUT|BUTTON|TEXTAREA|SELECT|A/.test(document.activeElement.tagName)) { e.preventDefault(); toggle(); }
   });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && playing) tick(); });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && playing) { tick(); if (ctx && ctx.state !== 'running') ctx.resume().catch(function () {}); }
+  });
 
-  // Warm the first world's files on the first pointer movement so the hero button answers instantly.
+  // Fetch the first world's files on the first pointer movement so the hero button answers
+  // instantly. Bytes only: decoding waits for the tap that creates the audio context.
   var warmed = false;
   var warm = function () {
     if (warmed) return; warmed = true;
-    WORLDS[current].layers.forEach(function (l) { load(l[0]).catch(function () {}); });
+    WORLDS[current].layers.forEach(function (l) { fetchBytes(l[0]).catch(function () {}); });
   };
   window.addEventListener('pointermove', warm, { once: true, passive: true });
   window.addEventListener('touchstart', warm, { once: true, passive: true });
@@ -316,6 +380,7 @@
   // Read-only hook for the automated checks in test/.
   window.__sleepMoore = {
     get ctx() { return ctx; }, get live() { return live; }, get buffers() { return buffers; },
-    get playing() { return playing; }, get current() { return current; }, get ext() { return ext; }
+    get playing() { return playing; }, get current() { return current; }, get formats() { return formats.slice(); },
+    get problem() { return problem; }, get bytes() { return Object.keys(bytes).map(function (k) { return k + ':' + bytes[k].ext; }); }
   };
 })();

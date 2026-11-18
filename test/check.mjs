@@ -59,7 +59,7 @@ const js = readFileSync(join(root, 'site.js'), 'utf8');
 const sounds = new Set([...js.matchAll(/\['([a-z]+)',\s*\d+\]/g)].map((m) => m[1]));
 if (sounds.size < 5) fail('site.js: could not find world layers');
 for (const s of sounds) {
-  for (const ext of ['opus', 'flac']) {
+  for (const ext of ['opus', 'flac', 'm4a']) {
     const p = `audio/${s}.${ext}`;
     if (!exists(p)) fail(`${p} is missing`);
     else if (statSync(join(root, p)).size < 20000) fail(`${p} is suspiciously small`);
