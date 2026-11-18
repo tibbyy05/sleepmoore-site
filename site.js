@@ -138,10 +138,14 @@
   var FADE_SECONDS = 20;
   var probe = document.createElement('audio');
   var can = function (type) { return !!(probe.canPlayType && probe.canPlayType(type)); };
+  var isApple = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|Android/.test(navigator.userAgent));
   var formats = [];
+  // WebKit decodes AAC reliably and may report Opus or FLAC as playable yet never finish decoding them, so Apple browsers get AAC first.
+  if (isApple) formats.push('m4a');
   if (can('audio/ogg; codecs=opus')) formats.push('opus');
   if (can('audio/flac') || can('audio/x-flac')) formats.push('flac');
-  formats.push('m4a');
+  if (!isApple) formats.push('m4a');
   var forced = (location.search.match(/[?&]audio=(opus|flac|m4a)/) || [])[1];
   if (forced) formats = [forced];
   var blobCount = 0;
@@ -163,12 +167,20 @@
 
   // iOS and some Android browsers only let sound start from inside a tap. Create the
   // context and play one silent sample on the first gesture of any kind.
+  var keepAlive = null;
   function unlock() {
     try {
       var c = ensureContext();
       var b = c.createBuffer(1, 1, c.sampleRate);
       var s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0);
     } catch (e) { /* no audio in this browser; play() reports it */ }
+    if (isApple && !keepAlive) {
+      // 0.1 s of silence as a WAV data URI; looping it keeps iOS in its playback session.
+      keepAlive = document.createElement('audio');
+      keepAlive.setAttribute('playsinline', ''); keepAlive.loop = true; keepAlive.volume = 0.01;
+      keepAlive.src = 'data:audio/wav;base64,UklGRiQEAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAEAAA' + new Array(1365).join('A');
+      var p = keepAlive.play(); if (p && p.catch) p.catch(function () {});
+    }
     ['touchend', 'pointerdown', 'keydown'].forEach(function (ev) { document.removeEventListener(ev, unlock, true); });
   }
   ['touchend', 'pointerdown', 'keydown'].forEach(function (ev) { document.addEventListener(ev, unlock, true); });
@@ -185,8 +197,14 @@
   function decode(data) {
     return new Promise(function (resolve, reject) {
       var copy = data.slice(0); // Safari detaches the buffer it decodes
-      var done = ensureContext().decodeAudioData(copy, resolve, reject);
-      if (done && done.then) done.then(resolve, reject);
+      var settled = false;
+      var timer = setTimeout(function () { if (!settled) { settled = true; reject(new Error('decode timed out')); } }, 9000);
+      var ok = function (b) { if (!settled) { settled = true; clearTimeout(timer); resolve(b); } };
+      var bad = function (e) { if (!settled) { settled = true; clearTimeout(timer); reject(e || new Error('decode failed')); } };
+      try {
+        var done = ensureContext().decodeAudioData(copy, ok, bad);
+        if (done && done.then) done.then(ok, bad);
+      } catch (e) { bad(e); }
     });
   }
 
@@ -291,6 +309,8 @@
       setBusy(false);
       render();
       meterStart();
+      var hint = $('[data-ios-hint]');
+      if (hint && isApple && /iP(hone|od)/.test(navigator.userAgent)) { hint.classList.add('is-shown'); setTimeout(function () { hint.classList.remove('is-shown'); }, 9000); }
       // If the browser kept the context suspended (no gesture reached it), say so.
       setTimeout(function () {
         if (playing && ctx && ctx.state !== 'running') { ctx.resume().catch(function () {}); problem = 'Tap play again to allow sound'; render(); }
@@ -503,7 +523,7 @@
   // Read-only hook for the automated checks in test/.
   window.__sleepMoore = {
     get ctx() { return ctx; }, get live() { return live; }, get buffers() { return buffers; },
-    get playing() { return playing; }, get current() { return current; }, get formats() { return formats.slice(); },
+    get playing() { return playing; }, get current() { return current; }, get formats() { return formats.slice(); }, get isApple() { return isApple; }, get keepAlive() { return keepAlive ? { paused: keepAlive.paused, error: keepAlive.error && keepAlive.error.code, ready: keepAlive.readyState } : null; },
     get problem() { return problem; }, get motion() { return !!(window.gsap && window.ScrollTrigger && !reduced && ScrollTrigger.getAll().length); }, get bytes() { return Object.keys(bytes).map(function (k) { return k + ':' + bytes[k].ext; }); }
   };
 })();

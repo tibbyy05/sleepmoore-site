@@ -57,17 +57,17 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01e
 .ch .b { display: inline-block; }
 /* No opacity in these: text that fades in from 0 is counted as painted late (LCP), blur hides it just as well. */
 @keyframes ink { from { transform: translateY(0.4em); filter: blur(12px); } to { transform: none; filter: blur(0); } }
-@keyframes ink-small { from { transform: translateY(0.3em); filter: blur(6px); } to { transform: none; filter: blur(0); } }
+@keyframes ink-small { from { opacity: 0; transform: translateY(0.5em); filter: blur(8px); } to { opacity: 1; transform: none; filter: blur(0); } } /* the brand is small, never the LCP, so a fade is safe here */
 @keyframes breathe { from { transform: translateY(0) scaleY(1); } to { transform: translateY(-2.5px) scaleY(1.02); } }
 @keyframes breathe-small { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
 @keyframes rise { from { transform: translateY(16px); filter: blur(8px); } to { transform: none; filter: blur(0); } }
 @media (prefers-reduced-motion: no-preference) {
-  .hero h1 .ch { animation: ink 1.4s var(--ease) backwards; animation-delay: calc(150ms + var(--i) * 50ms); }
-  .hero h1 .b { animation: breathe var(--d) ease-in-out infinite alternate; animation-delay: calc(1.6s + var(--i) * 50ms); }
-  .brand .ch { animation: ink-small 0.9s var(--ease) backwards; animation-delay: calc(100ms + var(--i) * 35ms); }
+  .hero h1 .ch { animation: ink 1.9s var(--ease) backwards; animation-delay: calc(250ms + var(--i) * 75ms); }
+  .hero h1 .b { animation: breathe var(--d) ease-in-out infinite alternate; animation-delay: calc(2.4s + var(--i) * 75ms); }
+  .brand .ch { animation: ink-small 3s var(--ease) backwards; animation-delay: calc(400ms + var(--i) * 200ms); }
   .is-playing-page .brand .b { animation: breathe-small var(--d) ease-in-out infinite alternate; }
-  .lede { animation: rise 0.9s var(--ease) 0.9s backwards; }
-  .play-pill { animation: rise 0.8s var(--ease) 1.15s backwards; }
+  .lede { animation: rise 1.2s var(--ease) 1.5s backwards; }
+  .play-pill { animation: rise 1s var(--ease) 1.9s backwards; }
 }
 
 /* ---------- Header ---------- */
@@ -284,6 +284,8 @@ button:hover .play-ring { background: var(--text); color: var(--gold-ink); borde
 .mixer-state { font: 500 11px/1.4 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: right; }
 .mixer.is-playing .mixer-state { color: var(--gold); }
 .mixer.has-problem .mixer-state { color: var(--gold); text-transform: none; letter-spacing: 0; font-size: 13px; }
+.ios-hint { display: none; position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 2; width: max-content; max-width: calc(100% - 2 * var(--gutter)); margin: 0; padding: 8px 14px; border-radius: 18px; background: rgba(11, 14, 21, 0.7); border: 1px solid var(--line); font: 400 12px/1.4 var(--sans); color: var(--text-2); text-align: center; }
+.ios-hint.is-shown { display: block; }
 .layers { display: flex; flex-direction: column; gap: 22px; }
 .layer { display: grid; grid-template-columns: 22px 108px 1fr 44px; align-items: center; gap: 16px; }
 .layer svg { width: 22px; height: 22px; fill: none; stroke: var(--text-2); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
