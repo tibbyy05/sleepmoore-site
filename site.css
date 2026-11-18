@@ -147,6 +147,10 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01e
 .play-pill[aria-busy="true"] { opacity: 0.7; cursor: progress; }
 .play-pill[aria-pressed="true"] { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 calc(10px + var(--level) * 40px) rgba(243, 234, 219, calc(0.15 + var(--level) * 0.35)); }
 
+/* Note under the hero button */
+.hero-note { margin: 18px 0 0; font: 400 13px/1.5 var(--sans); color: var(--muted); letter-spacing: 0.02em; text-shadow: 0 1px 14px rgba(0, 0, 0, 0.6); }
+@media (prefers-reduced-motion: no-preference) { .hero-note { animation: rise 1s var(--ease) 2.3s backwards; } }
+
 /* Mini player */
 .player {
   position: absolute; left: 50%; bottom: 28px; z-index: 2; transform: translateX(-50%);
@@ -183,6 +187,28 @@ section { padding: clamp(80px, 10vw, 128px) 0; }
 .sub { font: italic 400 clamp(20px, 1.8vw, 24px)/1.3 var(--serif); color: var(--muted); margin: 10px 0 0; }
 .sub.sans { font: 400 18px/1.5 var(--sans); }
 .sec-head::after { content: ""; display: block; height: 1px; background: var(--line); margin-top: 24px; }
+
+/* Proof strip */
+.proof { padding: 0; border-bottom: 1px solid var(--line); background: var(--bg); }
+.proof-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.proof-list li { display: flex; align-items: center; gap: 14px; padding: 26px 20px; border-left: 1px solid var(--line); }
+.proof-list li:first-child { border-left: 0; padding-left: 0; }
+.proof-list svg { width: 24px; height: 24px; flex: none; fill: none; stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.proof-list span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.proof-list b { font: 500 15px/1.3 var(--sans); color: var(--text); }
+.proof-list small { font: 400 13px/1.4 var(--sans); color: var(--muted); }
+
+/* Questions */
+.faq { background: var(--bg-2); }
+.faq-list { max-width: 820px; display: flex; flex-direction: column; }
+.faq-list details { border-top: 1px solid var(--line); }
+.faq-list details:last-child { border-bottom: 1px solid var(--line); }
+.faq-list summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 0; font: 400 clamp(22px, 2vw, 26px)/1.2 var(--serif); color: var(--text); }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary::after { content: ""; flex: none; width: 12px; height: 12px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg); transition: transform 0.3s var(--ease); margin-right: 4px; }
+.faq-list details[open] summary::after { transform: rotate(-135deg); }
+.faq-list summary:hover { color: var(--gold); }
+.faq-list p { margin: -6px 0 24px; max-width: 60ch; color: var(--text-2); font-size: 16px; line-height: 1.65; }
 
 /* Find your quiet */
 .find-grid { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(24px, 3vw, 40px); align-items: start; }
@@ -398,6 +424,9 @@ footer a:hover { color: var(--gold); }
 @media (max-width: 1024px) {
   .find-grid, .make-grid, .free-grid { grid-template-columns: 1fr; }
   .scene-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .proof-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proof-list li { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+  .proof-list li:nth-child(-n+2) { border-top: 0; }
   .night-grid { grid-template-columns: 1fr; gap: 0; }
   .night-stage { position: sticky; top: 72px; height: 52vh; height: 52svh; z-index: 2; align-items: stretch; padding: 0 0 12px; background: var(--bg-deep); box-shadow: 0 24px 24px -24px rgba(0, 0, 0, 0.8); }
   .stage-card { aspect-ratio: auto; height: auto; max-height: none; border-radius: 22px; }
@@ -433,6 +462,11 @@ footer a:hover { color: var(--gold); }
   .dest img { width: 84px; height: 64px; border-radius: 10px; }
   .dest-line { font-size: 15px; }
   .scene-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .proof-list { grid-template-columns: 1fr; }
+  .proof-list li { padding: 16px 0; border-top: 1px solid var(--line); }
+  .proof-list li:nth-child(-n+2) { border-top: 1px solid var(--line); }
+  .proof-list li:first-child { border-top: 0; }
+  .faq-list summary { font-size: 20px; padding: 18px 0; }
   .scene-strip span, .scene-strip figcaption { font-size: 13px; }
   .night-stage { top: 64px; height: 48vh; height: 48svh; }
   .step { min-height: 48vh; }

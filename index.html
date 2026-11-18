@@ -31,6 +31,16 @@ function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"MobileApplication","name":"Sleep Moore","operatingSystem":"iOS, Android","applicationCategory":"HealthApplication","description":"Sound worlds to fall asleep in. Ten places built from real recordings, three faders to mix them, a timer that fades you out. No account, no ads, no tracking.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://sleepmoore.app/","image":"https://sleepmoore.app/img/hero-cabin.jpg"}
 </script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is Sleep Moore really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. Everything in the app at launch is free and stays free. A later Sleep Moore+ subscription will add new content only."}},
+{"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is nothing to sign up for. Your saved mixes, timer and settings live on your phone."}},
+{"@type":"Question","name":"Is the sound on this website the real app sound?","acceptedAnswer":{"@type":"Answer","text":"Yes. The worlds on the page are the same recordings the app plays, mixed live in your browser."}},
+{"@type":"Question","name":"Will it keep playing with the screen locked?","acceptedAnswer":{"@type":"Answer","text":"Yes. Sound keeps playing with the screen off, with controls on the lock screen, and the sleep timer fades it out."}},
+{"@type":"Question","name":"Where do the sounds come from?","acceptedAnswer":{"@type":"Answer","text":"Real recordings, our own or public domain, remastered into seamless loops. Nothing is synthesised."}},
+{"@type":"Question","name":"Which phones does it work on?","acceptedAnswer":{"@type":"Answer","text":"iPhone and Android, both coming soon."}}
+]}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -43,6 +53,7 @@ function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0
       <a href="#night">The night</a>
       <a href="#mix">Mixer</a>
       <a href="#free">Free</a>
+      <a href="#faq">Questions</a>
       <a href="/support/">Support</a>
     </nav>
     <div class="top-actions">
@@ -83,6 +94,7 @@ function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0
         <svg class="ic-pause" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg>
         <span data-label>Play this soundscape</span>
       </button>
+      <p class="hero-note">This is the real app sound. Try it before you download.</p>
     </div>
 
     <p class="ios-hint" data-ios-hint>Hearing nothing on iPhone? Flip the side switch off silent and turn the volume up.</p>
@@ -98,6 +110,18 @@ function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0
       <button class="player-mute" type="button" aria-label="Mute" aria-pressed="false" data-mute>
         <svg class="ic-vol" viewBox="0 0 18 16" aria-hidden="true"><path d="M1 5.5h3.5L9 1.5v13L4.5 10.5H1z"/><path class="waves" d="M12 4.5c1.3 1 1.3 6 0 7M14.5 2c2.6 2.4 2.6 9.6 0 12" fill="none" stroke-width="1.4" stroke-linecap="round"/></svg>
       </button>
+    </div>
+  </section>
+
+  <!-- Proof strip -->
+  <section class="proof" aria-label="What you should know">
+    <div class="wrap">
+      <ul class="proof-list" role="list">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9L12 16.4l-5.3 2.8 1.1-5.9L3.5 9.2l5.9-.8z"/></svg><span><b>Free, for good</b><small>Everything at launch stays free</small></span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/><path d="M3 3l18 18"/></svg><span><b>No account</b><small>Nothing to sign up for, ever</small></span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-4M8 18V6M12 15V9M16 19V5M20 13v-2"/></svg><span><b>Plays in your browser</b><small>Real loops, mixed live on this page</small></span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg><span><b>iPhone and Android</b><small>Coming soon to both stores</small></span></li>
+      </ul>
     </div>
   </section>
 
@@ -299,6 +323,41 @@ function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0
           <div><dt>Nothing to sign up for</dt><dd>Open it and press play. Your saved mixes live on your phone, not on our servers.</dd></div>
           <div><dt>Quiet by design</dt><dd>No streaks, no feed, no notifications you did not ask for. <a href="/privacy/">Read the privacy policy</a>.</dd></div>
         </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- Questions -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <h2 id="faq-title">Questions, answered.</h2>
+      </header>
+      <div class="faq-list reveal">
+        <details>
+          <summary>Is Sleep Moore really free?</summary>
+          <p>Yes. Everything in the app at launch is free and stays free. A later Sleep Moore+ subscription will add new content only, and nothing you have today moves behind it.</p>
+        </details>
+        <details>
+          <summary>Do I need an account?</summary>
+          <p>No. There is nothing to sign up for. Your saved mixes, timer and settings live on your phone, not on our servers.</p>
+        </details>
+        <details>
+          <summary>Is the sound on this website the real app sound?</summary>
+          <p>Yes. The worlds on this page are the same recordings the app plays, mixed live in your browser. The app adds the full library of forty sounds, saved mixes, night journeys, breathing and the gentle wake.</p>
+        </details>
+        <details>
+          <summary>Will it keep playing with the screen locked?</summary>
+          <p>Yes. Sound keeps playing with the screen off, with play, pause and skip on the lock screen, and the sleep timer fades it out when you choose.</p>
+        </details>
+        <details>
+          <summary>Where do the sounds come from?</summary>
+          <p>Real recordings, either our own or released into the public domain, remastered into seamless loops so there is no click or gap to wake you. Nothing is synthesised.</p>
+        </details>
+        <details>
+          <summary>Which phones does it work on?</summary>
+          <p>iPhone and Android, both coming soon. Write to <a href="mailto:hello@sleepmoore.app">hello@sleepmoore.app</a> and we will tell you the day it lands.</p>
+        </details>
       </div>
     </div>
   </section>
