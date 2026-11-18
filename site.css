@@ -279,7 +279,12 @@ button:hover .play-ring { background: var(--text); color: var(--gold-ink); borde
   padding: clamp(24px, 3vw, 36px); display: flex; flex-direction: column; gap: 26px;
   box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8);
 }
-.mixer-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.mixer-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.mixer-title { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mixer-play { width: 52px; height: 52px; border-radius: 50%; border: 0; background: var(--gold); color: var(--gold-ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: none; box-shadow: 0 10px 24px -10px rgba(213, 162, 79, 0.7); transition: transform 0.2s var(--ease), background 0.2s; }
+.mixer-play:hover { transform: scale(1.05); background: #e2b366; }
+.mixer-play:active { transform: scale(0.97); }
+.mixer-play svg { width: 14px; height: 16px; }
 .mixer-world { font: 400 28px/1 var(--serif); }
 .mixer-state { font: 500 11px/1.4 var(--sans); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: right; }
 .mixer.is-playing .mixer-state { color: var(--gold); }
@@ -394,9 +399,10 @@ footer a:hover { color: var(--gold); }
   .find-grid, .make-grid, .free-grid { grid-template-columns: 1fr; }
   .scene-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .night-grid { grid-template-columns: 1fr; gap: 0; }
-  .night-stage { position: sticky; top: 0; height: 58svh; height: 58vh; z-index: 2; align-items: flex-start; padding-top: 72px; background: var(--bg-deep); box-shadow: 0 24px 24px -24px rgba(0, 0, 0, 0.8); }
-  .stage-card { aspect-ratio: auto; height: calc(58vh - 84px); max-height: none; border-radius: 22px; }
-  .phone { width: 36%; max-width: 220px; }
+  .night-stage { position: sticky; top: 72px; height: 52vh; height: 52svh; z-index: 2; align-items: stretch; padding: 0 0 12px; background: var(--bg-deep); box-shadow: 0 24px 24px -24px rgba(0, 0, 0, 0.8); }
+  .stage-card { aspect-ratio: auto; height: auto; max-height: none; border-radius: 22px; }
+  /* Size the phone from the card's height so it always fits, whatever the screen width. */
+  .phone { width: auto; height: 78%; max-width: none; }
   .night-steps { position: relative; z-index: 1; padding: 16px 0 10vh; }
   .step { min-height: 42vh; padding: 24px 0; justify-content: flex-start; }
   .step:first-child { min-height: 42vh; }
@@ -428,14 +434,12 @@ footer a:hover { color: var(--gold); }
   .dest-line { font-size: 15px; }
   .scene-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .scene-strip span, .scene-strip figcaption { font-size: 13px; }
-  .night-stage { height: 52svh; height: 52vh; padding-top: 64px; }
-  .stage-card { height: calc(52vh - 74px); }
+  .night-stage { top: 64px; height: 48vh; height: 48svh; }
   .step { min-height: 48vh; }
   .step:first-child { min-height: 48vh; }
-  .phone { width: 38%; }
+  .phone { height: 80%; }
   .step p:not(.cap) { font-size: 16px; }
   .layer { grid-template-columns: 22px 84px 1fr 40px; gap: 12px; }
-  .mixer-head { flex-direction: column; align-items: flex-start; gap: 6px; }
   .mixer-state { text-align: left; }
   .timer-row { flex-direction: column; align-items: flex-start; }
   .preset-grid { gap: 10px; }

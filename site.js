@@ -398,8 +398,7 @@
     mixer.classList.toggle('is-playing', playing);
     document.body.classList.toggle('is-playing-page', playing);
     mixer.classList.toggle('has-problem', !!problem);
-    var tgl = $('[data-toggle]');
-    tgl.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    $$('[data-toggle]').forEach(function (tgl) { tgl.setAttribute('aria-label', playing ? 'Pause' : 'Play'); });
     stateEl.textContent = stateText();
     tick();
   }
@@ -431,7 +430,7 @@
   worldButtons.forEach(function (b) {
     b.addEventListener('click', function () { toggle(b.dataset.playWorld); });
   });
-  $('[data-toggle]').addEventListener('click', function () { toggle(); });
+  $$('[data-toggle]').forEach(function (b) { b.addEventListener('click', function () { toggle(); }); });
   $('[data-mute]').addEventListener('click', function () { try { ensureContext(); } catch (e) {} setMuted(!muted); });
   timerChips.forEach(function (chip) {
     chip.addEventListener('click', function () {
@@ -489,7 +488,8 @@
     // Night story: the phone tilts and lifts as the chapters pass; scenes breathe.
     var phoneEl = $('.phone');
     if (phoneEl) {
-      gsap.fromTo(phoneEl, { y: 26, rotateX: 4, rotateZ: -1.2 }, { y: -26, rotateX: -4, rotateZ: 1.2, ease: 'none', transformPerspective: 900, scrollTrigger: { trigger: '.night-grid', start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+      var small = window.matchMedia('(max-width: 1024px)').matches, lift = small ? 8 : 26, tilt = small ? 1.5 : 4;
+      gsap.fromTo(phoneEl, { y: lift, rotateX: tilt, rotateZ: -tilt * 0.3 }, { y: -lift, rotateX: -tilt, rotateZ: tilt * 0.3, ease: 'none', transformPerspective: 900, scrollTrigger: { trigger: '.night-grid', start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
     }
     gsap.to('.stage-scenes', { scale: 1.06, ease: 'none', scrollTrigger: { trigger: '.night-grid', start: 'top bottom', end: 'bottom top', scrub: true } });
 
