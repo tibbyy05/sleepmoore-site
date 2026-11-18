@@ -168,6 +168,7 @@
   // iOS and some Android browsers only let sound start from inside a tap. Create the
   // context and play one silent sample on the first gesture of any kind.
   var keepAlive = null;
+  var diag = { keepAliveError: '', lastError: '', rebuilt: 0 };
   function unlock() {
     try {
       var c = ensureContext();
@@ -175,11 +176,15 @@
       var s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0);
     } catch (e) { /* no audio in this browser; play() reports it */ }
     if (isApple && !keepAlive) {
-      // 0.1 s of silence as a WAV data URI; looping it keeps iOS in its playback session.
+      // 0.6 s of silent MP3, looping: a playing media element moves iOS into its playback
+      // session, so the side silent switch no longer mutes Web Audio.
       keepAlive = document.createElement('audio');
-      keepAlive.setAttribute('playsinline', ''); keepAlive.loop = true; keepAlive.volume = 0.01;
-      keepAlive.src = 'data:audio/wav;base64,UklGRiQEAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAEAAA' + new Array(1365).join('A');
-      var p = keepAlive.play(); if (p && p.catch) p.catch(function () {});
+      keepAlive.setAttribute('playsinline', ''); keepAlive.setAttribute('aria-hidden', 'true');
+      keepAlive.loop = true; keepAlive.preload = 'auto';
+      keepAlive.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
+      keepAlive.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYyLjEyLjEwMgAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAGQAAA0MAPz8/SEhISFBQUFBXV1dXX19fX2dnZ2dvb29vd3d3d39/f3+IiIiIkJCQkJiYmJigoKCgqKioqK+vr6+3t7e3v7+/v8jIyMjQ0NDQ2NjY2ODg4ODo6Ojo8PDw8Pj4+Pj/////AAAAAExhdmM2Mi4yOAAAAAAAAAAAAAAAACQCUgAAAAAAAAND4AZebAAAAAAAAAAAAAAAAAD/8xDEAAAAA0gAAAAATEFNRTMuMTBMQU1FM//zEsQNAAADSAAAAAAuMTAwVVVVVUxBTUUzLv/zEMQbAAADSAAAAAAxMDBVVVVVTEFNRTMu//MQxCgAAANIAAAAADEwMFVVVVVMQU1FMy7/8xDENQAAA0gAAAAAMTAwVVVVVUxBTUUzLv/zEMRCAAADSAAAAAAxMDBVVVVVTEFNRTMu//MQxE8AAANIAAAAADEwMFVVVVVVVVVVVVX/8xDEXAAAA0gAAAAAVVVVVVVVVVVVVVVVVf/zEMRpAAADSAAAAABVVVVVVVVVVVVVVVVV//MSxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVV//MQxIQAAANIAAAAAFVVVVVVVVVVVVVVVVX/8xDEkQAAA0gAAAAAVVVVVVVVVVVVVVVVVf/zEMSeAAADSAAAAABVVVVVVVVVVVVVVVVV//MQxKsAAANIAAAAAFVVVVVVVVVVVVVVVVX/8xDEuAAAA0gAAAAAVVVVVVVVVVVVVVVVVf/zEMTFAAADSAAAAABVVVVVVVVVVVVVVVVV//MQxNIAAANIAAAAAFVVVVVVVVVVVVVVVVX/8xLE3wAAA0gAAAAAVVVVVVVVVVVVVVVVVVX/8xDE7QAAA0gAAAAAVVVVVVVVVVVVVVVVVf/zEMTyAAADSAAAAABVVVVVVVVVVVVVVVVV//MQxPIAAANIAAAAAFVVVVVVVVVVVVVVVVX/8xDE8gAAA0gAAAAAVVVVVVVVVVVVVVVVVf/zEMTyAAADSAAAAABVVVVVVVVVVVVVVVVV//MQxPIAAANIAAAAAFVVVVVVVVVVVVVVVVX/8xDE8gAAA0gAAAAAVVVVVVVVVVVVVVVVVQ==';
+      document.body.appendChild(keepAlive);
+      var p = keepAlive.play(); if (p && p.catch) p.catch(function (e) { diag.keepAliveError = String(e && e.name || e); });
     }
     ['touchend', 'pointerdown', 'keydown'].forEach(function (ev) { document.removeEventListener(ev, unlock, true); });
   }
@@ -309,6 +314,7 @@
       setBusy(false);
       render();
       meterStart();
+      if (isApple) rebuildContextIfStuck();
       var hint = $('[data-ios-hint]');
       if (hint && isApple && /iP(hone|od)/.test(navigator.userAgent)) { hint.classList.add('is-shown'); setTimeout(function () { hint.classList.remove('is-shown'); }, 9000); }
       // If the browser kept the context suspended (no gesture reached it), say so.
@@ -320,8 +326,27 @@
       playing = false;
       problem = 'Sound could not load. Check your connection and try again';
       render();
+      diag.lastError = String(err && (err.message || err.name) || err);
       if (window.console) console.error('Sleep Moore: audio failed', err);
     });
+  }
+
+  // iOS can hand out a context that reports "running" yet never advances its clock (and plays
+  // nothing). If that happens right after play, build a fresh context and restart the layers.
+  function rebuildContextIfStuck() {
+    if (!playing || !ctx || ctx.state !== 'running') return;
+    var t0 = ctx.currentTime;
+    setTimeout(function () {
+      if (!playing || !ctx || ctx.currentTime > t0 + 0.05) return;
+      diag.rebuilt++;
+      var levels = currentLevels();
+      Object.keys(live).forEach(function (id) { try { live[id].src.stop(); } catch (e) {} delete live[id]; });
+      try { ctx.close(); } catch (e) {}
+      ctx = null; master = null; analyser = null;
+      ensureContext();
+      levels.forEach(function (l) { if (buffers[l[0]]) startLayer(l[0], l[1], 0.6); });
+      meterStart();
+    }, 1000);
   }
 
   function pause() {
@@ -518,6 +543,27 @@
         card.addEventListener('pointerleave', function () { gsap.to(ring, { scale: 1, duration: 0.35, ease: 'power2.out' }); });
       });
     }
+  }
+
+  // Diagnostics panel for devices we cannot attach to: open /?debug=1 and press play.
+  if (/[?&]debug=1/.test(location.search)) {
+    var panel = document.createElement('pre');
+    panel.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99;margin:0;padding:10px 12px;border-radius:12px;background:rgba(11,14,21,.92);border:1px solid rgba(243,234,219,.3);color:#f3eadb;font:11px/1.5 Menlo,Consolas,monospace;white-space:pre-wrap;max-height:45vh;overflow:auto;pointer-events:none';
+    document.body.appendChild(panel);
+    setInterval(function () {
+      var lines = [
+        'ua: ' + navigator.userAgent.slice(0, 90),
+        'apple: ' + isApple + '  formats: ' + formats.join(',') + '  secure: ' + window.isSecureContext,
+        'ctx: ' + (ctx ? ctx.state + '  rate ' + ctx.sampleRate + '  time ' + ctx.currentTime.toFixed(2) + '  master ' + (master ? master.gain.value.toFixed(2) : '-') : 'none'),
+        'playing: ' + playing + '  live: ' + Object.keys(live).map(function (k) { return k + '=' + live[k].gain.gain.value.toFixed(2); }).join(' '),
+        'bytes: ' + Object.keys(bytes).map(function (k) { return k + ':' + bytes[k].ext + ':' + Math.round(bytes[k].data.byteLength / 1024) + 'k'; }).join(' '),
+        'buffers: ' + Object.keys(buffers).map(function (k) { return k + ':' + buffers[k].duration.toFixed(1) + 's'; }).join(' '),
+        'keepAlive: ' + (keepAlive ? ('paused ' + keepAlive.paused + ' ready ' + keepAlive.readyState + ' err ' + (keepAlive.error ? keepAlive.error.code : '-') + ' t ' + keepAlive.currentTime.toFixed(1)) : 'none') + '  ' + diag.keepAliveError,
+        'problem: ' + (problem || '-') + '  lastError: ' + (diag.lastError || '-') + '  rebuilt: ' + diag.rebuilt,
+        'muted: ' + muted + '  timer: ' + timerMinutes + '  pending: ' + Object.keys(pending).join(',')
+      ];
+      panel.textContent = lines.join('\n');
+    }, 500);
   }
 
   // Read-only hook for the automated checks in test/.
