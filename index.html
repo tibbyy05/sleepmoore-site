@@ -25,6 +25,9 @@
 <link rel="preload" as="image" href="/img/hero-cabin-1440.webp" imagesrcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w, /img/hero-cabin-2560.webp 2560w" imagesizes="100vw" media="(min-width: 761px)" fetchpriority="high">
 <link rel="preload" as="image" href="/img/hero-cabin-mobile.webp" imagesrcset="/img/hero-cabin-mobile.webp 900w, /img/hero-cabin-mobile-2x.webp 1350w" imagesizes="100vw" media="(max-width: 760px)" fetchpriority="high">
 <link rel="stylesheet" href="/site.css">
+<script>
+function splitLetters(el){var full=el.textContent.replace(/\s+/g,' ').trim(),i=0;Array.prototype.slice.call(el.childNodes).forEach(function(n){if(n.nodeType!==3)return;var f=document.createDocumentFragment();n.textContent.split('').forEach(function(c){var s=document.createElement('span');s.className='ch';s.setAttribute('aria-hidden','true');s.style.setProperty('--i',i);s.style.setProperty('--d',(2.4+(i%4)*0.4)+'s');var b=document.createElement('span');b.className='b';if(c===' ')b.innerHTML='&nbsp;';else b.textContent=c;s.appendChild(b);f.appendChild(s);i++});el.replaceChild(f,n)});Array.prototype.slice.call(el.querySelectorAll('br')).forEach(function(b){b.setAttribute('aria-hidden','true')});var sr=document.createElement('span');sr.className='sr-only';sr.textContent=full;el.insertBefore(sr,el.firstChild)}
+</script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"MobileApplication","name":"Sleep Moore","operatingSystem":"iOS, Android","applicationCategory":"HealthApplication","description":"Sound worlds to fall asleep in. Ten places built from real recordings, three faders to mix them, a timer that fades you out. No account, no ads, no tracking.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://sleepmoore.app/","image":"https://sleepmoore.app/img/hero-cabin.jpg"}
 </script>
@@ -34,7 +37,7 @@
 
 <header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="/">Sleep Moore</a>
+    <a class="brand" href="/">Sleep Moore</a><script>splitLetters(document.currentScript.previousElementSibling)</script>
     <nav class="nav" aria-label="Main">
       <a href="#worlds">Worlds</a>
       <a href="#night">The night</a>
@@ -73,7 +76,7 @@
       <video class="hero-video" muted loop playsinline preload="none" width="1280" height="716" tabindex="-1" data-webm="/video/hero.webm" data-mp4="/video/hero.mp4"></video>
     </div>
     <div class="hero-copy">
-      <h1 id="hero-title">Somewhere<br>quieter.</h1>
+      <h1 id="hero-title">Somewhere <br>quieter.</h1><script>splitLetters(document.currentScript.previousElementSibling)</script>
       <p class="lede">Sound worlds for deeper rest, <br>any night of the week.</p>
       <button class="play-pill" type="button" data-play-world="rainy-cabin" aria-pressed="false">
         <svg class="ic-play" viewBox="0 0 12 14" aria-hidden="true"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg>

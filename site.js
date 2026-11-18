@@ -376,6 +376,7 @@
     });
     player.classList.toggle('is-playing', playing);
     mixer.classList.toggle('is-playing', playing);
+    document.body.classList.toggle('is-playing-page', playing);
     mixer.classList.toggle('has-problem', !!problem);
     var tgl = $('[data-toggle]');
     tgl.setAttribute('aria-label', playing ? 'Pause' : 'Play');

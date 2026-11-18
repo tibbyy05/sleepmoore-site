@@ -51,6 +51,25 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 400; letter-spacing: -0.01e
 [aria-pressed="true"] .ic-pause, .is-playing .ic-pause { display: block; }
 [aria-pressed="true"] .ic-play, .is-playing .ic-play { display: none; }
 
+/* Ink rise entrance and sleeping-letters idle, in CSS so text paints at once and needs no library.
+   Outer .ch carries the entrance, inner .b the breath, so the two transforms never fight. */
+.ch { display: inline-block; }
+.ch .b { display: inline-block; }
+/* No opacity in these: text that fades in from 0 is counted as painted late (LCP), blur hides it just as well. */
+@keyframes ink { from { transform: translateY(0.4em); filter: blur(12px); } to { transform: none; filter: blur(0); } }
+@keyframes ink-small { from { transform: translateY(0.3em); filter: blur(6px); } to { transform: none; filter: blur(0); } }
+@keyframes breathe { from { transform: translateY(0) scaleY(1); } to { transform: translateY(-2.5px) scaleY(1.02); } }
+@keyframes breathe-small { from { transform: translateY(0); } to { transform: translateY(-1.2px); } }
+@keyframes rise { from { transform: translateY(16px); filter: blur(8px); } to { transform: none; filter: blur(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1 .ch { animation: ink 1.4s var(--ease) backwards; animation-delay: calc(150ms + var(--i) * 50ms); }
+  .hero h1 .b { animation: breathe var(--d) ease-in-out infinite alternate; animation-delay: calc(1.6s + var(--i) * 50ms); }
+  .brand .ch { animation: ink-small 0.9s var(--ease) backwards; animation-delay: calc(100ms + var(--i) * 35ms); }
+  .is-playing-page .brand .b { animation: breathe-small var(--d) ease-in-out infinite alternate; }
+  .lede { animation: rise 0.9s var(--ease) 0.9s backwards; }
+  .play-pill { animation: rise 0.8s var(--ease) 1.15s backwards; }
+}
+
 /* ---------- Header ---------- */
 .top {
   position: fixed; inset: 0 0 auto; z-index: 20;
