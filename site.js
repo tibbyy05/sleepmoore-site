@@ -444,10 +444,65 @@
   renderLayers(WORLDS[current]);
   render();
 
+  /* ---------- Motion (GSAP + ScrollTrigger, when loaded and motion is allowed) ----------
+     Scroll-scrubbed parallax in the hero and the night story, staggered lifts for lists,
+     and a magnetic pull on the two main buttons. Everything here is additive: without
+     GSAP, or under prefers-reduced-motion, the page is the same page, just stiller. */
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.gsap && window.ScrollTrigger && !reduced) {
+    gsap.registerPlugin(ScrollTrigger);
+    var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    // Hero: copy drifts up and fades a little faster than the art as you leave it.
+    gsap.to('.hero-copy', { y: -90, opacity: 0.2, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+    gsap.to('.hero-art', { y: 120, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
+    gsap.to('.player', { y: 40, opacity: 0, ease: 'none', scrollTrigger: { trigger: '.hero', start: '60% top', end: 'bottom top', scrub: true } });
+
+    // Staggered lifts: rows, scene strip, presets, facts. Transform only, never opacity.
+    [['.dest-list', '.dest'], ['.scene-strip', '.scene-strip li'], ['.preset-grid', '.preset'], ['.facts', '.facts div']].forEach(function (pair) {
+      var items = gsap.utils.toArray(pair[1]);
+      if (!items.length) return;
+      gsap.from(items, { y: 34, duration: 0.9, ease: 'power3.out', stagger: 0.08, scrollTrigger: { trigger: pair[0], start: 'top 85%', once: true } });
+    });
+
+    // Night story: the phone tilts and lifts as the chapters pass; scenes breathe.
+    var phoneEl = $('.phone');
+    if (phoneEl) {
+      gsap.fromTo(phoneEl, { y: 26, rotateX: 4, rotateZ: -1.2 }, { y: -26, rotateX: -4, rotateZ: 1.2, ease: 'none', transformPerspective: 900, scrollTrigger: { trigger: '.night-grid', start: 'top bottom', end: 'bottom top', scrub: 0.6 } });
+    }
+    gsap.to('.stage-scenes', { scale: 1.06, ease: 'none', scrollTrigger: { trigger: '.night-grid', start: 'top bottom', end: 'bottom top', scrub: true } });
+
+    // Section titles rise slightly ahead of their rule.
+    gsap.utils.toArray('.sec-head').forEach(function (el) {
+      gsap.from(el.children, { y: 24, duration: 1, ease: 'power3.out', stagger: 0.1, scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
+    });
+
+    // Magnetic pull on the hero button and the header pill, pointer devices only.
+    if (finePointer) {
+      $$('.play-pill, .top-actions .pill').forEach(function (el) {
+        var strength = el.classList.contains('play-pill') ? 14 : 8;
+        var qx = gsap.quickTo(el, 'x', { duration: 0.5, ease: 'power3.out' });
+        var qy = gsap.quickTo(el, 'y', { duration: 0.5, ease: 'power3.out' });
+        el.addEventListener('pointermove', function (e) {
+          var r = el.getBoundingClientRect();
+          qx(((e.clientX - r.left) / r.width - 0.5) * strength * 2);
+          qy(((e.clientY - r.top) / r.height - 0.5) * strength * 2);
+        });
+        el.addEventListener('pointerleave', function () { qx(0); qy(0); });
+      });
+      // Play rings grow toward the pointer on their card.
+      $$('.feature-card, .preset, .dest').forEach(function (card) {
+        var ring = $('.play-ring', card); if (!ring) return;
+        card.addEventListener('pointerenter', function () { gsap.to(ring, { scale: 1.08, duration: 0.4, ease: 'back.out(2)' }); });
+        card.addEventListener('pointerleave', function () { gsap.to(ring, { scale: 1, duration: 0.35, ease: 'power2.out' }); });
+      });
+    }
+  }
+
   // Read-only hook for the automated checks in test/.
   window.__sleepMoore = {
     get ctx() { return ctx; }, get live() { return live; }, get buffers() { return buffers; },
     get playing() { return playing; }, get current() { return current; }, get formats() { return formats.slice(); },
-    get problem() { return problem; }, get bytes() { return Object.keys(bytes).map(function (k) { return k + ':' + bytes[k].ext; }); }
+    get problem() { return problem; }, get motion() { return !!(window.gsap && window.ScrollTrigger && !reduced && ScrollTrigger.getAll().length); }, get bytes() { return Object.keys(bytes).map(function (k) { return k + ':' + bytes[k].ext; }); }
   };
 })();
