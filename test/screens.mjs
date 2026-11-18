@@ -33,6 +33,13 @@ for (const s of shots) {
   await page.evaluateHandle('document.fonts.ready');
   await settle(page);
   await page.screenshot({ path: join(out, `home-${s.name}.png`), fullPage: true });
+  if (s.name === 'desktop') {
+    for (const i of [0, 1, 2, 3, 4]) {
+      await page.evaluate((n) => { const el = document.querySelector(`[data-step="${n}"]`); const r = el.getBoundingClientRect(); window.scrollBy(0, r.top + r.height / 2 - innerHeight / 2); }, i);
+      await new Promise((r) => setTimeout(r, 1500));
+      await page.screenshot({ path: join(out, `home-desktop-night-${i}.png`) });
+    }
+  }
   if (s.name === 'phone') {
     await page.click('.menu-btn');
     await new Promise((r) => setTimeout(r, 400));
@@ -43,6 +50,11 @@ for (const s of shots) {
     await page.evaluate(() => document.querySelector('#mix').scrollIntoView());
     await new Promise((r) => setTimeout(r, 1200));
     await page.screenshot({ path: join(out, 'home-phone-mixer.png') });
+    for (const i of [0, 1, 3, 4]) {
+      await page.evaluate((n) => { const el = document.querySelector(`[data-step="${n}"]`); const r = el.getBoundingClientRect(); window.scrollBy(0, r.top + r.height / 2 - innerHeight * 0.72); }, i);
+      await new Promise((r) => setTimeout(r, 1500));
+      await page.screenshot({ path: join(out, `home-phone-night-${i}.png`) });
+    }
   }
   for (const p of ['support', 'privacy']) {
     await page.goto(`${base}/${p}/`, { waitUntil: 'networkidle0' });

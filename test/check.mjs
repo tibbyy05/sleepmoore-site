@@ -25,6 +25,7 @@ for (const page of pages) {
   const html = readFileSync(join(root, page), 'utf8');
   const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
   const refs = [...html.matchAll(/\s(?:href|src)="([^"]+)"/g)].map((m) => m[1]);
+  for (const m of html.matchAll(/\sdata-(?:webm|mp4)="([^"]+)"/g)) refs.push(m[1]);
   for (const m of html.matchAll(/\s(?:srcset|imagesrcset)="([^"]+)"/g)) {
     for (const part of m[1].split(',')) refs.push(part.trim().split(/\s+/)[0]);
   }

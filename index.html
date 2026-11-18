@@ -21,7 +21,7 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap"></noscript>
-<link rel="preload" as="image" href="/img/hero-cabin-1440.webp" imagesrcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w" imagesizes="100vw" media="(min-width: 761px)" fetchpriority="high">
+<link rel="preload" as="image" href="/img/hero-cabin-1440.webp" imagesrcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w, /img/hero-cabin-2560.webp 2560w" imagesizes="100vw" media="(min-width: 761px)" fetchpriority="high">
 <link rel="preload" as="image" href="/img/hero-cabin-mobile.webp" imagesrcset="/img/hero-cabin-mobile.webp 900w, /img/hero-cabin-mobile-2x.webp 1350w" imagesizes="100vw" media="(max-width: 760px)" fetchpriority="high">
 <link rel="stylesheet" href="/site.css">
 <script type="application/ld+json">
@@ -36,6 +36,7 @@
     <a class="brand" href="/">Sleep Moore</a>
     <nav class="nav" aria-label="Main">
       <a href="#worlds">Worlds</a>
+      <a href="#night">The night</a>
       <a href="#mix">Mixer</a>
       <a href="#free">Free</a>
       <a href="/support/">Support</a>
@@ -49,6 +50,7 @@
   </div>
   <nav class="menu" id="menu" aria-label="Main, mobile" hidden>
     <a href="#worlds">Worlds</a>
+    <a href="#night">The night</a>
     <a href="#mix">Mixer</a>
     <a href="#free">Free</a>
     <a href="/support/">Support</a>
@@ -67,6 +69,7 @@
         <source srcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w, /img/hero-cabin-2560.webp 2560w" sizes="100vw" type="image/webp">
         <img src="/img/hero-cabin.jpg" alt="" width="1920" height="1074" fetchpriority="high" decoding="async">
       </picture>
+      <video class="hero-video" muted loop playsinline preload="none" width="1280" height="716" tabindex="-1" data-webm="/video/hero.webm" data-mp4="/video/hero.mp4"></video>
     </div>
     <div class="hero-copy">
       <h1 id="hero-title">Somewhere<br>quieter.</h1>
@@ -84,6 +87,7 @@
         <svg class="ic-pause" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg>
       </button>
       <span class="player-name" data-now>Rainy Cabin</span>
+      <span class="meter" aria-hidden="true" data-meter><i></i><i></i><i></i><i></i><i></i></span>
       <div class="player-bar" aria-hidden="true"><div class="player-fill" data-fill></div><div class="player-knob" data-knob></div></div>
       <span class="player-time" data-time>45:00</span>
       <button class="player-mute" type="button" aria-label="Mute" aria-pressed="false" data-mute>
@@ -97,7 +101,7 @@
     <div class="wrap">
       <header class="sec-head reveal">
         <h2 id="find-title">Find your quiet.</h2>
-        <p class="sub">Ten destinations for rest and renewal.</p>
+        <p class="sub">Ten destinations for rest and renewal. Tap one to hear it.</p>
       </header>
       <div class="find-grid">
         <button class="feature-card reveal" type="button" data-play-world="alpine-lake" aria-pressed="false">
@@ -116,28 +120,28 @@
         <ul class="dest-list reveal" role="list">
           <li>
             <button type="button" class="dest" data-play-world="moonlit-cove" aria-pressed="false">
-              <img src="/img/moonlit-cove.webp" alt="" width="120" height="84" loading="lazy">
+              <img src="/img/scenes/moonlit-cove-480.webp" alt="" width="120" height="84" loading="lazy">
               <span class="dest-text"><span class="cap">Coastal escape</span><span class="dest-name">Moonlit Cove</span><span class="dest-line">Slow surf, a softer horizon.</span></span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
             </button>
           </li>
           <li>
             <button type="button" class="dest" data-play-world="rainy-cabin" aria-pressed="false">
-              <img src="/img/rainy-cabin.webp" alt="" width="120" height="84" loading="lazy">
+              <img src="/img/scenes/rainy-cabin-480.webp" alt="" width="120" height="84" loading="lazy">
               <span class="dest-text"><span class="cap">Forest retreat</span><span class="dest-name">Rainy Cabin</span><span class="dest-line">Rain on the roof, a fire in the grate.</span></span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
             </button>
           </li>
           <li>
             <button type="button" class="dest" data-play-world="snowfall-lodge" aria-pressed="false">
-              <img src="/img/snowfall-lodge.webp" alt="" width="120" height="84" loading="lazy">
+              <img src="/img/scenes/snowfall-lodge-480.webp" alt="" width="120" height="84" loading="lazy">
               <span class="dest-text"><span class="cap">Mountain lodge</span><span class="dest-name">Snowfall Lodge</span><span class="dest-line">Snow on the eaves, embers ticking.</span></span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
             </button>
           </li>
           <li>
             <button type="button" class="dest" data-play-world="temple-garden" aria-pressed="false">
-              <img src="/img/temple-garden.webp" alt="" width="120" height="84" loading="lazy">
+              <img src="/img/scenes/temple-garden-480.webp" alt="" width="120" height="84" loading="lazy">
               <span class="dest-text"><span class="cap">Garden at night</span><span class="dest-name">Temple Garden</span><span class="dest-line">Running water, a chime now and then.</span></span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
             </button>
@@ -145,11 +149,74 @@
         </ul>
       </div>
 
-      <div class="more-worlds reveal">
-        <p class="cap">And six more in the app</p>
-        <ul class="chips" role="list">
-          <li>Rainfall Sanctuary</li><li>Ocean Hideaway</li><li>Desert Camp</li><li>Lighthouse Point</li><li>Night Ferry</li><li>Night Journey</li>
-        </ul>
+      <ul class="scene-strip reveal" role="list" aria-label="More worlds">
+        <li><button type="button" data-play-world="rainfall-sanctuary" aria-pressed="false"><img src="/img/scenes/rainfall-sanctuary-480.webp" alt="" width="480" height="269" loading="lazy"><span>Rainfall Sanctuary</span></button></li>
+        <li><button type="button" data-play-world="ocean-hideaway" aria-pressed="false"><img src="/img/scenes/ocean-hideaway-480.webp" alt="" width="480" height="269" loading="lazy"><span>Ocean Hideaway</span></button></li>
+        <li><button type="button" data-play-world="desert-camp" aria-pressed="false"><img src="/img/scenes/desert-camp-480.webp" alt="" width="480" height="269" loading="lazy"><span>Desert Camp</span></button></li>
+        <li><figure><img src="/img/scenes/lighthouse-point-480.webp" alt="" width="480" height="269" loading="lazy"><figcaption>Lighthouse Point</figcaption></figure></li>
+        <li><figure><img src="/img/scenes/night-ferry-480.webp" alt="" width="480" height="269" loading="lazy"><figcaption>Night Ferry</figcaption></figure></li>
+        <li><figure><img src="/img/scenes/night-journey-480.webp" alt="" width="480" height="269" loading="lazy"><figcaption>Night Journey</figcaption></figure></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- One night with the app -->
+  <section class="night" id="night" aria-labelledby="night-title">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <h2 id="night-title">One night with Sleep Moore.</h2>
+        <p class="sub">The real app, from wind-down to waking.</p>
+      </header>
+      <div class="night-grid">
+        <div class="night-stage" aria-hidden="true">
+          <div class="stage-card">
+            <div class="stage-scenes">
+              <img class="is-on" data-scene="0" src="/img/scenes/rainy-cabin-900.webp" srcset="/img/scenes/rainy-cabin-900.webp 900w, /img/scenes/rainy-cabin-1344.webp 1344w" sizes="(max-width: 1024px) 100vw, 50vw" alt="" width="1344" height="752" loading="lazy">
+              <img data-scene="1" src="/img/scenes/moonlit-cove-900.webp" srcset="/img/scenes/moonlit-cove-900.webp 900w, /img/scenes/moonlit-cove-1344.webp 1344w" sizes="(max-width: 1024px) 100vw, 50vw" alt="" width="1344" height="752" loading="lazy">
+              <img data-scene="2" src="/img/scenes/snowfall-lodge-900.webp" srcset="/img/scenes/snowfall-lodge-900.webp 900w, /img/scenes/snowfall-lodge-1344.webp 1344w" sizes="(max-width: 1024px) 100vw, 50vw" alt="" width="1344" height="752" loading="lazy">
+              <img data-scene="3" src="/img/scenes/desert-camp-900.webp" srcset="/img/scenes/desert-camp-900.webp 900w, /img/scenes/desert-camp-1344.webp 1344w" sizes="(max-width: 1024px) 100vw, 50vw" alt="" width="1344" height="752" loading="lazy">
+              <img data-scene="4" src="/img/scenes/dawn-900.webp" srcset="/img/scenes/dawn-900.webp 900w, /img/scenes/dawn-1344.webp 1344w" sizes="(max-width: 1024px) 100vw, 50vw" alt="" width="1344" height="752" loading="lazy">
+              <div class="stage-dim" data-dim></div>
+            </div>
+            <div class="phone">
+              <div class="phone-screen">
+                <img class="is-on" data-screen="0" src="/img/app/home-390.webp" srcset="/img/app/home-390.webp 390w, /img/app/home-780.webp 780w" sizes="(max-width: 760px) 40vw, 20vw" alt="" width="390" height="844" loading="lazy">
+                <img data-screen="1" src="/img/app/explore-390.webp" srcset="/img/app/explore-390.webp 390w, /img/app/explore-780.webp 780w" sizes="(max-width: 760px) 40vw, 20vw" alt="" width="390" height="844" loading="lazy">
+                <img data-screen="2" src="/img/app/routine-390.webp" srcset="/img/app/routine-390.webp 390w, /img/app/routine-780.webp 780w" sizes="(max-width: 760px) 40vw, 20vw" alt="" width="390" height="844" loading="lazy">
+                <div class="screen-off" data-screen="3"><span>11:35</span></div>
+                <img data-screen="4" src="/img/app/welcome-390.webp" srcset="/img/app/welcome-390.webp 390w, /img/app/welcome-780.webp 780w" sizes="(max-width: 760px) 40vw, 20vw" alt="" width="390" height="844" loading="lazy">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ol class="night-steps" data-steps>
+          <li class="step is-on" data-step="0">
+            <p class="cap step-time">10:40 pm</p>
+            <h3>Wind down</h3>
+            <p>Open the app and it is already quiet. One warm picture, one button, no feed to scroll. The phone stops asking for attention before you have put it down.</p>
+          </li>
+          <li class="step" data-step="1">
+            <p class="cap step-time">10:48 pm</p>
+            <h3>Choose a world, make it yours</h3>
+            <p>Swipe through ten places built from real recordings. Each one is three sounds on a small mixing desk: rain up, fire down, wind barely there.</p>
+          </li>
+          <li class="step" data-step="2">
+            <p class="cap step-time">10:50 pm</p>
+            <h3>Set the timer, breathe</h3>
+            <p>Forty-five minutes, an hour, or until you are up. A few minutes of guided breathing settles a busy head before the sound takes over.</p>
+          </li>
+          <li class="step" data-step="3">
+            <p class="cap step-time">11:35 pm</p>
+            <h3>Drift off</h3>
+            <p>The screen is dark. The loops have no seam to catch on, and the fade has already begun. Lock-screen controls are there if you want them.</p>
+          </li>
+          <li class="step" data-step="4">
+            <p class="cap step-time">6:50 am</p>
+            <h3>Wake gently</h3>
+            <p>Dawn rises softly over ten, twenty or thirty minutes to the time you need to be up. No jolt, no blaring alarm. Tonight it asks how you slept.</p>
+          </li>
+        </ol>
       </div>
     </div>
   </section>
@@ -184,19 +251,19 @@
           <p class="cap center">Presets</p>
           <div class="preset-grid">
             <button type="button" class="preset" data-play-world="ocean-hideaway" aria-pressed="false">
-              <img src="/img/ocean-hideaway.webp" alt="" width="300" height="400" loading="lazy">
+              <img src="/img/scenes/ocean-hideaway-900.webp" alt="" width="900" height="504" loading="lazy">
               <span class="preset-name">Ocean Hideaway</span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
               <span class="sr-only">Play Ocean Hideaway</span>
             </button>
             <button type="button" class="preset" data-play-world="rainfall-sanctuary" aria-pressed="false">
-              <img src="/img/rainfall-sanctuary.webp" alt="" width="300" height="400" loading="lazy">
+              <img src="/img/scenes/rainfall-sanctuary-900.webp" alt="" width="900" height="504" loading="lazy">
               <span class="preset-name">Rainfall Sanctuary</span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
               <span class="sr-only">Play Rainfall Sanctuary</span>
             </button>
             <button type="button" class="preset" data-play-world="desert-camp" aria-pressed="false">
-              <img src="/img/desert-camp.webp" alt="" width="300" height="400" loading="lazy">
+              <img src="/img/scenes/desert-camp-900.webp" alt="" width="900" height="504" loading="lazy">
               <span class="preset-name">Desert Camp</span>
               <span class="play-ring sm" aria-hidden="true"><svg class="ic-play" viewBox="0 0 12 14"><path d="M1 1.2v11.6c0 .6.7 1 1.2.7l9.3-5.8c.5-.3.5-1 0-1.3L2.2.5C1.7.2 1 .6 1 1.2z"/></svg><svg class="ic-pause" viewBox="0 0 12 14"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></span>
               <span class="sr-only">Play Desert Camp</span>
@@ -208,37 +275,14 @@
     </div>
   </section>
 
-  <!-- Also inside -->
-  <section class="also" aria-labelledby="also-title">
-    <div class="wrap">
-      <header class="sec-head reveal">
-        <h2 id="also-title">For the whole night.</h2>
-      </header>
-      <div class="also-grid">
-        <article class="also-card reveal">
-          <img src="/img/night-journey.webp" alt="A lamp-lit sleeper carriage window looking out on snowy mountains" width="300" height="400" loading="lazy">
-          <h3>Night journeys</h3>
-          <p>A story read slowly: the night train through the mountains, the ferry across a still lake. The voice fades, the sounds of the journey carry on.</p>
-        </article>
-        <article class="also-card reveal">
-          <img src="/img/temple-garden.webp" alt="A lantern-lit temple garden beside a waterfall at night" width="300" height="400" loading="lazy">
-          <h3>Breathe</h3>
-          <p>A few minutes of guided breathing before the sound takes over. Long out-breath, 4-7-8 or box, with or without a soft voice.</p>
-        </article>
-        <article class="also-card reveal">
-          <img src="/img/dawn.webp" alt="Soft gold dawn light over hills" width="300" height="400" loading="lazy">
-          <h3>Gentle wake</h3>
-          <p>Dawn rises softly over ten, twenty or thirty minutes to the time you need to be up. No jolt, no blaring alarm.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
   <!-- Free -->
   <section class="free" id="free" aria-labelledby="free-title">
     <div class="wrap">
       <div class="free-grid">
-        <h2 id="free-title" class="reveal">Free. No account,<br>no ads, no tracking.</h2>
+        <div class="free-copy reveal">
+          <h2 id="free-title">Free. No account,<br>no ads, no tracking.</h2>
+          <p class="free-lede">Most sleep apps are loud about being calm: a feed of courses, a streak to keep, a paywall before the first sound plays. Sleep Moore is one idea, done quietly.</p>
+        </div>
         <dl class="facts reveal">
           <div><dt>Free, for good</dt><dd>Everything in the app at launch stays free. A later Sleep Moore+ will add new content only.</dd></div>
           <div><dt>Nothing to sign up for</dt><dd>Open it and press play. Your saved mixes live on your phone, not on our servers.</dd></div>

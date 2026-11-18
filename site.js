@@ -72,6 +72,48 @@
   $$('a', menu).forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !menu.hidden) setMenu(false); });
 
+  /* ---------- One night: pinned stage follows the chapter in view ---------- */
+  var steps = $$('[data-step]');
+  var stageCard = $('.stage-card');
+  if (steps.length && stageCard && 'IntersectionObserver' in window) {
+    var sceneImgs = $$('[data-scene]'), screenImgs = $$('[data-screen]');
+    var setStep = function (i) {
+      steps.forEach(function (s) { s.classList.toggle('is-on', Number(s.dataset.step) === i); });
+      sceneImgs.forEach(function (im) { im.classList.toggle('is-on', Number(im.dataset.scene) === i); });
+      screenImgs.forEach(function (im) { im.classList.toggle('is-on', Number(im.dataset.screen) === i); });
+      stageCard.classList.toggle('is-dark', i === 3);
+    };
+    var ratios = {};
+    var stepIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { ratios[en.target.dataset.step] = en.isIntersecting ? en.intersectionRatio : 0; });
+      var best = null, bestRatio = 0;
+      Object.keys(ratios).forEach(function (k) { if (ratios[k] > bestRatio) { bestRatio = ratios[k]; best = Number(k); } });
+      if (best !== null) setStep(best);
+    }, { rootMargin: window.matchMedia('(max-width: 1024px)').matches ? '-56% 0px -6% 0px' : '-45% 0px -45% 0px', threshold: [0, 0.01, 0.25, 0.5, 0.75, 1] });
+    steps.forEach(function (s) { stepIO.observe(s); });
+  }
+
+  /* ---------- Hero video: desktop, motion allowed, no data saver ---------- */
+  var heroVideo = $('.hero-video');
+  if (heroVideo && heroVideo.canPlayType) {
+    var wantsVideo = window.matchMedia('(min-width: 761px)').matches &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+      !(navigator.connection && navigator.connection.saveData);
+    if (wantsVideo) {
+      var addSrc = function (src, type) { var s = document.createElement('source'); s.src = src; s.type = type; heroVideo.appendChild(s); };
+      if (heroVideo.canPlayType('video/webm; codecs=vp9')) addSrc(heroVideo.dataset.webm, 'video/webm');
+      addSrc(heroVideo.dataset.mp4, 'video/mp4');
+      heroVideo.addEventListener('canplay', function () {
+        var p = heroVideo.play();
+        if (p && p.then) p.then(function () { heroVideo.classList.add('is-live'); }).catch(function () {});
+        else heroVideo.classList.add('is-live');
+      }, { once: true });
+      heroVideo.load();
+    } else {
+      heroVideo.remove();
+    }
+  }
+
   if (!player || !mixer) return; // text pages: header and menu only
 
   /* ---------- Audio engine ----------
@@ -79,7 +121,9 @@
      chain: Opus first, then FLAC, then AAC. If a browser fails to decode one
      format we drop it and try the next, so every browser ends up with sound. */
   var AC = window.AudioContext || window.webkitAudioContext;
-  var ctx = null, master = null;
+  var ctx = null, master = null, analyser = null;
+  var meterBars = $$('[data-meter] i');
+  var meterRaf = 0, meterData = null;
   var bytes = {};            // sound id -> { ext, data: ArrayBuffer }
   var buffers = {};          // sound id -> AudioBuffer
   var pending = {};          // sound id -> Promise
@@ -109,6 +153,8 @@
       master = ctx.createGain();
       master.gain.value = muted ? 0 : 1;
       master.connect(ctx.destination);
+      analyser = ctx.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.82;
+      master.connect(analyser);
       ctx.onstatechange = function () { if (ctx.state === 'running' && problem === 'Tap play again to allow sound') { problem = ''; render(); } };
     }
     if (ctx.state !== 'running' && ctx.resume) ctx.resume().catch(function () {});
@@ -163,6 +209,25 @@
     }).catch(function (err) { delete pending[id]; throw err; });
     return pending[id];
   }
+
+
+  function meterFrame() {
+    if (!analyser || !playing) { meterRaf = 0; return; }
+    if (!meterData) meterData = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(meterData);
+    var bands = [[1, 3], [3, 7], [7, 14], [14, 28], [28, 56]], total = 0;
+    for (var b = 0; b < meterBars.length; b++) {
+      var lo = bands[b][0], hi = bands[b][1], sum = 0;
+      for (var k = lo; k < hi; k++) sum += meterData[k];
+      var v = sum / (hi - lo) / 255;
+      total += v;
+      meterBars[b].style.transform = 'scaleY(' + Math.max(0.12, Math.min(1, v * 1.15)).toFixed(3) + ')';
+    }
+    document.documentElement.style.setProperty('--level', (total / meterBars.length).toFixed(3));
+    meterRaf = requestAnimationFrame(meterFrame);
+  }
+  function meterStart() { if (!meterRaf && meterBars.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) meterRaf = requestAnimationFrame(meterFrame); }
+  function meterStop() { if (meterRaf) cancelAnimationFrame(meterRaf); meterRaf = 0; meterBars.forEach(function (i) { i.style.transform = ''; }); document.documentElement.style.setProperty('--level', '0'); }
 
   function gainFor(level) { var v = level / 100; return v * v; }  // perceptual-ish taper
 
@@ -225,6 +290,7 @@
       if (timerMinutes > 0) timerEnd = Date.now() + timerMinutes * 60000; else timerEnd = null;
       setBusy(false);
       render();
+      meterStart();
       // If the browser kept the context suspended (no gesture reached it), say so.
       setTimeout(function () {
         if (playing && ctx && ctx.state !== 'running') { ctx.resume().catch(function () {}); problem = 'Tap play again to allow sound'; render(); }
@@ -243,6 +309,7 @@
     playing = false;
     timerEnd = null;
     fadeStarted = false;
+    meterStop();
     render();
   }
 
