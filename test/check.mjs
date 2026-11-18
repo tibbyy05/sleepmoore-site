@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html'];
+const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html'];
 const failures = [];
 const fail = (m) => failures.push(m);
 const exists = (p) => existsSync(join(root, p));

@@ -7,7 +7,7 @@ const browser = await puppeteer.launch({ executablePath: 'C:/Program Files/Googl
 const page = await browser.newPage();
 await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1 });
 const errors = []; page.on('pageerror', (e) => errors.push(String(e))); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-await page.goto((process.env.SITE_URL || 'http://localhost:8080') + '/lab/motion/', { waitUntil: 'networkidle0' });
+await page.goto((process.env.SITE_URL || 'http://localhost:8080') + '/' + (process.env.LAB_PATH || 'lab/motion/'), { waitUntil: 'networkidle0' });
 await page.evaluateHandle('document.fonts.ready');
 const names = await page.$$eval('.card', (cs) => cs.map((c) => c.dataset.fx));
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
