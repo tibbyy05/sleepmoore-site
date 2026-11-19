@@ -1,0 +1,33 @@
+---
+// A scene picture: AVIF and WebP at the widths asked for, with the scene's own colour behind it
+// while it loads, so nothing flashes white or grey.
+import { Picture } from 'astro:assets';
+import { SCENE_COLORS, SCENES } from '../data/scenes';
+
+interface Props {
+  id: string;
+  widths: number[];
+  sizes: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  style?: string;
+  [key: `data-${string}`]: string | number | undefined;
+}
+const { id, widths, sizes, class: cls, loading = 'lazy', fetchpriority, style = '', ...rest } = Astro.props;
+const src = SCENES[id];
+if (!src) throw new Error(`No scene picture for "${id}" in src/assets/scenes/`);
+---
+<Picture
+  src={src}
+  formats={['avif', 'webp']}
+  widths={widths}
+  sizes={sizes}
+  alt=""
+  class={cls}
+  loading={loading}
+  decoding="async"
+  fetchpriority={fetchpriority}
+  style={`background-color:${SCENE_COLORS[id] ?? '#171c27'};${style}`}
+  {...rest}
+/>

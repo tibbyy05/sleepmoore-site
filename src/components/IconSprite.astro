@@ -1,0 +1,42 @@
+---
+// One hidden sprite of Phosphor icons (light weight, fill for play and pause), referenced with
+// <use href="#i-name">. Server markup and the faders built in the browser share it, so every
+// icon on the site comes from one family with one stroke weight.
+import arrowLeft from '@phosphor-icons/core/light/arrow-left-light.svg?raw';
+import arrowRight from '@phosphor-icons/core/light/arrow-right-light.svg?raw';
+import arrowUpRight from '@phosphor-icons/core/light/arrow-up-right-light.svg?raw';
+import chimes from '@phosphor-icons/core/light/bell-simple-light.svg?raw';
+import rain from '@phosphor-icons/core/light/cloud-rain-light.svg?raw';
+import thunder from '@phosphor-icons/core/light/cloud-lightning-light.svg?raw';
+import phone from '@phosphor-icons/core/light/device-mobile-light.svg?raw';
+import water from '@phosphor-icons/core/light/drop-light.svg?raw';
+import fire from '@phosphor-icons/core/light/fire-light.svg?raw';
+import lock from '@phosphor-icons/core/light/lock-simple-light.svg?raw';
+import night from '@phosphor-icons/core/light/moon-stars-light.svg?raw';
+import moon from '@phosphor-icons/core/light/moon-light.svg?raw';
+import sliders from '@phosphor-icons/core/light/sliders-horizontal-light.svg?raw';
+import snow from '@phosphor-icons/core/light/snowflake-light.svg?raw';
+import sparkle from '@phosphor-icons/core/light/sparkle-light.svg?raw';
+import speaker from '@phosphor-icons/core/light/speaker-high-light.svg?raw';
+import muted from '@phosphor-icons/core/light/speaker-slash-light.svg?raw';
+import timer from '@phosphor-icons/core/light/timer-light.svg?raw';
+import palms from '@phosphor-icons/core/light/tree-palm-light.svg?raw';
+import noAccount from '@phosphor-icons/core/light/user-circle-dashed-light.svg?raw';
+import waveform from '@phosphor-icons/core/light/waveform-light.svg?raw';
+import waves from '@phosphor-icons/core/light/waves-light.svg?raw';
+import wind from '@phosphor-icons/core/light/wind-light.svg?raw';
+import close from '@phosphor-icons/core/light/x-light.svg?raw';
+import pause from '@phosphor-icons/core/fill/pause-fill.svg?raw';
+import play from '@phosphor-icons/core/fill/play-fill.svg?raw';
+
+const icons: Record<string, string> = {
+  'arrow-left': arrowLeft, 'arrow-right': arrowRight, 'arrow-up-right': arrowUpRight,
+  chimes, rain, thunder, phone, water, fire, lock, night, moon, sliders, snow, sparkle, speaker, muted, timer,
+  palms, 'no-account': noAccount, waveform, waves, wind, close, pause, play,
+};
+const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+const symbols = Object.entries(icons)
+  .map(([name, svg]) => `<symbol id="i-${name}" viewBox="0 0 256 256">${inner(svg)}</symbol>`)
+  .join('');
+---
+<svg class="sprite" aria-hidden="true" focusable="false" set:html={symbols} />

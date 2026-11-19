@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 if (!existsSync(join(root, 'index.html'))) { console.error('dist/ is missing: run `npm run build` first'); process.exit(1); }
-const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html'];
+const { WORLDS, SOUNDS } = await import('../src/data/worlds.ts');
+const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html', ...WORLDS.map((w) => `worlds/${w.id}/index.html`)];
 const failures = [];
 const fail = (m) => failures.push(m);
 const exists = (p) => existsSync(join(root, p));
@@ -50,32 +51,37 @@ for (const page of pages) {
   const h1s = (html.match(/<h1[\s>]/g) || []).length;
   if (h1s !== 1) fail(`${page}: expected one h1, found ${h1s}`);
   for (const m of html.matchAll(/<img\b([^>]*)>/g)) {
-    if (!/\salt="/.test(m[1])) fail(`${page}: <img> without alt: ${m[1].slice(0, 60)}`);
+    if (!/\salt(=|\s|$)/.test(m[1])) fail(`${page}: <img> without alt: ${m[1].slice(0, 60)}`);
   }
   for (const m of html.matchAll(/<button\b([^>]*)>/g)) {
     if (!/type="button"/.test(m[1])) fail(`${page}: <button> without type="button": ${m[1].slice(0, 60)}`);
   }
 }
 
-// Audio files for every sound used by a world in site.js, in both formats.
-const js = readFileSync(join(root, 'site.js'), 'utf8');
-const sounds = new Set([...js.matchAll(/\['([a-z]+)',\s*\d+\]/g)].map((m) => m[1]));
-if (sounds.size < 5) fail('site.js: could not find world layers');
+// Audio files for every sound a world uses, in all three formats.
+const sounds = new Set(WORLDS.flatMap((w) => w.layers.map(([id]) => id)));
 for (const s of sounds) {
+  if (!SOUNDS[s]) fail(`worlds.ts: ${s} has no entry in SOUNDS`);
   for (const ext of ['opus', 'flac', 'm4a']) {
     const p = `audio/${s}.${ext}`;
     if (!exists(p)) fail(`${p} is missing`);
     else if (statSync(join(root, p)).size < 20000) fail(`${p} is suspiciously small`);
   }
 }
-const worldIds = new Set([...js.matchAll(/'([a-z-]+)':\s*\{\s*name:/g)].map((m) => m[1]));
-const home = readFileSync(join(root, 'index.html'), 'utf8');
-for (const m of home.matchAll(/data-play-world="([^"]+)"/g)) {
-  if (!worldIds.has(m[1])) fail(`index.html: button plays unknown world ${m[1]}`);
+const worldIds = new Set(WORLDS.map((w) => w.id));
+for (const page of pages.filter((p) => !p.startsWith('lab/'))) {
+  const html = readFileSync(join(root, page), 'utf8');
+  for (const m of html.matchAll(/data-play-world="([^"]+)"/g)) {
+    if (!worldIds.has(m[1])) fail(`${page}: plays unknown world ${m[1]}`);
+  }
+  // Every icon used must exist in the sprite.
+  const symbols = new Set([...html.matchAll(/<symbol id="i-([a-z-]+)"/g)].map((m) => m[1]));
+  for (const m of html.matchAll(/<use href="#i-([a-z-]+)"/g)) if (!symbols.has(m[1])) fail(`${page}: icon ${m[1]} is not in the sprite`);
 }
+for (const w of WORLDS) for (const [id] of w.layers) if (!SOUNDS[id].icon) fail(`${id} has no icon`);
 
 // Images referenced from CSS.
-const css = readFileSync(join(root, 'site.css'), 'utf8');
+const css = readFileSync(join(root, '..', 'src', 'styles', 'site.css'), 'utf8');
 for (const m of css.matchAll(/url\(["']?(\/[^"')]+)/g)) {
   if (!exists(m[1].slice(1))) fail(`site.css: ${m[1]} does not exist`);
 }
@@ -83,7 +89,7 @@ for (const m of css.matchAll(/url\(["']?(\/[^"')]+)/g)) {
 // Search engines: robots.txt points at the sitemap, and the sitemap lists the real pages only.
 if (!exists('robots.txt') || !/Sitemap: https:\/\/sleepmoore\.app\/sitemap-index\.xml/.test(readFileSync(join(root, 'robots.txt'), 'utf8'))) fail('robots.txt missing or has no sitemap line');
 const sitemapXml = exists('sitemap-0.xml') ? readFileSync(join(root, 'sitemap-0.xml'), 'utf8') : '';
-for (const url of ['https://sleepmoore.app/', 'https://sleepmoore.app/support/', 'https://sleepmoore.app/privacy/']) {
+for (const url of ['https://sleepmoore.app/', 'https://sleepmoore.app/support/', 'https://sleepmoore.app/privacy/', ...WORLDS.map((w) => `https://sleepmoore.app/worlds/${w.id}/`)]) {
   if (!sitemapXml.includes(`<loc>${url}</loc>`)) fail(`sitemap is missing ${url}`);
 }
 if (sitemapXml.includes('/lab/')) fail('sitemap lists the unlisted motion lab');

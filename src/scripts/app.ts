@@ -1,0 +1,330 @@
+/* Page wiring for sleepmoore.app. The sound engine (engine.ts) lives for the whole visit; this file
+   binds whatever page is showing, on first load and after every client-side page change, and
+   tears it down again before the next one. */
+import { HERO_EFFECTS, SOUNDS, WORLDS_BY_ID, type SoundId } from '../data/worlds';
+import * as engine from './engine';
+
+const { state } = engine;
+const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
+const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => Array.from(r.querySelectorAll<T>(s));
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+document.documentElement.classList.remove('no-js');
+
+// ---------- Rendering: every bound control reflects the engine ----------
+const fmt = (ms: number) => {
+  const s = Math.max(0, Math.round(ms / 1000));
+  const m = Math.floor(s / 60), r = s % 60;
+  return m + ':' + (r < 10 ? '0' : '') + r;
+};
+
+function stateText(worldId: string) {
+  if (state.problem && worldId === state.current) return state.problem;
+  if (state.busy && worldId === state.current) return 'Loading';
+  if (!state.playing || worldId !== state.current) return 'Press play to hear it';
+  const left = engine.timeLeft();
+  return left !== null ? 'Playing · fades out in ' + fmt(left) : 'Playing all night';
+}
+
+function render() {
+  const world = WORLDS_BY_ID[state.current];
+  const playingHere = (id: string) => state.playing && id === state.current;
+
+  $$('[data-now]').forEach((el) => (el.textContent = world.name));
+  $$<HTMLButtonElement>('button[data-play-world]').forEach((b) => {
+    const on = playingHere(b.dataset.playWorld!);
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-busy', String(state.busy && b.dataset.playWorld === state.current));
+    const label = $('[data-label]', b);
+    if (label) label.textContent = on ? 'Pause' : (label.dataset.idle || 'Play this soundscape');
+  });
+  $$('a[data-play-world]').forEach((a) => a.classList.toggle('is-playing', playingHere(a.dataset.playWorld!)));
+  $$('[data-toggle]').forEach((t) => {
+    const id = t.closest<HTMLElement>('[data-world]')?.dataset.world || state.current;
+    const on = playingHere(id);
+    t.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    t.classList.toggle('is-playing', on);
+  });
+  $$('.player').forEach((p) => p.classList.toggle('is-playing', state.playing));
+  $$('.mixer').forEach((m) => {
+    const id = m.dataset.world || state.current;
+    m.classList.toggle('is-playing', playingHere(id));
+    m.classList.toggle('has-problem', !!state.problem && id === state.current);
+    const st = $('[data-state]', m);
+    if (st) st.textContent = stateText(id);
+    if (!m.dataset.world && m.dataset.rendered !== state.current) renderLayers(m, state.current);
+  });
+  document.body.classList.toggle('is-playing-page', state.playing);
+  $$('[data-mute]').forEach((btn) => { btn.setAttribute('aria-pressed', String(state.muted)); btn.setAttribute('aria-label', state.muted ? 'Unmute' : 'Mute'); });
+  $$('[data-timer]').forEach((chip) => chip.setAttribute('aria-checked', String(Number(chip.dataset.timer) === state.timerMinutes)));
+  renderTimeBar();
+  renderDock();
+}
+
+function renderTimeBar() {
+  const left = engine.timeLeft();
+  const frac = left !== null ? Math.max(0, left / (state.timerMinutes * 60000)) : 1;
+  $$('[data-time]').forEach((el) => (el.textContent = left !== null ? fmt(left) : state.timerMinutes > 0 ? fmt(state.timerMinutes * 60000) : '∞'));
+  $$('[data-fill]').forEach((el) => (el.style.width = frac * 100 + '%'));
+  $$('[data-knob]').forEach((el) => (el.style.left = frac * 100 + '%'));
+}
+
+// ---------- Mixer: three faders for a world ----------
+function renderLayers(mixer: HTMLElement, worldId: string) {
+  const box = $('[data-layers]', mixer);
+  if (!box) return;
+  mixer.dataset.rendered = worldId;
+  box.innerHTML = '';
+  engine.levelsFor(worldId).forEach(([id, level], i) => {
+    const s = SOUNDS[id as SoundId];
+    const row = document.createElement('div');
+    row.className = 'layer';
+    const inputId = 'layer-' + worldId + '-' + id + '-' + i;
+    row.innerHTML =
+      '<svg class="icon" aria-hidden="true"><use href="#i-' + s.icon + '"></use></svg>' +
+      '<label for="' + inputId + '">' + s.label + '</label>' +
+      '<input type="range" id="' + inputId + '" min="0" max="100" step="1" value="' + level + '" aria-valuetext="' + level + ' percent" style="--p:' + level + '%">' +
+      '<output for="' + inputId + '">' + level + '%</output>';
+    box.appendChild(row);
+    const input = $<HTMLInputElement>('input', row)!, out = $('output', row)!;
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      input.style.setProperty('--p', v + '%');
+      input.setAttribute('aria-valuetext', v + ' percent');
+      out.textContent = v + '%';
+      engine.setLevel(worldId, id, v);
+    });
+  });
+}
+
+// ---------- Player dock: persists across pages, shows once sound has started ----------
+let dockHidden = false; // a big player is on screen, so the dock steps aside
+function renderDock() {
+  const dock = document.getElementById('dock');
+  if (!dock) return;
+  const show = state.started && !dockHidden;
+  dock.classList.toggle('is-shown', show);
+  dock.toggleAttribute('inert', !show);
+  dock.setAttribute('aria-hidden', String(!show));
+  const world = WORLDS_BY_ID[state.current];
+  const link = $<HTMLAnchorElement>('[data-dock-link]', dock);
+  if (link) link.href = '/worlds/' + world.id + '/';
+  const thumb = $<HTMLImageElement>('[data-dock-thumb]', dock);
+  const want = (JSON.parse(dock.dataset.thumbs || '{}') as Record<string, string>)[world.id];
+  if (thumb && want && thumb.getAttribute('src') !== want) thumb.src = want;
+  const st = $('[data-dock-state]', dock);
+  if (st) {
+    const left = engine.timeLeft();
+    st.textContent = state.busy ? 'Loading' : !state.playing ? 'Paused' : left !== null ? 'Fades out in ' + fmt(left) : 'Playing all night';
+  }
+  dock.classList.toggle('is-playing', state.playing);
+}
+
+// ---------- Global wiring (once) ----------
+engine.subscribe(render);
+
+// One delegated click handler survives every page change.
+document.addEventListener('click', (e) => {
+  const t = e.target as Element;
+  const worldLink = t.closest<HTMLAnchorElement>('a[data-play-world]');
+  if (worldLink) {
+    // A plain click into a world starts its sound on the way in. Modified clicks just open the page.
+    const me = e as MouseEvent;
+    if (!me.metaKey && !me.ctrlKey && !me.shiftKey && !me.altKey && me.button === 0) {
+      engine.ensurePlaying(worldLink.dataset.playWorld!);
+      // Exactly one element may carry a transition name: clear any left from earlier.
+      $$<HTMLElement>('[data-vt], [style*="view-transition-name"]').forEach((el) => { el.style.viewTransitionName = ''; delete el.dataset.vt; });
+      const img = $<HTMLElement>('img', worldLink);
+      if (img) { img.style.viewTransitionName = 'world-scene'; img.dataset.vt = ''; }
+    }
+    return;
+  }
+  const play = t.closest<HTMLButtonElement>('button[data-play-world]');
+  if (play) { engine.toggle(play.dataset.playWorld); return; }
+  const tgl = t.closest<HTMLElement>('[data-toggle]');
+  if (tgl) { engine.toggle(tgl.closest<HTMLElement>('[data-world]')?.dataset.world || state.current); return; }
+  const mute = t.closest('[data-mute]');
+  if (mute) { engine.setMuted(!state.muted); return; }
+  const chip = t.closest<HTMLElement>('[data-timer]');
+  if (chip) { engine.setTimer(Number(chip.dataset.timer)); return; }
+  const stop = t.closest('[data-dock-close]');
+  if (stop) { engine.pause(); state.started = false; render(); return; }
+});
+
+document.addEventListener('keydown', (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (e.key === ' ' && !/INPUT|BUTTON|TEXTAREA|SELECT|A|SUMMARY/.test(tag)) { e.preventDefault(); engine.toggle(); }
+  if (e.key === 'Escape') { const menu = $('#menu'); if (menu && !menu.hidden) setMenu(false); }
+});
+
+window.addEventListener('scroll', () => { const h = $('.top'); if (h) h.classList.toggle('is-stuck', window.scrollY > 24); }, { passive: true });
+
+function setMenu(open: boolean) {
+  const btn = $('.menu-btn'), menu = $('#menu');
+  if (!btn || !menu) return;
+  btn.setAttribute('aria-expanded', String(open));
+  btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  menu.hidden = !open;
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+
+// Fetch the first world's files on the first pointer movement so the first tap answers at once.
+// Bytes only: decoding waits for the tap that creates the audio context.
+const warm = () => engine.levelsFor(state.current).forEach(([id]) => engine.fetchBytes(id).catch(() => {}));
+window.addEventListener('pointermove', warm, { once: true, passive: true });
+window.addEventListener('touchstart', warm, { once: true, passive: true });
+
+// The scene that grew into a world page shrinks back into its card on the way home.
+document.addEventListener('astro:before-swap', (e) => {
+  const ev = e as Event & { newDocument: Document; from: URL; to: URL };
+  const m = ev.from.pathname.match(/^\/worlds\/([a-z-]+)\/?$/);
+  // Only when going home: a world page already names its own hero.
+  if (!m || ev.to.pathname !== '/') return;
+  const card = ev.newDocument.querySelector<HTMLElement>(`a[data-play-world="${m[1]}"] img`);
+  if (card) { card.style.viewTransitionName = 'world-scene'; card.dataset.vt = ''; }
+});
+
+// ---------- Per page ----------
+let teardown: (() => void)[] = [];
+
+document.addEventListener('astro:before-swap', () => {
+  teardown.forEach((fn) => { try { fn(); } catch { /* gone */ } });
+  teardown = [];
+  setMenu(false);
+});
+
+document.addEventListener('astro:page-load', () => {
+  const header = $('.top');
+  if (header) header.classList.toggle('is-stuck', window.scrollY > 24);
+
+  // Menu
+  const menuBtn = $('.menu-btn'), menu = $('#menu');
+  if (menuBtn && menu) {
+    const onMenu = () => setMenu(menu.hidden !== false);
+    menuBtn.addEventListener('click', onMenu);
+    const close = () => setMenu(false);
+    $$('a', menu).forEach((a) => a.addEventListener('click', close));
+    teardown.push(() => menuBtn.removeEventListener('click', onMenu));
+  }
+
+  // A world page points the player at its world when nothing is playing yet.
+  const page = $<HTMLElement>('[data-world-page]');
+  if (page) engine.select(page.dataset.worldPage!);
+
+  // Mixers fixed to a world render once; the home mixer follows the current world (render()).
+  $$('.mixer[data-world]').forEach((m) => renderLayers(m, m.dataset.world!));
+  engine.setMeterBars($$('[data-meter] i'));
+
+  // The dock steps aside while a big player is on screen.
+  dockHidden = false;
+  const big = $$('[data-dock-hide]');
+  if (big.length && 'IntersectionObserver' in window) {
+    const seen = new Map<Element, boolean>();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => seen.set(en.target, en.isIntersecting));
+      dockHidden = Array.from(seen.values()).some(Boolean);
+      renderDock();
+    }, { threshold: 0.15 });
+    big.forEach((el) => io.observe(el));
+    teardown.push(() => io.disconnect());
+  }
+
+  bindNightStory();
+  bindHeroVideo();
+  render();
+
+  // iPhone: a hint about the silent switch, the first time sound starts on this page.
+  const hint = $('[data-ios-hint]');
+  if (hint && engine.isApple && /iP(hone|od)/.test(navigator.userAgent)) {
+    let shown = false;
+    teardown.push(engine.subscribe(() => {
+      if (shown || !state.playing) return;
+      shown = true; hint.classList.add('is-shown'); setTimeout(() => hint.classList.remove('is-shown'), 9000);
+    }) as unknown as () => void);
+  }
+
+  if (!reduced.matches) {
+    import('./motion').then(({ mountMotion }) => { teardown.push(mountMotion()); }).catch(() => {});
+    const canvases = $$<HTMLCanvasElement>('canvas[data-ambience]');
+    if (canvases.length) {
+      import('./ambience').then(({ mountAmbience }) => {
+        for (const cv of canvases) {
+          const kind = cv.dataset.ambience!;
+          if (kind === 'hero') {
+            const mobile = window.matchMedia('(max-width: 760px)').matches;
+            const glass = mobile ? HERO_EFFECTS.window.mobile : HERO_EFFECTS.window.desktop;
+            teardown.push(mountAmbience(cv, {
+              worldId: 'rainy-cabin',
+              effects: [{ kind: 'rain', sound: 'rain' }, ...(mobile ? HERO_EFFECTS.mobile : HERO_EFFECTS.desktop)],
+              natural: mobile ? [900, 1200] : [1920, 1074],
+              position: mobile ? [0.62, 0.4] : [0.5, 0.4],
+              glass,
+            }));
+          } else {
+            const world = WORLDS_BY_ID[kind];
+            if (!world) continue;
+            const [fx, fy] = world.focus.split(' ').map((v) => parseFloat(v) / 100);
+            teardown.push(mountAmbience(cv, { worldId: world.id, effects: world.effects, natural: [2560, 1434], position: [fx, fy] }));
+          }
+        }
+      }).catch(() => {});
+    }
+  }
+});
+
+// ---------- One night: pinned stage follows the chapter in view ----------
+function bindNightStory() {
+  const steps = $$('[data-step]');
+  const stageCard = $('.stage-card');
+  if (!steps.length || !stageCard || !('IntersectionObserver' in window)) return;
+  const sceneImgs = $$('[data-scene]'), screenImgs = $$('[data-screen]');
+  const setStep = (i: number) => {
+    steps.forEach((s) => s.classList.toggle('is-on', Number(s.dataset.step) === i));
+    sceneImgs.forEach((im) => im.classList.toggle('is-on', Number(im.dataset.scene) === i));
+    screenImgs.forEach((im) => im.classList.toggle('is-on', Number(im.dataset.screen) === i));
+    stageCard.classList.toggle('is-dark', i === 3);
+  };
+  const ratios: Record<string, number> = {};
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => { ratios[(en.target as HTMLElement).dataset.step!] = en.isIntersecting ? en.intersectionRatio : 0; });
+    let best: number | null = null, bestRatio = 0;
+    Object.keys(ratios).forEach((k) => { if (ratios[k] > bestRatio) { bestRatio = ratios[k]; best = Number(k); } });
+    if (best !== null) setStep(best);
+  }, { rootMargin: window.matchMedia('(max-width: 1024px)').matches ? '-56% 0px -6% 0px' : '-45% 0px -45% 0px', threshold: [0, 0.01, 0.25, 0.5, 0.75, 1] });
+  steps.forEach((s) => io.observe(s));
+  teardown.push(() => io.disconnect());
+}
+
+// ---------- Hero video: desktop, motion allowed, no data saver ----------
+function bindHeroVideo() {
+  const v = $<HTMLVideoElement>('.hero-video');
+  if (!v || !v.canPlayType) return;
+  const wants = window.matchMedia('(min-width: 761px)').matches && !reduced.matches && !((navigator as any).connection && (navigator as any).connection.saveData);
+  if (!wants) { v.remove(); return; }
+  const add = (src: string, type: string) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); };
+  if (v.canPlayType('video/webm; codecs=vp9')) add(v.dataset.webm!, 'video/webm');
+  add(v.dataset.mp4!, 'video/mp4');
+  v.addEventListener('canplay', () => {
+    const p = v.play();
+    if (p && p.then) p.then(() => v.classList.add('is-live')).catch(() => {}); else v.classList.add('is-live');
+  }, { once: true });
+  v.load();
+}
+
+// Diagnostics for devices we cannot attach to: open any page with ?debug=1 and press play.
+if (/[?&]debug=1/.test(location.search)) {
+  const panel = document.createElement('pre');
+  panel.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99;margin:0;padding:10px 12px;border-radius:12px;background:rgba(11,14,21,.92);border:1px solid rgba(243,234,219,.3);color:#f3eadb;font:11px/1.5 Menlo,Consolas,monospace;white-space:pre-wrap;max-height:45vh;overflow:auto;pointer-events:none';
+  (document.getElementById('dock') || document.body).appendChild(panel);
+  setInterval(() => {
+    const sm = (window as any).__sleepMoore;
+    panel.textContent = [
+      'ua: ' + navigator.userAgent.slice(0, 90),
+      'apple: ' + sm.isApple + '  formats: ' + sm.formats.join(',') + '  secure: ' + window.isSecureContext,
+      'diag: ' + JSON.stringify(sm.diag),
+      'playing: ' + sm.playing + '  current: ' + sm.current + '  live: ' + Object.keys(sm.live).join(','),
+      'bytes: ' + sm.bytes.join(' '),
+      'problem: ' + (sm.problem || '-'),
+    ].join('\n');
+  }, 500);
+}

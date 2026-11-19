@@ -1,0 +1,27 @@
+---
+// The player dock: rises from the bottom once sound has started and stays through every page
+// change (transition:persist), so the night keeps playing while you look around.
+import { getImage } from 'astro:assets';
+import { SCENES } from '../data/scenes';
+import { WORLDS } from '../data/worlds';
+import Icon from './Icon.astro';
+import PlayIcons from './PlayIcons.astro';
+
+const thumbs: Record<string, string> = {};
+for (const w of WORLDS) {
+  const img = await getImage({ src: SCENES[w.id], width: 112, height: 112, fit: 'cover', format: 'webp' });
+  thumbs[w.id] = img.src;
+}
+---
+<aside id="dock" class="dock" aria-label="Now playing" aria-hidden="true" inert data-thumbs={JSON.stringify(thumbs)} transition:persist transition:name="dock">
+  <a class="dock-world" href="/worlds/rainy-cabin/" data-dock-link>
+    <img data-dock-thumb src={thumbs['rainy-cabin']} alt="" width="56" height="56">
+    <span class="dock-text">
+      <span class="dock-name" data-now>Rainy Cabin</span>
+      <span class="dock-state" data-dock-state>Paused</span>
+    </span>
+  </a>
+  <span class="meter dock-meter" aria-hidden="true" data-meter><i></i><i></i><i></i><i></i><i></i></span>
+  <button class="dock-toggle" type="button" aria-label="Play" data-toggle><PlayIcons /></button>
+  <button class="dock-close" type="button" aria-label="Stop and close the player" data-dock-close><Icon name="close" /></button>
+</aside>

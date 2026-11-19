@@ -1,0 +1,273 @@
+/* Living scenes: rain, snow, embers, fireflies, leaves, spray, lightning and firelight drawn over
+   a world's picture. Each effect idles softly and grows with its own sound's fader and the live
+   loudness, so the picture answers the mix. Plain 2D canvas, paused off screen and in background
+   tabs, never started under prefers-reduced-motion. */
+import type { Effect } from '../data/worlds';
+import { energy, soundLevel } from './engine';
+
+type Options = {
+  worldId: string;
+  effects: Effect[];
+  /** Source image size and CSS object-position, so points follow the picture at any crop. */
+  natural: [number, number];
+  position: [number, number];
+  /** Optional clip (x0, y0, x1, y1 as fractions of the image): rain stays on the window glass. */
+  glass?: [number, number, number, number];
+};
+
+type P = { x: number; y: number; vx: number; vy: number; r: number; a: number; life: number; age: number; seed: number };
+
+const IDLE = 0.22;
+const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void {
+  const ctx2d = canvas.getContext('2d');
+  if (!ctx2d) return () => {};
+  const c: CanvasRenderingContext2D = ctx2d;
+  const small = window.matchMedia('(max-width: 760px)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, small ? 1.25 : 1.5);
+  let w = 0, h = 0, map = { ox: 0, oy: 0, dw: 1, dh: 1 };
+
+  const resize = () => {
+    const r = canvas.getBoundingClientRect();
+    w = Math.max(1, Math.round(r.width)); h = Math.max(1, Math.round(r.height));
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const [iw, ih] = o.natural;
+    const s = Math.max(w / iw, h / ih);
+    const dw = iw * s, dh = ih * s;
+    map = { ox: (w - dw) * o.position[0], oy: (h - dh) * o.position[1], dw, dh };
+  };
+  const px = (fx: number) => map.ox + fx * map.dw;
+  const py = (fy: number) => map.oy + fy * map.dh;
+
+  // One pool per effect; intensities ease toward their targets.
+  const pools = o.effects.map(() => [] as P[]);
+  const level = o.effects.map(() => IDLE);
+  let flash = 0, nextFlash = performance.now() + rand(6000, 14000);
+
+  const target = (e: Effect) => IDLE + soundLevel(o.worldId, e.sound) * (0.55 + 1.1 * energy);
+  const wind = () => 0.25 + soundLevel(o.worldId, 'wind') * 1.2 + soundLevel(o.worldId, 'palms') * 0.4;
+
+  function spawn(e: Effect, i: number) {
+    const pool = pools[i];
+    const L = level[i];
+    const area = (w * h) / 1e6;
+    const clip = o.glass;
+    switch (e.kind) {
+      case 'rain': {
+        const want = Math.round((clip ? 30 : 60) * area + (clip ? 150 : 260) * L * area);
+        while (pool.length < want) {
+          const x0 = clip ? px(clip[0]) : -40, x1 = clip ? px(clip[2]) : w + 40;
+          pool.push({ x: rand(x0, x1), y: rand(clip ? py(clip[1]) : -h, clip ? py(clip[3]) : h), vx: 0, vy: rand(700, 1200), r: rand(10, 24), a: rand(0.06, 0.2), life: 1e9, age: 0, seed: Math.random() });
+        }
+        if (pool.length > want + 4) pool.length = want;
+        if (clip) {
+          // A few drops resting on the glass, sliding now and then.
+          const drops = pools[i] as P[] & { drops?: P[] };
+          if (!drops.drops) drops.drops = [];
+          const dwant = Math.round(6 + 26 * L);
+          while (drops.drops.length < dwant) drops.drops.push({ x: rand(px(clip[0]), px(clip[2])), y: rand(py(clip[1]), py(clip[3])), vx: 0, vy: 0, r: rand(0.8, 2.4), a: rand(0.25, 0.6), life: rand(4, 14), age: 0, seed: Math.random() });
+          if (drops.drops.length > dwant + 2) drops.drops.length = dwant;
+        }
+        break;
+      }
+      case 'snow': {
+        const want = Math.round(70 * area + 260 * L * area);
+        while (pool.length < want) pool.push({ x: rand(0, w), y: rand(-h, h), vx: 0, vy: rand(18, 55), r: rand(0.7, 2.6), a: rand(0.35, 0.85), life: 1e9, age: 0, seed: Math.random() * 6.28 });
+        if (pool.length > want + 4) pool.length = want;
+        break;
+      }
+      case 'embers': {
+        const rate = 2.5 + 9 * L; // per second: a few sparks, never a column
+        if (Math.random() < rate / 60) pool.push({ x: px(e.at[0]) + rand(-24, 24), y: py(e.at[1]) + rand(-6, 6), vx: rand(-14, 14), vy: -rand(28, 70), r: rand(0.7, 1.8), a: 1, life: rand(1.2, 3), age: 0, seed: Math.random() * 6.28 });
+        break;
+      }
+      case 'fireflies': {
+        const want = Math.round(6 + 22 * L);
+        while (pool.length < want) pool.push({ x: rand(0, w), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-8, 8), vy: rand(-6, 6), r: rand(1, 1.8), a: 0, life: 1e9, age: rand(0, 10), seed: Math.random() * 6.28 });
+        if (pool.length > want + 1) pool.length = want;
+        break;
+      }
+      case 'leaves': {
+        const want = Math.round(5 + 18 * L);
+        while (pool.length < want) pool.push({ x: rand(-40, w), y: rand(-h * 0.6, -10), vx: rand(10, 30), vy: rand(22, 48), r: rand(3, 6), a: rand(0.55, 0.9), life: 1e9, age: 0, seed: Math.random() * 6.28 });
+        if (pool.length > want + 1) pool.length = want;
+        break;
+      }
+      case 'spray': {
+        const want = Math.round(16 + 70 * L);
+        while (pool.length < want) pool.push({ x: rand(0, w), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-6, 6), vy: -rand(4, 16), r: rand(0.6, 1.6), a: 0, life: rand(3, 8), age: 0, seed: Math.random() * 6.28 });
+        if (pool.length > want + 2) pool.length = want;
+        break;
+      }
+    }
+  }
+
+  function draw(dt: number, now: number) {
+    c.clearRect(0, 0, w, h);
+    const wd = wind();
+    o.effects.forEach((e, i) => {
+      level[i] += (target(e) - level[i]) * Math.min(1, dt * 1.8);
+      const L = level[i];
+      spawn(e, i);
+      const pool = pools[i];
+      switch (e.kind) {
+        case 'rain': {
+          const clip = o.glass;
+          c.save();
+          if (clip) { c.beginPath(); c.rect(px(clip[0]), py(clip[1]), px(clip[2]) - px(clip[0]), py(clip[3]) - py(clip[1])); c.clip(); }
+          c.lineCap = 'round';
+          c.lineWidth = clip ? 0.8 : 1;
+          const slant = 0.12 + wd * 0.18;
+          const top = clip ? py(clip[1]) : -30, bottom = clip ? py(clip[3]) : h + 30;
+          for (const p of pool) {
+            p.y += p.vy * dt; p.x += p.vy * slant * dt;
+            if (p.y > bottom) { p.y = top - rand(0, 60); p.x = rand(clip ? px(clip[0]) - 40 : -60, clip ? px(clip[2]) : w); }
+            c.strokeStyle = `rgba(205,218,238,${(p.a * (0.6 + L * 0.7)).toFixed(3)})`;
+            c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.r * slant, p.y - p.r); c.stroke();
+          }
+          const drops = (pool as P[] & { drops?: P[] }).drops;
+          if (drops) {
+            for (const d of drops) {
+              d.age += dt;
+              if (d.age > d.life) { d.vy = rand(30, 90); }
+              if (d.vy > 0) { d.y += d.vy * dt; d.vy *= 0.985; if (d.vy < 4) { d.vy = 0; d.age = 0; d.life = rand(3, 12); } }
+              if (d.y > bottom) { d.y = rand(top, top + (bottom - top) * 0.5); d.x = rand(px(clip![0]), px(clip![2])); d.vy = 0; d.age = 0; }
+              const g = c.createRadialGradient(d.x - d.r * 0.3, d.y - d.r * 0.3, 0, d.x, d.y, d.r * 1.6);
+              g.addColorStop(0, `rgba(235,242,255,${d.a})`); g.addColorStop(1, 'rgba(235,242,255,0)');
+              c.fillStyle = g; c.beginPath(); c.arc(d.x, d.y, d.r * 1.6, 0, 6.283); c.fill();
+              if (d.vy > 0) { c.strokeStyle = `rgba(220,230,250,${(d.a * 0.35).toFixed(3)})`; c.lineWidth = d.r * 0.8; c.beginPath(); c.moveTo(d.x, d.y); c.lineTo(d.x, d.y - 26); c.stroke(); }
+            }
+          }
+          c.restore();
+          break;
+        }
+        case 'snow': {
+          c.fillStyle = '#f4f6fb';
+          for (const p of pool) {
+            p.seed += dt * 0.9;
+            p.y += p.vy * dt * (0.8 + L * 0.5);
+            p.x += (Math.sin(p.seed) * 14 + wd * 26) * dt;
+            if (p.y > h + 5) { p.y = -5; p.x = rand(-20, w); }
+            if (p.x > w + 10) p.x = -10;
+            c.globalAlpha = p.a * (0.55 + L * 0.6);
+            c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.283); c.fill();
+          }
+          c.globalAlpha = 1;
+          break;
+        }
+        case 'embers': {
+          c.globalCompositeOperation = 'lighter';
+          for (let k = pool.length - 1; k >= 0; k--) {
+            const p = pool[k];
+            p.age += dt;
+            if (p.age > p.life) { pool.splice(k, 1); continue; }
+            p.seed += dt * 3;
+            p.x += (p.vx + Math.sin(p.seed) * 12 + wd * 10) * dt; p.y += p.vy * dt;
+            const t = p.age / p.life, a = (1 - t) * (t < 0.1 ? t * 10 : 1) * (0.4 + L * 0.4);
+            const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+            g.addColorStop(0, `rgba(255,214,140,${a.toFixed(3)})`); g.addColorStop(0.35, `rgba(255,140,50,${(a * 0.6).toFixed(3)})`); g.addColorStop(1, 'rgba(255,90,20,0)');
+            c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, p.r * 4, 0, 6.283); c.fill();
+          }
+          c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'fireflies': {
+          c.globalCompositeOperation = 'lighter';
+          const y0 = Math.max(0, py(e.band[0])), y1 = Math.min(h, py(e.band[1]));
+          for (const p of pool) {
+            p.age += dt;
+            p.vx += rand(-14, 14) * dt; p.vy += rand(-10, 10) * dt;
+            p.vx *= 0.99; p.vy *= 0.99;
+            p.x += (p.vx + wd * 4) * dt; p.y += p.vy * dt;
+            if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
+            if (p.y < y0) p.vy += 8 * dt * 10; if (p.y > y1) p.vy -= 8 * dt * 10;
+            const blink = Math.max(0, Math.sin(p.age * 1.3 + p.seed)) ** 3;
+            const a = blink * (0.35 + L * 0.65);
+            if (a < 0.01) continue;
+            const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, 9);
+            g.addColorStop(0, `rgba(236,248,170,${a.toFixed(3)})`); g.addColorStop(0.3, `rgba(200,230,110,${(a * 0.45).toFixed(3)})`); g.addColorStop(1, 'rgba(160,210,80,0)');
+            c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, 9, 0, 6.283); c.fill();
+          }
+          c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'leaves': {
+          for (const p of pool) {
+            p.seed += dt * (1.2 + L);
+            p.y += p.vy * dt * (0.8 + L * 0.6);
+            p.x += (p.vx * (0.4 + wd) + Math.sin(p.seed) * 22) * dt;
+            if (p.y > h + 20 || p.x > w + 30) { p.y = rand(-80, -10); p.x = rand(-40, w * 0.8); }
+            c.save();
+            c.translate(p.x, p.y); c.rotate(p.seed * 0.8); c.scale(1, Math.abs(Math.cos(p.seed)) * 0.7 + 0.3);
+            c.globalAlpha = p.a * (0.6 + L * 0.5);
+            c.fillStyle = (p.r > 4.6) ? '#b8402c' : '#d0633a';
+            c.beginPath(); c.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, 6.283); c.fill();
+            c.restore();
+          }
+          c.globalAlpha = 1;
+          break;
+        }
+        case 'spray': {
+          c.fillStyle = '#e8eef8';
+          for (let k = pool.length - 1; k >= 0; k--) {
+            const p = pool[k];
+            p.age += dt;
+            if (p.age > p.life) { pool.splice(k, 1); continue; }
+            p.x += (p.vx + wd * 6) * dt; p.y += p.vy * dt;
+            const t = p.age / p.life;
+            c.globalAlpha = Math.sin(t * Math.PI) * (0.18 + L * 0.4);
+            c.beginPath(); c.arc(p.x, p.y, p.r, 0, 6.283); c.fill();
+          }
+          c.globalAlpha = 1;
+          break;
+        }
+        case 'glow': {
+          const flicker = 0.78 + 0.12 * Math.sin(now / 130 + i) + 0.1 * Math.sin(now / 47 + i * 3);
+          const a = (0.1 + L * 0.42) * flicker;
+          const x = px(e.at[0]), y = py(e.at[1]), r = e.radius * map.dw;
+          c.globalCompositeOperation = 'lighter';
+          const g = c.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(0, `rgba(${e.color},${a.toFixed(3)})`); g.addColorStop(1, `rgba(${e.color},0)`);
+          c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+          c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'lightning': {
+          if (soundLevel(o.worldId, e.sound) > 0 && now > nextFlash) {
+            flash = 0.12 + 0.2 * L; nextFlash = now + rand(7000, 18000);
+            setTimeout(() => (flash = Math.max(flash, 0.1 + 0.12 * L)), 140);
+          }
+          if (flash > 0.002) {
+            c.fillStyle = `rgba(210,222,255,${flash.toFixed(3)})`; c.fillRect(0, 0, w, h);
+            flash *= Math.pow(0.02, dt);
+          }
+          break;
+        }
+      }
+    });
+  }
+
+  let raf = 0, last = 0, visible = true;
+  const frame = (now: number) => {
+    const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
+    last = now;
+    draw(dt, now);
+    raf = requestAnimationFrame(frame);
+  };
+  const start = () => { if (!raf && visible && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } };
+  const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
+
+  resize();
+  const ro = new ResizeObserver(() => resize());
+  ro.observe(canvas);
+  const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible) start(); else stop(); });
+  io.observe(canvas);
+  const onVis = () => (document.hidden ? stop() : start());
+  document.addEventListener('visibilitychange', onVis);
+  canvas.classList.add('is-live');
+  start();
+
+  return () => { stop(); ro.disconnect(); io.disconnect(); document.removeEventListener('visibilitychange', onVis); };
+}

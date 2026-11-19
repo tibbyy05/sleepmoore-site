@@ -1,52 +1,68 @@
 ---
+import { Font } from 'astro:assets';
+import { ClientRouter } from 'astro:transitions';
+import Dock from '../components/Dock.astro';
+import IconSprite from '../components/IconSprite.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import { type Link, NAV_PAGE } from '../data/site';
+import '../styles/site.css';
 
 interface Props {
   title: string;
   description: string;
-  /** Home page: in-page header links, split-letter brand, GSAP motion, safe-area viewport. */
+  /** Home page: in-page header links and the safe-area viewport. */
   home?: boolean;
+  /** Full-bleed pages (home, worlds) want the safe-area viewport too. */
+  fullBleed?: boolean;
   nav?: Link[];
   menu?: Link[];
+  /** Social preview image, absolute URL. */
+  image?: string;
 }
-const { title, description, home = false, nav = NAV_PAGE, menu = NAV_PAGE } = Astro.props;
+const { title, description, home = false, fullBleed = home, nav = NAV_PAGE, menu = NAV_PAGE, image } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const fonts = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap';
 ---
 <!doctype html>
 <html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content={home ? 'width=device-width, initial-scale=1, viewport-fit=cover' : 'width=device-width, initial-scale=1'}>
+<meta name="viewport" content={fullBleed ? 'width=device-width, initial-scale=1, viewport-fit=cover' : 'width=device-width, initial-scale=1'}>
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0b0e15">
 <title>{title}</title>
 <meta name="description" content={description}>
+{image && <meta property="og:type" content="website">}
+{image && <meta property="og:title" content={title}>}
+{image && <meta property="og:description" content={description}>}
+{image && <meta property="og:image" content={image}>}
+{image && <meta property="og:url" content={canonical}>}
+{image && <meta name="twitter:card" content="summary_large_image">}
 <slot name="meta" />
 <link rel="canonical" href={canonical}>
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-{home && <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>}
-<link rel="preload" as="style" href={fonts}>
-<link rel="stylesheet" href={fonts} media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href={fonts}></noscript>
+<Font cssVariable="--font-serif" preload={[{ weight: 400, style: 'normal' }]} />
+<Font cssVariable="--font-sans" preload={[{ weight: 400, style: 'normal' }]} />
 <slot name="preload" />
-<link rel="stylesheet" href="/site.css">
+{/* Splits a heading into letters for the ink-rise entrance, before first paint, keeping a screen-reader copy. Defined on every page so client-side page changes always have it. */}
+<script is:inline>
+function splitLetters(el){if(!el||el.querySelector('.ch'))return;var full=el.textContent.replace(/\s+/g,' ').trim(),i=0;Array.prototype.slice.call(el.childNodes).forEach(function(n){if(n.nodeType!==3)return;var f=document.createDocumentFragment();n.textContent.split(/(\s+)/).forEach(function(part){if(!part)return;if(/^\s+$/.test(part)){f.appendChild(document.createTextNode(' '));i++;return}var w=document.createElement('span');w.className='w';part.split('').forEach(function(c){var s=document.createElement('span');s.className='ch';s.setAttribute('aria-hidden','true');s.style.setProperty('--i',i);s.style.setProperty('--d',(2.4+(i%4)*0.4)+'s');var b=document.createElement('span');b.className='b';b.textContent=c;s.appendChild(b);w.appendChild(s);i++});f.appendChild(w)});el.replaceChild(f,n)});Array.prototype.slice.call(el.querySelectorAll('br')).forEach(function(b){b.setAttribute('aria-hidden','true')});var sr=document.createElement('span');sr.className='sr-only';sr.textContent=full;el.insertBefore(sr,el.firstChild)}
+</script>
+<ClientRouter />
 <slot name="head" />
 </head>
 <body>
-{home && <a class="skip" href="#main">Skip to content</a>}
+<IconSprite />
+<a class="skip" href="#main">Skip to content</a>
 <SiteHeader nav={nav} menu={menu} getHref={home ? '#get' : '/#get'} animateBrand={home} />
-<main id={home ? 'main' : undefined}>
+<main id="main">
 <slot />
 </main>
 <SiteFooter />
-{home && <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>}
-{home && <script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>}
-<script is:inline src="/site.js" defer></script>
+<Dock />
+<script>
+  import '../scripts/app';
+</script>
 </body>
 </html>

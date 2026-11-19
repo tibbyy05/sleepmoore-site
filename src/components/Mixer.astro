@@ -1,0 +1,33 @@
+---
+// The live mixer card: three faders, play, sleep timer. With `world` it always mixes that world
+// (a world page); without, it follows whatever world is current (the home page).
+import { WORLDS_BY_ID } from '../data/worlds';
+import PlayIcons from './PlayIcons.astro';
+
+interface Props {
+  world?: string;
+  id?: string;
+  class?: string;
+}
+const { world, id, class: cls } = Astro.props;
+const name = WORLDS_BY_ID[world ?? 'rainy-cabin'].name;
+const TIMERS: [number, string][] = [[15, '15 min'], [30, '30 min'], [45, '45 min'], [60, '1 hr'], [0, 'All night']];
+---
+<div class:list={['mixer', cls]} id={id} data-world={world} data-dock-hide>
+  <div class="mixer-head">
+    <div class="mixer-title">
+      <span class="mixer-world" data-now={world ? undefined : ''}>{name}</span>
+      <span class="mixer-state" data-state>Press play to hear it</span>
+    </div>
+    <button class="mixer-play" type="button" aria-label="Play" data-toggle>
+      <PlayIcons />
+    </button>
+  </div>
+  <div class="layers" data-layers></div>
+  <div class="timer-row">
+    <span class="timer-label">Sleep timer</span>
+    <div class="timer-chips" role="radiogroup" aria-label="Sleep timer">
+      {TIMERS.map(([min, label]) => <button type="button" role="radio" aria-checked={min === 45 ? 'true' : 'false'} data-timer={min}>{label}</button>)}
+    </div>
+  </div>
+</div>
