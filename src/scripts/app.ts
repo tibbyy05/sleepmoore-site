@@ -1,7 +1,7 @@
 /* Page wiring for sleepmoore.app. The sound engine (engine.ts) lives for the whole visit; this file
    binds whatever page is showing, on first load and after every client-side page change, and
    tears it down again before the next one. */
-import { HERO_EFFECTS, SOUNDS, WORLDS_BY_ID, type SoundId } from '../data/worlds';
+import { HERO_EFFECTS, isStory, MIXES_BY_ID, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
 import * as engine from './engine';
 
 const { state } = engine;
@@ -23,11 +23,12 @@ function stateText(worldId: string) {
   if (state.busy && worldId === state.current) return 'Loading';
   if (!state.playing || worldId !== state.current) return 'Press play to hear it';
   const left = engine.timeLeft();
+  if (isStory(worldId)) return left !== null ? 'The opening · ' + fmt(left) + ' left' : 'The opening';
   return left !== null ? 'Playing · fades out in ' + fmt(left) : 'Playing all night';
 }
 
 function render() {
-  const world = WORLDS_BY_ID[state.current];
+  const world = MIXES_BY_ID[state.current];
   const playingHere = (id: string) => state.playing && id === state.current;
 
   $$('[data-now]').forEach((el) => (el.textContent = world.name));
@@ -63,10 +64,15 @@ function render() {
 
 function renderTimeBar() {
   const left = engine.timeLeft();
-  const frac = left !== null ? Math.max(0, left / (state.timerMinutes * 60000)) : 1;
+  const frac = left !== null && state.timerTotal > 0 ? Math.max(0, left / state.timerTotal) : 1;
   $$('[data-time]').forEach((el) => (el.textContent = left !== null ? fmt(left) : state.timerMinutes > 0 ? fmt(state.timerMinutes * 60000) : '∞'));
   $$('[data-fill]').forEach((el) => (el.style.width = frac * 100 + '%'));
   $$('[data-knob]').forEach((el) => (el.style.left = frac * 100 + '%'));
+  // A story card's thin line fills as its opening plays.
+  $$<HTMLElement>('[data-progress-for]').forEach((el) => {
+    const on = state.playing && el.dataset.progressFor === state.current;
+    el.style.transform = 'scaleX(' + (on ? (1 - frac).toFixed(4) : '0') + ')';
+  });
 }
 
 // ---------- Mixer: three faders for a world ----------
@@ -106,16 +112,18 @@ function renderDock() {
   dock.classList.toggle('is-shown', show);
   dock.toggleAttribute('inert', !show);
   dock.setAttribute('aria-hidden', String(!show));
-  const world = WORLDS_BY_ID[state.current];
+  const world = MIXES_BY_ID[state.current];
   const link = $<HTMLAnchorElement>('[data-dock-link]', dock);
-  if (link) link.href = '/worlds/' + world.id + '/';
+  if (link) link.href = isStory(world.id) ? '/#stories' : '/worlds/' + world.id + '/';
   const thumb = $<HTMLImageElement>('[data-dock-thumb]', dock);
   const want = (JSON.parse(dock.dataset.thumbs || '{}') as Record<string, string>)[world.id];
   if (thumb && want && thumb.getAttribute('src') !== want) thumb.src = want;
   const st = $('[data-dock-state]', dock);
   if (st) {
     const left = engine.timeLeft();
-    st.textContent = state.busy ? 'Loading' : !state.playing ? 'Paused' : left !== null ? 'Fades out in ' + fmt(left) : 'Playing all night';
+    st.textContent = state.busy ? 'Loading' : !state.playing ? 'Paused'
+      : isStory(world.id) ? (left !== null ? 'Story · ' + fmt(left) + ' left' : 'Story')
+      : left !== null ? 'Fades out in ' + fmt(left) : 'Playing all night';
   }
   dock.classList.toggle('is-playing', state.playing);
 }
@@ -231,6 +239,7 @@ document.addEventListener('astro:page-load', () => {
 
   bindNightStory();
   bindHeroVideo();
+  $$('[data-carousel]').forEach(bindCarousel);
   render();
 
   // iPhone: a hint about the silent switch, the first time sound starts on this page.
@@ -293,6 +302,54 @@ function bindNightStory() {
   }, { rootMargin: window.matchMedia('(max-width: 1024px)').matches ? '-56% 0px -6% 0px' : '-45% 0px -45% 0px', threshold: [0, 0.01, 0.25, 0.5, 0.75, 1] });
   steps.forEach((s) => io.observe(s));
   teardown.push(() => io.disconnect());
+}
+
+// ---------- Story carousel: endless in both directions ----------
+// The cards are rendered five times over; the middle copy is the real one. When a scroll settles
+// in an outer copy, the track jumps by exactly one copy's width, so the same card sits in the
+// same place and the jump cannot be seen. Swipe, scroll, the arrow buttons and the keyboard all work.
+function bindCarousel(root: HTMLElement) {
+  const track = $<HTMLElement>('[data-track]', root);
+  if (!track) return;
+  const cards = $$<HTMLElement>('[data-card]', track);
+  const copies = Number(track.dataset.copies || 5);
+  const per = cards.length / copies;
+  if (!per) return;
+  const middle = Math.floor(copies / 2);
+  const setWidth = () => cards[per].offsetLeft - cards[0].offsetLeft;
+  const step = () => (cards[1] ? cards[1].offsetLeft - cards[0].offsetLeft : track.clientWidth);
+  const home = () => cards[middle * per].offsetLeft - cards[0].offsetLeft;
+  track.scrollLeft = home();
+
+  let settle = 0;
+  const recentre = () => {
+    const w = setWidth(), x = track.scrollLeft - home();
+    if (Math.abs(x) >= w * 0.5) {
+      const shift = Math.round(x / w) * w;
+      track.style.scrollSnapType = 'none';
+      track.scrollLeft -= shift;
+      requestAnimationFrame(() => (track.style.scrollSnapType = ''));
+    }
+  };
+  const onScroll = () => { clearTimeout(settle); settle = window.setTimeout(recentre, 140); };
+  track.addEventListener('scroll', onScroll, { passive: true });
+  const go = (dir: number) => track.scrollBy({ left: dir * step(), behavior: reduced.matches ? 'auto' : 'smooth' });
+  const prev = $('[data-prev]', root), next = $('[data-next]', root);
+  const onPrev = () => go(-1), onNext = () => go(1);
+  prev?.addEventListener('click', onPrev);
+  next?.addEventListener('click', onNext);
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+  };
+  track.addEventListener('keydown', onKey);
+  const onResize = () => { track.scrollLeft = home(); };
+  window.addEventListener('resize', onResize);
+  teardown.push(() => {
+    track.removeEventListener('scroll', onScroll); track.removeEventListener('keydown', onKey);
+    prev?.removeEventListener('click', onPrev); next?.removeEventListener('click', onNext);
+    window.removeEventListener('resize', onResize); clearTimeout(settle);
+  });
 }
 
 // ---------- Hero video: desktop, motion allowed, no data saver ----------

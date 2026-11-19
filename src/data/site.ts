@@ -7,14 +7,15 @@ export type Link = { href: string; label: string };
 /** Header links on the home page (in-page anchors) and on every other page. */
 export const NAV_HOME: Link[] = [
   { href: '#worlds', label: 'Worlds' },
+  { href: '#stories', label: 'Stories' },
   { href: '#night', label: 'The night' },
   { href: '#mix', label: 'Mixer' },
-  { href: '#free', label: 'Free' },
   { href: '#faq', label: 'Questions' },
   { href: '/support/', label: 'Support' },
 ];
 export const MENU_HOME: Link[] = [
   { href: '#worlds', label: 'Worlds' },
+  { href: '#stories', label: 'Stories' },
   { href: '#night', label: 'The night' },
   { href: '#mix', label: 'Mixer' },
   { href: '#free', label: 'Free' },
@@ -23,6 +24,7 @@ export const MENU_HOME: Link[] = [
 ];
 export const NAV_PAGE: Link[] = [
   { href: '/#worlds', label: 'Worlds' },
+  { href: '/#stories', label: 'Stories' },
   { href: '/#mix', label: 'Mixer' },
   { href: '/support/', label: 'Support' },
   { href: '/privacy/', label: 'Privacy' },

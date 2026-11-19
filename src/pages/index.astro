@@ -5,6 +5,7 @@ import Mixer from '../components/Mixer.astro';
 import PlayIcons from '../components/PlayIcons.astro';
 import PlayRing from '../components/PlayRing.astro';
 import Scene from '../components/Scene.astro';
+import StoryCarousel from '../components/StoryCarousel.astro';
 import Base from '../layouts/Base.astro';
 import { DESTINATIONS, FAQ, MENU_HOME, NAV_HOME, PRESETS, SCENE_STRIP, stripTags } from '../data/site';
 
@@ -142,6 +143,8 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
       </ul>
     </div>
   </section>
+
+  <StoryCarousel />
 
   <!-- One night with the app -->
   <section class="night" id="night" aria-labelledby="night-title">

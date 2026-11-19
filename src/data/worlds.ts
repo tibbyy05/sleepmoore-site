@@ -1,10 +1,13 @@
 // The sound worlds, shared by the pages (build time) and the sound engine (browser).
 // Plain data only: no imports, so Node's checks in test/ can read it too.
 
-export type SoundId = 'rain' | 'fire' | 'wind' | 'ocean' | 'night' | 'snow' | 'thunder' | 'stream' | 'chimes' | 'palms';
+export type SoundId =
+  | 'rain' | 'fire' | 'wind' | 'ocean' | 'night' | 'snow' | 'thunder' | 'stream' | 'chimes' | 'palms' | 'train' | 'ferry'
+  | 'story-midnight-express' | 'story-night-ferry' | 'story-lighthouse-keeper';
 
 /** Each sound's label, Phosphor icon, and a line for the world pages. Audio lives in public/audio/<id>.{opus,flac,m4a}. */
-export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string }> = {
+/** `loop: false` marks a narration: it plays once (the story's opening, about 100 s) and then the mix stops. */
+export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string; loop?: false }> = {
   rain: { label: 'Rain', icon: 'rain', line: 'Steady rain on a roof and leaves.' },
   fire: { label: 'Fire', icon: 'fire', line: 'Logs settling, the odd crack and hiss.' },
   wind: { label: 'Wind', icon: 'wind', line: 'Air moving through trees, never gusting.' },
@@ -15,6 +18,11 @@ export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string
   stream: { label: 'Water', icon: 'water', line: 'Water running over stone.' },
   chimes: { label: 'Chimes', icon: 'chimes', line: 'A chime now and then, on the breeze.' },
   palms: { label: 'Palms', icon: 'palms', line: 'Palm fronds rustling overhead.' },
+  train: { label: 'Train', icon: 'train', line: 'A sleeper carriage, rocking steadily on.' },
+  ferry: { label: 'Water', icon: 'boat', line: 'Small waves along a slow hull.' },
+  'story-midnight-express': { label: 'Narrator', icon: 'narrator', line: 'The midnight express, read aloud.', loop: false },
+  'story-night-ferry': { label: 'Narrator', icon: 'narrator', line: 'The night ferry, read aloud.', loop: false },
+  'story-lighthouse-keeper': { label: 'Narrator', icon: 'narrator', line: 'The lighthouse keeper, read aloud.', loop: false },
 };
 
 /**
@@ -152,3 +160,62 @@ export const HERO_EFFECTS: { desktop: Effect[]; mobile: Effect[]; window: { desk
   /** The window's glass as x0, y0, x1, y1 fractions of each source image; rain drops stay inside it. */
   window: { desktop: [0.175, 0.06, 0.885, 0.71], mobile: [0, 0.06, 1, 0.71] },
 };
+
+/**
+ * Night journeys: narrated stories read over the sounds of the place, as in the app. On the site
+ * each plays its first 100 seconds (public/audio/story-<id>.*) with its bed underneath.
+ */
+export type Story = {
+  id: string;
+  name: string;
+  tagline: string;
+  /** The whole journey in the app, story then sounds, and the narration alone. */
+  minutes: number;
+  narration: number;
+  icon: string;
+  /** Narration and bed, as layers (narration first). */
+  layers: [SoundId, number][];
+  bed: string;
+  isNew?: boolean;
+};
+
+export const STORIES: Story[] = [
+  {
+    id: 'lighthouse-keeper',
+    name: 'The lighthouse keeper',
+    tagline: 'One quiet night tending the light, with the sea and the rain for company.',
+    minutes: 45,
+    narration: 27,
+    icon: 'lighthouse',
+    layers: [['story-lighthouse-keeper', 100], ['ocean', 42]],
+    bed: 'the sea',
+    isNew: true,
+  },
+  {
+    id: 'night-ferry',
+    name: 'The night ferry',
+    tagline: 'A slow crossing of a still lake under the stars, in a berth by a round window.',
+    minutes: 35,
+    narration: 9,
+    icon: 'boat',
+    layers: [['story-night-ferry', 100], ['ferry', 52]],
+    bed: 'the water',
+  },
+  {
+    id: 'midnight-express',
+    name: 'The midnight express',
+    tagline: 'An overnight sleeper through the mountains, the carriage rocking gently on.',
+    minutes: 35,
+    narration: 9,
+    icon: 'train',
+    layers: [['story-midnight-express', 100], ['train', 50]],
+    bed: 'the train',
+  },
+];
+
+export const STORIES_BY_ID: Record<string, Story> = Object.fromEntries(STORIES.map((s) => [s.id, s]));
+
+/** Anything the player can play: a world or a story. */
+export type Mix = { id: string; name: string; layers: [SoundId, number][] };
+export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...STORIES_BY_ID };
+export const isStory = (id: string) => id in STORIES_BY_ID;

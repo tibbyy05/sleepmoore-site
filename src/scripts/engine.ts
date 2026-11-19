@@ -4,13 +4,15 @@
    Web Audio, created inside the first tap (iOS needs that), with a format chain: AAC first on
    Apple browsers, then Opus, then FLAC. If a browser fails to decode one format we drop it and
    try the next, so every browser ends up with sound. */
-import { type SoundId, WORLDS_BY_ID } from '../data/worlds';
+import { isStory, MIXES_BY_ID, type SoundId, SOUNDS } from '../data/worlds';
 
 type Live = { src: AudioBufferSourceNode; gain: GainNode; level: number };
 type Listener = () => void;
 
 const AC: typeof AudioContext | undefined = window.AudioContext || (window as any).webkitAudioContext;
 const FADE_SECONDS = 20;
+/** A story's opening ends on its own: a short fade, not the sleep timer's long one. */
+const STORY_FADE_SECONDS = 4;
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -32,6 +34,8 @@ export const state = {
   problem: '',
   timerMinutes: 45,
   timerEnd: null as number | null,
+  /** Length of the running countdown in ms (the sleep timer, or a story's opening). */
+  timerTotal: 0,
 };
 let fadeStarted = false;
 
@@ -139,10 +143,10 @@ function load(id: string): Promise<AudioBuffer> {
 
 // ---------- Levels ----------
 export function levelsFor(worldId: string): [SoundId, number][] {
-  const world = WORLDS_BY_ID[worldId];
-  if (!world) return [];
-  const set = (levels[worldId] ||= Object.fromEntries(world.layers));
-  return world.layers.map(([id]) => [id, set[id]]);
+  const mix = MIXES_BY_ID[worldId];
+  if (!mix) return [];
+  const set = (levels[worldId] ||= Object.fromEntries(mix.layers));
+  return mix.layers.map(([id]) => [id, set[id]]);
 }
 
 const gainFor = (level: number) => { const v = level / 100; return v * v; }; // perceptual-ish taper
@@ -169,7 +173,9 @@ function startLayer(id: string, level: number, fadeIn: number) {
   const c = ensureContext();
   const src = c.createBufferSource();
   src.buffer = buffers[id];
-  src.loop = true;
+  // Ambient loops repeat forever; a story's narration plays once, and when it ends the mix ends.
+  src.loop = SOUNDS[id as SoundId]?.loop !== false;
+  if (!src.loop) src.onended = () => { if (live[id] && live[id].src === src && state.playing) pause(); };
   const g = c.createGain();
   const t = c.currentTime;
   g.gain.setValueAtTime(0.0001, t);
@@ -190,7 +196,7 @@ function stopLayer(id: string, fadeOut: number) {
 }
 
 export function play(worldId: string): Promise<void> {
-  if (!WORLDS_BY_ID[worldId]) return Promise.resolve();
+  if (!MIXES_BY_ID[worldId]) return Promise.resolve();
   try { ensureContext(); } catch { state.problem = 'This browser cannot play sound here'; emit(); return Promise.resolve(); }
   const switching = worldId !== state.current;
   state.current = worldId;
@@ -212,7 +218,7 @@ export function play(worldId: string): Promise<void> {
     state.busy = false;
     fadeStarted = false;
     if (master && ctx) { const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(state.muted ? 0 : 1, t, 0.05); }
-    state.timerEnd = state.timerMinutes > 0 ? Date.now() + state.timerMinutes * 60000 : null;
+    startCountdown();
     emit();
     meterStart();
     if (isApple) rebuildContextIfStuck();
@@ -267,7 +273,7 @@ export function ensurePlaying(worldId: string) {
 
 /** Point the player at a world without starting it (a world page opened while nothing plays). */
 export function select(worldId: string) {
-  if (state.playing || !WORLDS_BY_ID[worldId] || worldId === state.current) return;
+  if (state.playing || !MIXES_BY_ID[worldId] || worldId === state.current) return;
   state.current = worldId;
   emit();
 }
@@ -279,10 +285,19 @@ export function setMuted(m: boolean) {
   emit();
 }
 
+/** Story: count down to the end of its opening. World: the sleep timer, if one is set. */
+function startCountdown() {
+  const narration = levelsFor(state.current).find(([id]) => SOUNDS[id]?.loop === false);
+  const ms = narration && buffers[narration[0]] ? buffers[narration[0]].duration * 1000 : state.timerMinutes * 60000;
+  state.timerTotal = ms;
+  state.timerEnd = ms > 0 ? Date.now() + ms : null;
+}
+
 export function setTimer(minutes: number) {
   state.timerMinutes = minutes;
-  if (state.playing) {
+  if (state.playing && !isStory(state.current)) {
     state.timerEnd = minutes > 0 ? Date.now() + minutes * 60000 : null;
+    state.timerTotal = minutes * 60000;
     if (fadeStarted && master && ctx) { fadeStarted = false; const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(state.muted ? 0 : 1, t, 0.3); }
   }
   emit();
@@ -295,12 +310,13 @@ setInterval(() => {
   if (!state.playing) return;
   const left = timeLeft();
   if (left !== null && master && ctx) {
-    if (left <= FADE_SECONDS * 1000 && !fadeStarted) {
+    const fade = isStory(state.current) ? STORY_FADE_SECONDS : FADE_SECONDS;
+    if (left <= fade * 1000 && !fadeStarted) {
       fadeStarted = true;
       const t = ctx.currentTime;
       master.gain.cancelScheduledValues(t);
       master.gain.setValueAtTime(master.gain.value, t);
-      master.gain.linearRampToValueAtTime(0.0001, t + FADE_SECONDS);
+      master.gain.linearRampToValueAtTime(0.0001, t + fade);
     }
     if (left <= 0) { pause(); master.gain.setValueAtTime(state.muted ? 0 : 1, ctx.currentTime + 0.1); return; }
   }

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 if (!existsSync(join(root, 'index.html'))) { console.error('dist/ is missing: run `npm run build` first'); process.exit(1); }
-const { WORLDS, SOUNDS } = await import('../src/data/worlds.ts');
+const { WORLDS, SOUNDS, STORIES, MIXES_BY_ID } = await import('../src/data/worlds.ts');
 const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html', ...WORLDS.map((w) => `worlds/${w.id}/index.html`)];
 const failures = [];
 const fail = (m) => failures.push(m);
@@ -59,7 +59,7 @@ for (const page of pages) {
 }
 
 // Audio files for every sound a world uses, in all three formats.
-const sounds = new Set(WORLDS.flatMap((w) => w.layers.map(([id]) => id)));
+const sounds = new Set([...WORLDS, ...STORIES].flatMap((w) => w.layers.map(([id]) => id)));
 for (const s of sounds) {
   if (!SOUNDS[s]) fail(`worlds.ts: ${s} has no entry in SOUNDS`);
   for (const ext of ['opus', 'flac', 'm4a']) {
@@ -68,7 +68,7 @@ for (const s of sounds) {
     else if (statSync(join(root, p)).size < 20000) fail(`${p} is suspiciously small`);
   }
 }
-const worldIds = new Set(WORLDS.map((w) => w.id));
+const worldIds = new Set(Object.keys(MIXES_BY_ID));
 for (const page of pages.filter((p) => !p.startsWith('lab/'))) {
   const html = readFileSync(join(root, page), 'utf8');
   for (const m of html.matchAll(/data-play-world="([^"]+)"/g)) {
@@ -78,7 +78,10 @@ for (const page of pages.filter((p) => !p.startsWith('lab/'))) {
   const symbols = new Set([...html.matchAll(/<symbol id="i-([a-z-]+)"/g)].map((m) => m[1]));
   for (const m of html.matchAll(/<use href="#i-([a-z-]+)"/g)) if (!symbols.has(m[1])) fail(`${page}: icon ${m[1]} is not in the sprite`);
 }
-for (const w of WORLDS) for (const [id] of w.layers) if (!SOUNDS[id].icon) fail(`${id} has no icon`);
+for (const w of [...WORLDS, ...STORIES]) for (const [id] of w.layers) if (!SOUNDS[id].icon) fail(`${id} has no icon`);
+for (const s of STORIES) if (SOUNDS[s.layers[0][0]].loop !== false) fail(`${s.id}: its first layer should be the narration`);
+const home = readFileSync(join(root, 'index.html'), 'utf8');
+for (const s of STORIES) if (!home.includes(`data-play-world="${s.id}"`)) fail(`home page has no card for the story ${s.id}`);
 
 // Images referenced from CSS.
 const css = readFileSync(join(root, '..', 'src', 'styles', 'site.css'), 'utf8');
