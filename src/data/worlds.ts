@@ -3,7 +3,8 @@
 
 export type SoundId =
   | 'rain' | 'fire' | 'wind' | 'ocean' | 'night' | 'snow' | 'thunder' | 'stream' | 'chimes' | 'palms' | 'train' | 'ferry'
-  | 'story-midnight-express' | 'story-night-ferry' | 'story-lighthouse-keeper';
+  | 'story-midnight-express' | 'story-night-ferry' | 'story-lighthouse-keeper' | 'calm-pad'
+  | 'meditation-two-minute-method' | 'meditation-soften-head-to-toe' | 'meditation-let-the-day-go' | 'meditation-back-to-sleep';
 
 /** Each sound's label, Phosphor icon, and a line for the world pages. Audio lives in public/audio/<id>.{opus,flac,m4a}. */
 /** `loop: false` marks a narration: it plays once (the story's opening, about 100 s) and then the mix stops. */
@@ -23,6 +24,11 @@ export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string
   'story-midnight-express': { label: 'Narrator', icon: 'narrator', line: 'The midnight express, read aloud.', loop: false },
   'story-night-ferry': { label: 'Narrator', icon: 'narrator', line: 'The night ferry, read aloud.', loop: false },
   'story-lighthouse-keeper': { label: 'Narrator', icon: 'narrator', line: 'The lighthouse keeper, read aloud.', loop: false },
+  'calm-pad': { label: 'Pad', icon: 'waveform', line: 'A soft, slow pad under the voice.' },
+  'meditation-two-minute-method': { label: 'Voice', icon: 'narrator', line: 'The two-minute method, guided.', loop: false },
+  'meditation-soften-head-to-toe': { label: 'Voice', icon: 'narrator', line: 'Soften, head to toe, guided.', loop: false },
+  'meditation-let-the-day-go': { label: 'Voice', icon: 'narrator', line: 'Let the day go, guided.', loop: false },
+  'meditation-back-to-sleep': { label: 'Voice', icon: 'narrator', line: 'Back to sleep, guided.', loop: false },
 };
 
 /**
@@ -215,7 +221,33 @@ export const STORIES: Story[] = [
 
 export const STORIES_BY_ID: Record<string, Story> = Object.fromEntries(STORIES.map((s) => [s.id, s]));
 
-/** Anything the player can play: a world or a story. */
+/**
+ * Guided sleep meditations from the app: one calm voice over a soft pad. On the site each plays
+ * its first 100 seconds (public/audio/meditation-<id>.*) over the pad.
+ */
+export type Meditation = {
+  id: string;
+  name: string;
+  tagline: string;
+  /** What it is for, in a few words. */
+  kind: string;
+  /** Length of the guided voice in the app. */
+  minutes: number;
+  icon: string;
+  layers: [SoundId, number][];
+};
+
+export const MEDITATIONS: Meditation[] = [
+  { id: 'two-minute-method', name: 'The two-minute method', kind: 'Fall asleep fast', tagline: 'Relax the body part by part, then still the mind for a few slow breaths.', minutes: 7, icon: 'moon', layers: [['meditation-two-minute-method', 100], ['calm-pad', 40]] },
+  { id: 'soften-head-to-toe', name: 'Soften, head to toe', kind: 'Deep body relaxation', tagline: 'A slow wave of warmth through the whole body, from the crown to the toes.', minutes: 11, icon: 'lotus', layers: [['meditation-soften-head-to-toe', 100], ['calm-pad', 40]] },
+  { id: 'let-the-day-go', name: 'Let the day go', kind: 'Quiet racing thoughts', tagline: 'For a busy mind: set each thought on a leaf and let the stream carry it.', minutes: 9, icon: 'leaf', layers: [['meditation-let-the-day-go', 100], ['calm-pad', 40]] },
+  { id: 'back-to-sleep', name: 'Back to sleep', kind: 'Woken in the night', tagline: 'Woken at three? Slow the breath, count down, and drift back.', minutes: 8, icon: 'night', layers: [['meditation-back-to-sleep', 100], ['calm-pad', 40]] },
+];
+export const MEDITATIONS_BY_ID: Record<string, Meditation> = Object.fromEntries(MEDITATIONS.map((m) => [m.id, m]));
+
+/** Anything the player can play: a world, a story or a meditation. */
 export type Mix = { id: string; name: string; layers: [SoundId, number][] };
-export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...STORIES_BY_ID };
-export const isStory = (id: string) => id in STORIES_BY_ID;
+export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...STORIES_BY_ID, ...MEDITATIONS_BY_ID };
+/** Stories and meditations are guided: a voice that plays once over a bed, then the mix ends. */
+export const guidedKind = (id: string): 'story' | 'meditation' | null => (id in STORIES_BY_ID ? 'story' : id in MEDITATIONS_BY_ID ? 'meditation' : null);
+export const isStory = (id: string) => guidedKind(id) !== null;

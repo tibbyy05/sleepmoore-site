@@ -1,7 +1,7 @@
 /* Page wiring for sleepmoore.app. The sound engine (engine.ts) lives for the whole visit; this file
    binds whatever page is showing, on first load and after every client-side page change, and
    tears it down again before the next one. */
-import { HERO_EFFECTS, isStory, MIXES_BY_ID, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
+import { guidedKind, HERO_EFFECTS, isStory, MIXES_BY_ID, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
 import * as engine from './engine';
 
 const { state } = engine;
@@ -23,7 +23,7 @@ function stateText(worldId: string) {
   if (state.busy && worldId === state.current) return 'Loading';
   if (!state.playing || worldId !== state.current) return 'Press play to hear it';
   const left = engine.timeLeft();
-  if (isStory(worldId)) return left !== null ? 'The opening · ' + fmt(left) + ' left' : 'The opening';
+  if (isStory(worldId)) return left !== null ? (guidedKind(worldId) === 'meditation' ? 'The first minutes · ' : 'The opening · ') + fmt(left) + ' left' : 'Playing';
   return left !== null ? 'Playing · fades out in ' + fmt(left) : 'Playing all night';
 }
 
@@ -114,7 +114,7 @@ function renderDock() {
   dock.setAttribute('aria-hidden', String(!show));
   const world = MIXES_BY_ID[state.current];
   const link = $<HTMLAnchorElement>('[data-dock-link]', dock);
-  if (link) link.href = isStory(world.id) ? '/#stories' : '/worlds/' + world.id + '/';
+  if (link) link.href = guidedKind(world.id) === 'story' ? '/#stories' : guidedKind(world.id) === 'meditation' ? '/#meditations' : '/worlds/' + world.id + '/';
   const thumb = $<HTMLImageElement>('[data-dock-thumb]', dock);
   const want = (JSON.parse(dock.dataset.thumbs || '{}') as Record<string, string>)[world.id];
   if (thumb && want && thumb.getAttribute('src') !== want) thumb.src = want;
@@ -122,7 +122,7 @@ function renderDock() {
   if (st) {
     const left = engine.timeLeft();
     st.textContent = state.busy ? 'Loading' : !state.playing ? 'Paused'
-      : isStory(world.id) ? (left !== null ? 'Story · ' + fmt(left) + ' left' : 'Story')
+      : isStory(world.id) ? (guidedKind(world.id) === 'meditation' ? 'Meditation' : 'Story') + (left !== null ? ' · ' + fmt(left) + ' left' : '')
       : left !== null ? 'Fades out in ' + fmt(left) : 'Playing all night';
   }
   dock.classList.toggle('is-playing', state.playing);

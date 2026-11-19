@@ -689,6 +689,7 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
 
 /* ---------- Night journeys: endless story carousel ---------- */
 .stories { background: var(--bg); overflow: hidden; }
+.stories-alt { background: var(--bg-2); }
 .stories .sec-head { margin-bottom: 36px; }
 .stories-eyebrow { color: var(--gold); margin-bottom: 14px; }
 .stories .sec-head .sub { max-width: 40em; }

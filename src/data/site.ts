@@ -8,7 +8,7 @@ export type Link = { href: string; label: string };
 export const NAV_HOME: Link[] = [
   { href: '#worlds', label: 'Worlds' },
   { href: '#stories', label: 'Stories' },
-  { href: '#night', label: 'The night' },
+  { href: '#meditations', label: 'Meditations' },
   { href: '#mix', label: 'Mixer' },
   { href: '#faq', label: 'Questions' },
   { href: '/support/', label: 'Support' },
@@ -16,6 +16,7 @@ export const NAV_HOME: Link[] = [
 export const MENU_HOME: Link[] = [
   { href: '#worlds', label: 'Worlds' },
   { href: '#stories', label: 'Stories' },
+  { href: '#meditations', label: 'Meditations' },
   { href: '#night', label: 'The night' },
   { href: '#mix', label: 'Mixer' },
   { href: '#free', label: 'Free' },
@@ -25,6 +26,7 @@ export const MENU_HOME: Link[] = [
 export const NAV_PAGE: Link[] = [
   { href: '/#worlds', label: 'Worlds' },
   { href: '/#stories', label: 'Stories' },
+  { href: '/#meditations', label: 'Meditations' },
   { href: '/#mix', label: 'Mixer' },
   { href: '/support/', label: 'Support' },
   { href: '/privacy/', label: 'Privacy' },

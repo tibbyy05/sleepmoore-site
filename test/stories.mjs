@@ -36,7 +36,7 @@ for (const run of [
 
   // Which real story sits first in view, and the track's position.
   const first = () => page.evaluate(() => {
-    const t = document.querySelector('[data-track]');
+    const t = document.querySelector('#stories [data-track]');
     const cards = [...t.querySelectorAll('[data-card]')];
     const pad = parseFloat(getComputedStyle(t).scrollPaddingInlineStart) || 0;
     const i = cards.findIndex((c) => c.offsetLeft - t.offsetLeft >= t.scrollLeft + pad - 4);
@@ -48,7 +48,7 @@ for (const run of [
   // Forward ten times: never reaches the end of the track, and the stories keep cycling.
   const seen = [];
   for (let k = 0; k < 10; k++) {
-    await page.click('[data-next]');
+    await page.click('#stories [data-next]');
     await wait(700);
     const f = await first();
     seen.push(f.id);
@@ -57,7 +57,7 @@ for (const run of [
   expect(seen.slice(0, 6).join() === [1, 2, 0, 1, 2, 0].map((n) => ['lighthouse-keeper', 'night-ferry', 'midnight-express'][n]).join(), 'next steps one story at a time and wraps around: ' + seen.slice(0, 4).join(' > '));
   // Backward twelve times.
   for (let k = 0; k < 12; k++) {
-    await page.click('[data-prev]');
+    await page.click('#stories [data-prev]');
     await wait(700);
     const f = await first();
     if (f.x <= 0 || f.x >= f.max) failures.push('track hit its end going back');
@@ -66,7 +66,7 @@ for (const run of [
   expect(back.i >= 3 && back.i <= 11, `still inside the track after 22 moves (card ${back.i})`);
 
   // Keyboard
-  await page.focus('[data-track]');
+  await page.focus('#stories [data-track]');
   const before = (await first()).id;
   await page.keyboard.press('ArrowRight');
   await wait(800);
@@ -88,6 +88,21 @@ for (const run of [
   expect((await page.$eval('[data-dock-state]', (d) => d.textContent)).startsWith('Story'), 'dock says it is a story');
   await page.screenshot({ path: join(out, `stories-${run.name}-playing.png`) });
 
+  // A meditation plays its voice over the soft pad, and the dock calls it a meditation.
+  const med = '#meditations [data-card]:not([aria-hidden]) [data-play-world="back-to-sleep"]';
+  await page.$eval(med, (el) => el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' }));
+  await wait(900);
+  await page.click(med);
+  await page.waitForFunction(() => window.__sleepMoore.playing && window.__sleepMoore.current === 'back-to-sleep', { timeout: 20000 });
+  await wait(2500);
+  expect(await sm("Object.keys(s.live).sort().join(',')") === 'calm-pad,meditation-back-to-sleep', 'meditation voice plays over the pad');
+  await page.$eval('#faq', (el) => el.scrollIntoView({ behavior: 'instant' }));
+  await wait(1200);
+  expect((await page.$eval('[data-dock-state]', (d) => d.textContent)).startsWith('Meditation'), 'dock says it is a meditation');
+  await page.$eval('#meditations', (el) => el.scrollIntoView({ behavior: 'instant' }));
+  await wait(1200);
+  await page.screenshot({ path: join(out, `meditations-${run.name}-playing.png`) });
+
   // Switching to a world stops the narration.
   await page.$eval('#worlds', (el) => el.scrollIntoView({ behavior: 'instant' }));
   await wait(400);
@@ -95,7 +110,7 @@ for (const run of [
   await page.click('.play-pill');
   await page.waitForFunction(() => window.__sleepMoore.current === 'rainy-cabin' && window.__sleepMoore.playing, { timeout: 20000 });
   await wait(1500);
-  expect(!(await sm("'story-lighthouse-keeper' in s.live")), 'a world replaces the story');
+  expect(!(await sm("'meditation-back-to-sleep' in s.live")), 'a world replaces the meditation');
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow <= 0, `no horizontal page overflow (${overflow}px)`);

@@ -5,7 +5,9 @@ import Mixer from '../components/Mixer.astro';
 import PlayIcons from '../components/PlayIcons.astro';
 import PlayRing from '../components/PlayRing.astro';
 import Scene from '../components/Scene.astro';
-import StoryCarousel from '../components/StoryCarousel.astro';
+import GuidedCarousel from '../components/GuidedCarousel.astro';
+import { MEDITATION_COLORS, MEDITATION_COVERS, STORY_COLORS, STORY_COVERS } from '../data/scenes';
+import { MEDITATIONS, STORIES } from '../data/worlds';
 import Base from '../layouts/Base.astro';
 import { DESTINATIONS, FAQ, MENU_HOME, NAV_HOME, PRESETS, SCENE_STRIP, stripTags } from '../data/site';
 
@@ -26,6 +28,10 @@ const faqData = {
   '@type': 'FAQPage',
   mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: stripTags(f.a) } })),
 };
+
+const storyItems = STORIES.map((s) => ({ id: s.id, name: s.name, line: s.tagline, meta: `Night journey · ${s.minutes} min`, icon: s.icon, cover: STORY_COVERS[s.id], color: STORY_COLORS[s.id], badge: s.isNew ? 'New' : undefined }));
+const meditationItems = MEDITATIONS.map((m) => ({ id: m.id, name: m.name, line: m.tagline, meta: `${m.minutes} min · ${m.kind}`, icon: m.icon, cover: MEDITATION_COVERS[m.id], color: MEDITATION_COLORS[m.id] }));
+const storyRange = `${Math.min(...STORIES.map((s) => s.minutes))} to ${Math.max(...STORIES.map((s) => s.minutes))}`;
 
 /** The night story: what the stage shows at each step (scene behind, app screen on the phone). */
 const SCENES = ['rainy-cabin', 'moonlit-cove', 'snowfall-lodge', 'desert-camp', 'dawn'];
@@ -144,7 +150,28 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
     </div>
   </section>
 
-  <StoryCarousel />
+  <GuidedCarousel
+    sectionId="stories"
+    eyebrow="Night journeys"
+    title="Stories to fall asleep to."
+    sub="Read slowly by one calm voice, with the sounds of the place underneath. Press play to hear how each one begins."
+    note={`In the app each journey runs ${storyRange} minutes: the story, then the sounds carry on and fade as you sleep. Add rain to any of them.`}
+    play="Hear the opening"
+    label="Night journeys"
+    items={storyItems}
+  />
+
+  <GuidedCarousel
+    sectionId="meditations"
+    eyebrow="Guided meditations"
+    title="Quiet the mind, soften the body."
+    sub="Short sessions for the moments sleep won't come, read by the same calm voice over a soft pad. Press play for the first minutes."
+    note="In the app the pad plays on after the voice ends, then fades, and the screen dims for the night."
+    play="Try the first minutes"
+    label="Guided meditations"
+    items={meditationItems}
+    alt
+  />
 
   <!-- One night with the app -->
   <section class="night" id="night" aria-labelledby="night-title">

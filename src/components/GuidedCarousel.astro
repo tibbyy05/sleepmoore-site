@@ -1,0 +1,90 @@
+---
+// An endless carousel of guided content (Night journeys, meditations). Each card plays the real
+// opening over its bed. Five copies of the cards are rendered so the row never runs out (app.ts
+// recentres on the middle copy); only the middle copy is in the tab order and the accessibility tree.
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import PlayIcons from './PlayIcons.astro';
+
+export type CarouselItem = {
+  id: string;
+  name: string;
+  line: string;
+  meta: string;
+  icon: string;
+  cover: ImageMetadata;
+  color: string;
+  badge?: string;
+};
+interface Props {
+  sectionId: string;
+  eyebrow: string;
+  title: string;
+  sub: string;
+  note: string;
+  /** Label on the play button, e.g. "Hear the opening". */
+  play: string;
+  /** What the carousel holds, for screen readers ("Night journeys"). */
+  label: string;
+  items: CarouselItem[];
+  /** Alternate section background. */
+  alt?: boolean;
+}
+const { sectionId, eyebrow, title, sub, note, play, label, items, alt = false } = Astro.props;
+const COPIES = 5;
+const middle = Math.floor(COPIES / 2);
+const cards = Array.from({ length: COPIES }, (_, copy) => items.map((item) => ({ item, copy }))).flat();
+const titleId = `${sectionId}-title`;
+---
+<section class:list={['stories', { 'stories-alt': alt }]} id={sectionId} aria-labelledby={titleId}>
+  <div class="wrap stories-head">
+    <header class="sec-head reveal">
+      <p class="cap stories-eyebrow">{eyebrow}</p>
+      <h2 id={titleId}>{title}</h2>
+      <p class="sub">{sub}</p>
+    </header>
+  </div>
+
+  <div class="carousel" data-carousel data-dock-hide role="region" aria-roledescription="carousel" aria-label={label}>
+    <button class="carousel-arrow prev" type="button" aria-label="Previous" data-prev><Icon name="arrow-left" /></button>
+    <ul class="carousel-track" role="list" tabindex="0" aria-label={`${label}, use the arrow keys to move`} data-track data-copies={COPIES}>
+      {cards.map(({ item, copy }) => {
+        const real = copy === middle;
+        return (
+          <li class="story-card" data-card aria-hidden={real ? undefined : 'true'}>
+            <figure class="story-cover">
+              <Picture
+                src={item.cover}
+                formats={['avif', 'webp']}
+                widths={[420, 640, 840]}
+                sizes="(max-width: 760px) 78vw, 380px"
+                alt=""
+                loading="lazy"
+                decoding="async"
+                style={`background-color:${item.color}`}
+              />
+              {item.badge && <span class="story-badge">{item.badge}</span>}
+              <span class="story-progress" aria-hidden="true"><i data-progress-for={item.id}></i></span>
+            </figure>
+            <div class="story-body">
+              <p class="story-meta"><Icon name={item.icon} /> {item.meta}</p>
+              <h3 class="story-name">{item.name}</h3>
+              <p class="story-line">{item.line}</p>
+              <button class="story-play" type="button" data-play-world={item.id} aria-pressed="false" tabindex={real ? undefined : -1}>
+                <span class="story-play-ring"><PlayIcons /></span>
+                <span data-label data-idle={play}>{play}</span>
+                <span class="sr-only">, {item.name}</span>
+              </button>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+    <button class="carousel-arrow next" type="button" aria-label="Next" data-next><Icon name="arrow-right" /></button>
+  </div>
+
+  <div class="wrap">
+    <p class="stories-note">{note}</p>
+  </div>
+</section>
