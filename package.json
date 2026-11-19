@@ -1,14 +1,22 @@
 {
   "name": "sleepmoore-site",
   "private": true,
-  "description": "The public website for the Sleep Moore app, served by GitHub Pages.",
+  "description": "The public website for the Sleep Moore app, built with Astro and served by GitHub Pages.",
   "scripts": {
-    "serve": "python -m http.server 8080",
-    "test": "node test/check.mjs && html-validate index.html support/index.html privacy/index.html",
+    "dev": "astro dev --port 8080",
+    "build": "astro build",
+    "serve": "astro preview --port 8080",
+    "check": "astro check",
+    "test": "astro build && node test/check.mjs && html-validate dist/index.html dist/support/index.html dist/privacy/index.html",
     "test:visual": "node test/screens.mjs test/screens"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/sitemap": "^3.7.6",
+    "astro": "^6.4.8",
     "html-validate": "^9.0.0",
-    "puppeteer-core": "^25.17.0"
-  }
+    "puppeteer-core": "^25.17.0",
+    "typescript": "^6.0.3"
+  },
+  "type": "module"
 }

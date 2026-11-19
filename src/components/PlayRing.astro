@@ -1,0 +1,9 @@
+---
+import PlayIcons from './PlayIcons.astro';
+
+interface Props {
+  small?: boolean;
+}
+const { small = false } = Astro.props;
+---
+<span class:list={['play-ring', { sm: small }]} aria-hidden="true"><PlayIcons /></span>

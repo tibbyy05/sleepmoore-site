@@ -1,4 +1,5 @@
-// Static checks for the Sleep Moore site: every local link, image, script and
+// Static checks for the built Sleep Moore site in dist/ (run `astro build` first;
+// `npm test` does both): every local link, image, script and
 // audio file the pages reference must exist, every world in site.js must have
 // its audio files, and the pages must carry the basics (title, description,
 // viewport, canonical, one h1). Run with `npm test`.
@@ -6,7 +7,8 @@ import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
+if (!existsSync(join(root, 'index.html'))) { console.error('dist/ is missing: run `npm run build` first'); process.exit(1); }
 const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html'];
 const failures = [];
 const fail = (m) => failures.push(m);
@@ -77,6 +79,14 @@ const css = readFileSync(join(root, 'site.css'), 'utf8');
 for (const m of css.matchAll(/url\(["']?(\/[^"')]+)/g)) {
   if (!exists(m[1].slice(1))) fail(`site.css: ${m[1]} does not exist`);
 }
+
+// Search engines: robots.txt points at the sitemap, and the sitemap lists the real pages only.
+if (!exists('robots.txt') || !/Sitemap: https:\/\/sleepmoore\.app\/sitemap-index\.xml/.test(readFileSync(join(root, 'robots.txt'), 'utf8'))) fail('robots.txt missing or has no sitemap line');
+const sitemapXml = exists('sitemap-0.xml') ? readFileSync(join(root, 'sitemap-0.xml'), 'utf8') : '';
+for (const url of ['https://sleepmoore.app/', 'https://sleepmoore.app/support/', 'https://sleepmoore.app/privacy/']) {
+  if (!sitemapXml.includes(`<loc>${url}</loc>`)) fail(`sitemap is missing ${url}`);
+}
+if (sitemapXml.includes('/lab/')) fail('sitemap lists the unlisted motion lab');
 
 if (failures.length) {
   console.error(`\n${failures.length} problem(s):\n- ` + failures.join('\n- '));

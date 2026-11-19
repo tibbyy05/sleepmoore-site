@@ -1,0 +1,33 @@
+---
+import type { Link } from '../data/site';
+
+interface Props {
+  nav: Link[];
+  menu: Link[];
+  /** Where the "Get the app" pill points. */
+  getHref: string;
+  /** Home page only: the brand is split into letters for the ink-rise entrance. */
+  animateBrand?: boolean;
+}
+const { nav, menu, getHref, animateBrand = false } = Astro.props;
+const here = Astro.url.pathname;
+const current = (href: string) => (href === here ? 'page' : undefined);
+---
+<header class="top" id={animateBrand ? 'top' : undefined}>
+  <div class="wrap">
+    <a class="brand" href="/">Sleep Moore</a>{animateBrand && <script is:inline>splitLetters(document.currentScript.previousElementSibling)</script>}
+    <nav class="nav" aria-label="Main">
+      {nav.map((l) => <a href={l.href} aria-current={current(l.href)}>{l.label}</a>)}
+    </nav>
+    <div class="top-actions">
+      <a class="pill" href={getHref}>Get the app</a>
+      <button class="menu-btn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+<nav class="menu" id="menu" aria-label="Main, mobile" hidden>
+  {menu.map((l) => <a href={l.href}>{l.label}</a>)}
+  <a class="pill" href={getHref}>Get the app</a>
+</nav>

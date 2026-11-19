@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /lab/
+
+Sitemap: https://sleepmoore.app/sitemap-index.xml
