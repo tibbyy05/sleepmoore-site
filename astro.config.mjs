@@ -6,5 +6,8 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://sleepmoore.app',
   trailingSlash: 'always',
+  // Astro 7 defaults to JSX whitespace rules, which glue inline text to links
+  // ("Write to<a>"). Keep HTML rules so the pages render as written.
+  compressHTML: true,
   integrations: [sitemap()],
 });

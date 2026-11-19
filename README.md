@@ -1,6 +1,6 @@
 # sleepmoore.app
 
-The public website for the Sleep Moore app: home, support and privacy policy. Built with [Astro](https://astro.build) and served by GitHub Pages at https://sleepmoore.app (DNS at Namecheap). The app itself lives in a separate private repository.
+The public website for the Sleep Moore app: home, support and privacy policy. Built with [Astro](https://astro.build) 7 and served by GitHub Pages at https://sleepmoore.app (DNS at Namecheap). The app itself lives in a separate private repository.
 
 ## How it fits together
 
@@ -33,6 +33,6 @@ node test/app-shots.mjs  # re-capture the app screens; needs `npx expo start --w
 
 Pushing to `main` runs `.github/workflows/deploy.yml`: it installs, runs `npm test` (which builds the site), and publishes `dist/` to GitHub Pages. If a check fails, nothing is published. The repository's Pages source must be set to "GitHub Actions" (Settings > Pages).
 
-Astro is on version 6 because version 7 needs Node 22.23.4 or newer and this PC has 22.21. After `winget upgrade OpenJS.NodeJS.22`, move to 7 with `npx @astrojs/upgrade`.
+Astro 7 needs Node 22.23.4 or newer (this PC has 22.23.5; CI uses Node 24). `compressHTML: true` in `astro.config.mjs` keeps HTML whitespace rules; Astro 7's default would glue inline text to links.
 
 Lighthouse (local, 18 Nov 2026, after the move to Astro): desktop and mobile both 100 / 100 / 100 / 100.
