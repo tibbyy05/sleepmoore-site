@@ -21,9 +21,9 @@ export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string
   palms: { label: 'Palms', icon: 'palms', line: 'Palm fronds rustling overhead.' },
   train: { label: 'Train', icon: 'train', line: 'A sleeper carriage, rocking steadily on.' },
   ferry: { label: 'Water', icon: 'boat', line: 'Small waves along a slow hull.' },
-  'story-midnight-express': { label: 'Narrator', icon: 'narrator', line: 'The midnight express, read aloud.', loop: false },
-  'story-night-ferry': { label: 'Narrator', icon: 'narrator', line: 'The night ferry, read aloud.', loop: false },
-  'story-lighthouse-keeper': { label: 'Narrator', icon: 'narrator', line: 'The lighthouse keeper, read aloud.', loop: false },
+  'story-midnight-express': { label: 'Narrator', icon: 'narrator', line: 'The Midnight Express, read aloud.', loop: false },
+  'story-night-ferry': { label: 'Narrator', icon: 'narrator', line: 'The Night Ferry, read aloud.', loop: false },
+  'story-lighthouse-keeper': { label: 'Narrator', icon: 'narrator', line: 'The Lighthouse Keeper, read aloud.', loop: false },
   'calm-pad': { label: 'Pad', icon: 'waveform', line: 'A soft, slow pad under the voice.' },
   'meditation-two-minute-method': { label: 'Voice', icon: 'narrator', line: 'The two-minute method, guided.', loop: false },
   'meditation-soften-head-to-toe': { label: 'Voice', icon: 'narrator', line: 'Soften, head to toe, guided.', loop: false },
@@ -188,7 +188,7 @@ export type Story = {
 export const STORIES: Story[] = [
   {
     id: 'lighthouse-keeper',
-    name: 'The lighthouse keeper',
+    name: 'The Lighthouse Keeper',
     tagline: 'One quiet night tending the light, with the sea and the rain for company.',
     minutes: 45,
     narration: 27,
@@ -199,7 +199,7 @@ export const STORIES: Story[] = [
   },
   {
     id: 'night-ferry',
-    name: 'The night ferry',
+    name: 'The Night Ferry',
     tagline: 'A slow crossing of a still lake under the stars, in a berth by a round window.',
     minutes: 35,
     narration: 9,
@@ -209,7 +209,7 @@ export const STORIES: Story[] = [
   },
   {
     id: 'midnight-express',
-    name: 'The midnight express',
+    name: 'The Midnight Express',
     tagline: 'An overnight sleeper through the mountains, the carriage rocking gently on.',
     minutes: 35,
     narration: 9,
@@ -238,10 +238,10 @@ export type Meditation = {
 };
 
 export const MEDITATIONS: Meditation[] = [
-  { id: 'two-minute-method', name: 'The two-minute method', kind: 'Fall asleep fast', tagline: 'Relax the body part by part, then still the mind for a few slow breaths.', minutes: 7, icon: 'moon', layers: [['meditation-two-minute-method', 100], ['calm-pad', 40]] },
-  { id: 'soften-head-to-toe', name: 'Soften, head to toe', kind: 'Deep body relaxation', tagline: 'A slow wave of warmth through the whole body, from the crown to the toes.', minutes: 11, icon: 'lotus', layers: [['meditation-soften-head-to-toe', 100], ['calm-pad', 40]] },
-  { id: 'let-the-day-go', name: 'Let the day go', kind: 'Quiet racing thoughts', tagline: 'For a busy mind: set each thought on a leaf and let the stream carry it.', minutes: 9, icon: 'leaf', layers: [['meditation-let-the-day-go', 100], ['calm-pad', 40]] },
-  { id: 'back-to-sleep', name: 'Back to sleep', kind: 'Woken in the night', tagline: 'Woken at three? Slow the breath, count down, and drift back.', minutes: 8, icon: 'night', layers: [['meditation-back-to-sleep', 100], ['calm-pad', 40]] },
+  { id: 'two-minute-method', name: 'The Two-Minute Method', kind: 'Fall asleep fast', tagline: 'Relax the body part by part, then still the mind for a few slow breaths.', minutes: 7, icon: 'moon', layers: [['meditation-two-minute-method', 100], ['calm-pad', 40]] },
+  { id: 'soften-head-to-toe', name: 'Soften, Head to Toe', kind: 'Deep body relaxation', tagline: 'A slow wave of warmth through the whole body, from the crown to the toes.', minutes: 11, icon: 'lotus', layers: [['meditation-soften-head-to-toe', 100], ['calm-pad', 40]] },
+  { id: 'let-the-day-go', name: 'Let the Day Go', kind: 'Quiet racing thoughts', tagline: 'For a busy mind: set each thought on a leaf and let the stream carry it.', minutes: 9, icon: 'leaf', layers: [['meditation-let-the-day-go', 100], ['calm-pad', 40]] },
+  { id: 'back-to-sleep', name: 'Back to Sleep', kind: 'Woken in the night', tagline: 'Woken at three? Slow the breath, count down, and drift back.', minutes: 8, icon: 'night', layers: [['meditation-back-to-sleep', 100], ['calm-pad', 40]] },
 ];
 export const MEDITATIONS_BY_ID: Record<string, Meditation> = Object.fromEntries(MEDITATIONS.map((m) => [m.id, m]));
 

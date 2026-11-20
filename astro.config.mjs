@@ -15,18 +15,9 @@ export default defineConfig({
   fonts: [
     {
       provider: fontProviders.google(),
-      name: 'Cormorant Garamond',
-      cssVariable: '--font-serif',
-      weights: [400, 500, 600],
-      styles: ['normal', 'italic'],
-      subsets: ['latin'],
-      fallbacks: ['Georgia', 'serif'],
-    },
-    {
-      provider: fontProviders.google(),
-      name: 'DM Sans',
+      name: 'Nunito',
       cssVariable: '--font-sans',
-      weights: [400, 500, 600],
+      weights: [400, 600, 700, 800],
       styles: ['normal'],
       subsets: ['latin'],
       fallbacks: ['sans-serif'],
