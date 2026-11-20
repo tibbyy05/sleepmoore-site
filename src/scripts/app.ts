@@ -321,7 +321,7 @@ function bindCarousel(root: HTMLElement) {
   const home = () => cards[middle * per].offsetLeft - cards[0].offsetLeft;
   track.scrollLeft = home();
 
-  let settle = 0;
+  let settle = 0, down = false;
   const recentre = () => {
     const w = setWidth(), x = track.scrollLeft - home();
     if (Math.abs(x) >= w * 0.5) {
@@ -331,7 +331,7 @@ function bindCarousel(root: HTMLElement) {
       requestAnimationFrame(() => (track.style.scrollSnapType = ''));
     }
   };
-  const onScroll = () => { clearTimeout(settle); settle = window.setTimeout(recentre, 140); };
+  const onScroll = () => { clearTimeout(settle); if (!down) settle = window.setTimeout(recentre, 140); };
   track.addEventListener('scroll', onScroll, { passive: true });
   const go = (dir: number) => track.scrollBy({ left: dir * step(), behavior: reduced.matches ? 'auto' : 'smooth' });
   const prev = $('[data-prev]', root), next = $('[data-next]', root);
@@ -345,7 +345,59 @@ function bindCarousel(root: HTMLElement) {
   track.addEventListener('keydown', onKey);
   const onResize = () => { track.scrollLeft = home(); };
   window.addEventListener('resize', onResize);
+
+  // Mouse: drag the row like a touchscreen, then settle on the nearest card. Touch and trackpads scroll natively.
+  let dragged = false, startX = 0, startLeft = 0, lastX = 0, lastT = 0, speed = 0, unsnap = 0;
+  const onDown = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || (e.target as Element).closest('button, a')) return;
+    down = true; dragged = false; startX = lastX = e.clientX; startLeft = track.scrollLeft; lastT = e.timeStamp; speed = 0;
+    clearTimeout(unsnap);
+  };
+  const onMove = (e: PointerEvent) => {
+    if (!down) return;
+    const dx = e.clientX - startX;
+    if (!dragged && Math.abs(dx) > 6) {
+      dragged = true;
+      track.setPointerCapture(e.pointerId);
+      track.style.scrollSnapType = 'none';
+      track.classList.add('is-dragging');
+    }
+    if (!dragged) return;
+    const dt = Math.max(1, e.timeStamp - lastT);
+    speed = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = e.timeStamp;
+    track.scrollLeft = startLeft - dx;
+  };
+  const onUp = () => {
+    if (!down) return;
+    down = false;
+    if (!dragged) return;
+    track.classList.remove('is-dragging');
+    const s = step(), at = track.scrollLeft / s;
+    const fling = Math.abs(speed) > 0.4 ? -Math.sign(speed) * 0.5 : 0;
+    const target = Math.round(at + fling) * s;
+    track.scrollTo({ left: target, behavior: reduced.matches ? 'auto' : 'smooth' });
+    unsnap = window.setTimeout(() => (track.style.scrollSnapType = ''), 600);
+  };
+  // A drag must not count as a click on the card underneath.
+  const onClickCapture = (e: MouseEvent) => { if (dragged) { e.preventDefault(); e.stopPropagation(); dragged = false; } };
+  const noImageDrag = (e: DragEvent) => e.preventDefault();
+  // Tapping a cover plays that card, like its button.
+  const onCover = (e: MouseEvent) => {
+    const cover = (e.target as Element).closest('.story-cover');
+    if (cover) cover.closest('[data-card]')?.querySelector<HTMLButtonElement>('.story-play')?.click();
+  };
+  track.addEventListener('pointerdown', onDown);
+  track.addEventListener('pointermove', onMove);
+  track.addEventListener('pointerup', onUp);
+  track.addEventListener('pointercancel', onUp);
+  track.addEventListener('click', onClickCapture, true);
+  track.addEventListener('click', onCover);
+  track.addEventListener('dragstart', noImageDrag);
   teardown.push(() => {
+    track.removeEventListener('pointerdown', onDown); track.removeEventListener('pointermove', onMove);
+    track.removeEventListener('pointerup', onUp); track.removeEventListener('pointercancel', onUp);
+    track.removeEventListener('click', onClickCapture, true); track.removeEventListener('click', onCover);
+    track.removeEventListener('dragstart', noImageDrag); clearTimeout(unsnap);
     track.removeEventListener('scroll', onScroll); track.removeEventListener('keydown', onKey);
     prev?.removeEventListener('click', onPrev); next?.removeEventListener('click', onNext);
     window.removeEventListener('resize', onResize); clearTimeout(settle);

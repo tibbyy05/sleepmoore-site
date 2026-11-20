@@ -723,6 +723,11 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
   mask-image: linear-gradient(90deg, transparent 0, #000 calc(var(--edge) * 0.6), #000 calc(100% - var(--edge) * 0.6), transparent 100%);
 }
 .carousel-track::-webkit-scrollbar { display: none; }
+@media (pointer: fine) {
+  .carousel-track { cursor: grab; }
+  .story-cover { cursor: pointer; }
+  .carousel-track.is-dragging, .carousel-track.is-dragging .story-cover { cursor: grabbing; user-select: none; }
+}
 .carousel-track:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; border-radius: 24px; }
 .story-card { flex: 0 0 var(--card); scroll-snap-align: start; }
 .story-cover {
