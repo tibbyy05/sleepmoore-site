@@ -708,13 +708,13 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
 .stories-eyebrow { color: var(--gold); margin-bottom: 14px; }
 .stories .sec-head .sub { max-width: 40em; }
 .carousel {
-  --card: clamp(280px, 27vw, 380px);
+  --card: clamp(300px, 40vw, 600px);
   --edge: max(var(--gutter), (100vw - var(--wrap)) / 2);
   position: relative;
 }
 .carousel-track {
   list-style: none; margin: 0;
-  display: flex; gap: clamp(16px, 2vw, 28px);
+  display: flex; gap: clamp(20px, 4vw, 64px);
   padding: 6px var(--edge) 10px;
   overflow-x: auto; overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory; scroll-padding-inline: var(--edge);
@@ -726,7 +726,7 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
 .carousel-track:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; border-radius: 24px; }
 .story-card { flex: 0 0 var(--card); scroll-snap-align: start; }
 .story-cover {
-  position: relative; margin: 0; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; background: var(--surface);
+  position: relative; margin: 0; aspect-ratio: 5 / 4; border-radius: 22px; overflow: hidden; background: var(--surface);
   box-shadow: 0 30px 70px -32px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(243, 234, 219, 0.06);
 }
 .story-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.6s var(--ease); }
@@ -776,7 +776,8 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
 .carousel-arrow.next:hover .icon { transform: translateX(2px); }
 .stories-note { margin: 34px 0 0; font: 400 15px/1.6 var(--sans); color: var(--muted); max-width: 46em; }
 @media (max-width: 760px) {
-  .carousel { --card: min(78vw, 340px); }
+  .carousel { --card: min(84vw, 360px); }
+  .story-cover { aspect-ratio: 4 / 5; }
   .carousel-track { -webkit-mask-image: none; mask-image: none; }
   .carousel-arrow { width: 44px; height: 44px; }
   .carousel-arrow.prev { left: 8px; }
