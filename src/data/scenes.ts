@@ -22,4 +22,4 @@ const medCovers = import.meta.glob<{ default: ImageMetadata }>('../assets/medita
 export const MEDITATION_COVERS: Record<string, ImageMetadata> = Object.fromEntries(
   Object.entries(medCovers).map(([path, mod]) => [path.split('/').pop()!.replace(/\.jpg$/, ''), mod.default]),
 );
-export const MEDITATION_COLORS: Record<string, string> = { 'two-minute-method': '#141b29', 'soften-head-to-toe': '#2a1e18', 'let-the-day-go': '#2a2118', 'back-to-sleep': '#121e34' };
+export const MEDITATION_COLORS: Record<string, string> = { 'two-minute-method': '#141b29', 'soften-head-to-toe': '#2a1e18', 'let-the-day-go': '#2a2118', 'back-to-sleep': '#121e34', 'yoga-nidra': '#2b1d18' };

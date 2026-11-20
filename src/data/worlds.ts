@@ -4,7 +4,7 @@
 export type SoundId =
   | 'rain' | 'fire' | 'wind' | 'ocean' | 'night' | 'snow' | 'thunder' | 'stream' | 'chimes' | 'palms' | 'train' | 'ferry'
   | 'story-midnight-express' | 'story-night-ferry' | 'story-lighthouse-keeper' | 'calm-pad'
-  | 'meditation-two-minute-method' | 'meditation-soften-head-to-toe' | 'meditation-let-the-day-go' | 'meditation-back-to-sleep';
+  | 'meditation-two-minute-method' | 'meditation-soften-head-to-toe' | 'meditation-let-the-day-go' | 'meditation-back-to-sleep' | 'meditation-yoga-nidra';
 
 /** Each sound's label, Phosphor icon, and a line for the world pages. Audio lives in public/audio/<id>.{opus,flac,m4a}. */
 /** `loop: false` marks a narration: it plays once (the story's opening, about 100 s) and then the mix stops. */
@@ -29,6 +29,7 @@ export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string
   'meditation-soften-head-to-toe': { label: 'Voice', icon: 'narrator', line: 'Soften, head to toe, guided.', loop: false },
   'meditation-let-the-day-go': { label: 'Voice', icon: 'narrator', line: 'Let the day go, guided.', loop: false },
   'meditation-back-to-sleep': { label: 'Voice', icon: 'narrator', line: 'Back to sleep, guided.', loop: false },
+  'meditation-yoga-nidra': { label: 'Voice', icon: 'narrator', line: 'Yoga Nidra, guided.', loop: false },
 };
 
 /**
@@ -242,6 +243,7 @@ export const MEDITATIONS: Meditation[] = [
   { id: 'soften-head-to-toe', name: 'Soften, Head to Toe', kind: 'Deep body relaxation', tagline: 'A slow wave of warmth through the whole body, from the crown to the toes.', minutes: 11, icon: 'lotus', layers: [['meditation-soften-head-to-toe', 100], ['calm-pad', 40]] },
   { id: 'let-the-day-go', name: 'Let the Day Go', kind: 'Quiet racing thoughts', tagline: 'For a busy mind: set each thought on a leaf and let the stream carry it.', minutes: 9, icon: 'leaf', layers: [['meditation-let-the-day-go', 100], ['calm-pad', 40]] },
   { id: 'back-to-sleep', name: 'Back to Sleep', kind: 'Woken in the night', tagline: 'Woken at three? Slow the breath, count down, and drift back.', minutes: 8, icon: 'night', layers: [['meditation-back-to-sleep', 100], ['calm-pad', 40]] },
+  { id: 'yoga-nidra', name: 'Yoga Nidra', kind: 'Deepest rest', tagline: 'The yogic sleep: rest each part of the body, count the breath down, and drift.', minutes: 19, icon: 'moon', layers: [['meditation-yoga-nidra', 100], ['calm-pad', 40]] },
 ];
 export const MEDITATIONS_BY_ID: Record<string, Meditation> = Object.fromEntries(MEDITATIONS.map((m) => [m.id, m]));
 
