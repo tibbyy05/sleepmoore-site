@@ -5,7 +5,7 @@ import Dock from '../components/Dock.astro';
 import IconSprite from '../components/IconSprite.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-import { type Link, NAV_PAGE } from '../data/site';
+import { type Link, MENU_PAGE, NAV_PAGE } from '../data/site';
 import '../styles/site.css';
 
 interface Props {
@@ -20,7 +20,7 @@ interface Props {
   /** Social preview image, absolute URL. */
   image?: string;
 }
-const { title, description, home = false, fullBleed = home, nav = NAV_PAGE, menu = NAV_PAGE, image } = Astro.props;
+const { title, description, home = false, fullBleed = home, nav = NAV_PAGE, menu = MENU_PAGE, image } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 ---
 <!doctype html>

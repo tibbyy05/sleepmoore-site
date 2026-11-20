@@ -456,16 +456,6 @@ footer a:hover { color: var(--gold); }
   .step:first-child { min-height: 42vh; }
   .step h3 { font-size: clamp(34px, 7vw, 44px); }
 }
-@media (max-width: 1180px) {
-  .nav a { padding: 0 13px; font-size: 15px; }
-  .pill { padding: 0 22px; font-size: 15px; }
-}
-@media (max-width: 960px) {
-  .brand { font-size: 23px; }
-  .nav { gap: 0; }
-  .nav a { padding: 0 10px; font-size: 14px; }
-  .top-actions .pill { min-height: 46px; padding: 0 18px; font-size: 14px; }
-}
 @media (max-width: 760px) {
   .nav, .top-actions .pill { display: none; }
   .menu-btn { display: inline-flex; }
