@@ -2,14 +2,18 @@
 // does both). Every page must carry a full link preview whose image exists, structured data that
 // parses, each heading once (the carousels render five copies of their cards), and described
 // scene pictures. /llms.txt must list every world, story and meditation.
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const { WORLDS, STORIES, MEDITATIONS } = await import('../src/data/worlds.ts');
 const SITE = 'https://sleepmoore.app';
-const pages = ['index.html', 'support/index.html', 'privacy/index.html', ...WORLDS.map((w) => `worlds/${w.id}/index.html`)];
+const walk = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(join(dir, d.name)) : d.name === 'index.html' ? [join(dir, d.name).split(sep).join('/')] : []));
+// The lab and the private admin page are not for search.
+const pages = walk('').filter((p) => !p.startsWith('lab/') && !p.startsWith('admin/'));
+const { SOUND_MIXES } = await import('../src/data/worlds.ts');
+const { GUIDES } = await import('../src/data/guides.ts');
 const failures = [];
 const fail = (m) => failures.push(m);
 const meta = (html, key) => html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1];
@@ -61,6 +65,25 @@ for (const w of WORLDS) {
   if (!/<img [^>]*alt="[^"]+"[^>]*fetchpriority="high"|<img [^>]*fetchpriority="high"[^>]*alt="[^"]+"/.test(html)) fail(`worlds/${w.id}: the main scene has no description`);
 }
 
+// Library pages: every sound, story, meditation and guide has a page with breadcrumbs and questions.
+const library = [
+  ...SOUND_MIXES.map((m) => `sounds/${m.slug}/index.html`),
+  ...STORIES.map((x) => `stories/${x.id}/index.html`),
+  ...MEDITATIONS.map((x) => `meditations/${x.id}/index.html`),
+  ...GUIDES.map((g) => `guides/${g.slug}/index.html`),
+];
+for (const page of library) {
+  if (!existsSync(join(root, page))) { fail(`${page} was not built`); continue; }
+  const html = readFileSync(join(root, page), 'utf8');
+  const types = [...html.matchAll(/"@type":"([A-Za-z]+)"/g)].map((m) => m[1]);
+  for (const t of ['WebPage', 'BreadcrumbList', 'FAQPage']) if (!types.includes(t)) fail(`${page}: structured data has no ${t}`);
+  const words = text(html.replace(/<(script|style|svg)[\s\S]*?<\/\1>/g, '')).split(' ').length;
+  if (words < 450) fail(`${page}: only ${words} words, thin for a page meant to rank`);
+}
+for (const hub of ['sounds/index.html', 'stories/index.html', 'meditations/index.html', 'guides/index.html', 'about/index.html']) {
+  if (!existsSync(join(root, hub))) fail(`${hub} was not built`);
+}
+
 // /llms.txt and the IndexNow key.
 const llmsPath = join(root, 'llms.txt');
 if (!existsSync(llmsPath)) fail('llms.txt is missing');
@@ -70,6 +93,8 @@ else {
   for (const item of [...WORLDS, ...STORIES, ...MEDITATIONS]) {
     if (!llms.includes(item.name)) fail(`llms.txt does not mention ${item.name}`);
   }
+  for (const m of SOUND_MIXES) if (!llms.includes(`/sounds/${m.slug}/`)) fail(`llms.txt does not link /sounds/${m.slug}/`);
+  for (const g of GUIDES) if (!llms.includes(`/guides/${g.slug}/`)) fail(`llms.txt does not link /guides/${g.slug}/`);
 }
 const workflow = readFileSync(join(root, '..', '.github', 'workflows', 'deploy.yml'), 'utf8');
 const key = workflow.match(/KEY: ([0-9a-f]{32})/)?.[1];

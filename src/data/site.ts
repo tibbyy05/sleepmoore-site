@@ -8,28 +8,38 @@ export type Link = { href: string; label: string };
 /** Header links on the home page (in-page anchors) and on every other page. */
 export const NAV_HOME: Link[] = [
   { href: '#worlds', label: 'Worlds' },
+  { href: '#sounds', label: 'Sounds' },
   { href: '#stories', label: 'Stories' },
   { href: '#meditations', label: 'Meditations' },
 ];
 export const MENU_HOME: Link[] = [
-  { href: '#worlds', label: 'Worlds' },
-  { href: '#stories', label: 'Stories' },
-  { href: '#meditations', label: 'Meditations' },
+  ...NAV_HOME,
   { href: '#night', label: 'The night' },
   { href: '#mix', label: 'Mixer' },
-  { href: '#free', label: 'Free' },
+  { href: '/guides/', label: 'Guides' },
+  { href: '/about/', label: 'About' },
   { href: '/support/', label: 'Support' },
-  { href: '/privacy/', label: 'Privacy' },
 ];
 export const NAV_PAGE: Link[] = [
   { href: '/#worlds', label: 'Worlds' },
-  { href: '/#stories', label: 'Stories' },
-  { href: '/#meditations', label: 'Meditations' },
+  { href: '/sounds/', label: 'Sounds' },
+  { href: '/stories/', label: 'Stories' },
+  { href: '/meditations/', label: 'Meditations' },
 ];
 /** Phone menu on other pages: room for the rest. */
 export const MENU_PAGE: Link[] = [
   ...NAV_PAGE,
-  { href: '/#mix', label: 'Mixer' },
+  { href: '/guides/', label: 'Guides' },
+  { href: '/about/', label: 'About' },
+  { href: '/support/', label: 'Support' },
+];
+/** Footer: every hub, then the legal and contact links. */
+export const FOOTER: Link[] = [
+  { href: '/sounds/', label: 'Sleep sounds' },
+  { href: '/stories/', label: 'Stories' },
+  { href: '/meditations/', label: 'Meditations' },
+  { href: '/guides/', label: 'Guides' },
+  { href: '/about/', label: 'About' },
   { href: '/support/', label: 'Support' },
   { href: '/privacy/', label: 'Privacy' },
 ];

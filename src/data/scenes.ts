@@ -51,3 +51,11 @@ export const COVER_ALT: Record<string, string> = {
   'back-to-sleep': 'A dark blue bedroom at night, the full moon through the window',
   'yoga-nidra': 'A floor cushion and candle beneath a round window onto snowy mountains',
 };
+
+/** The app's square sound tiles (src/assets/tiles/<id>.jpg), art for the sound pages. */
+const tiles = import.meta.glob<{ default: ImageMetadata }>('../assets/tiles/*.jpg', { eager: true });
+export const TILES: Record<string, ImageMetadata> = Object.fromEntries(
+  Object.entries(tiles).map(([path, mod]) => [path.split('/').pop()!.replace(/\.jpg$/, ''), mod.default]),
+);
+/** Each tile's average colour: the placeholder while it loads and the glow behind it. */
+export const TILE_COLORS: Record<string, string> = { brown: '#341507', fan: '#2e2725', fire: '#362322', green: '#1a322d', 'heavy-rain': '#4c352a', night: '#19212b', ocean: '#1f3b48', pink: '#673e53', 'rain-storm': '#241e29', rain: '#242022', snow: '#352c2f', stream: '#473b32', thunder: '#1d273d', train: '#3d2c25', white: '#313e51', wind: '#313e54' };

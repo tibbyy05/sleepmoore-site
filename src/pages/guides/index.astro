@@ -1,0 +1,39 @@
+---
+import GetApp from '../../components/GetApp.astro';
+import Icon from '../../components/Icon.astro';
+import { GUIDES } from '../../data/guides';
+import { breadcrumbs, graph, pageUrl, webPage } from '../../data/schema';
+import { stripTags } from '../../data/site';
+import Base from '../../layouts/Base.astro';
+
+const url = pageUrl('/guides/');
+const title = 'Sleep sound guides: honest answers | Sleep Moore';
+const description = 'Plain, honest answers about sleep sounds: brown vs pink vs white noise, whether sleep sounds help, how loud to play them, timers, and the military method for falling asleep.';
+const list = { '@type': 'ItemList', '@id': `${url}#list`, itemListElement: GUIDES.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: pageUrl(`/guides/${g.slug}/`), name: g.h1 })) };
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={graph(webPage(url, 'Guides', description), breadcrumbs(url, [['Guides', '/guides/']]), list)} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <p class="eyebrow">Guides</p>
+      <h1>Honest answers about sleep sounds.</h1>
+      <p>What the research says, what it does not, and how to use sound well tonight. Short answer first, every time.</p>
+    </div>
+  </section>
+  <section class="lib-group lib-group-last">
+    <div class="wrap">
+      <ul class="guide-cards" role="list">
+        {GUIDES.map((g) => (
+          <li>
+            <a class="guide-card" href={`/guides/${g.slug}/`}>
+              <span class="guide-card-title">{g.h1}</span>
+              <span class="guide-card-answer">{stripTags(g.answer).split('. ').slice(0, 2).join('. ').replace(/\.?$/, '.')}</span>
+              <span class="guide-card-go">Read the guide <Icon name="arrow-right" /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  <GetApp />
+</Base>

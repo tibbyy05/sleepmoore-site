@@ -1,0 +1,22 @@
+---
+import CoverHub from '../../components/CoverHub.astro';
+import { MEDITATION_COLORS, MEDITATION_COVERS } from '../../data/scenes';
+import { breadcrumbs, graph, pageUrl, webPage } from '../../data/schema';
+import { MEDITATIONS } from '../../data/worlds';
+import Base from '../../layouts/Base.astro';
+
+const url = pageUrl('/meditations/');
+const title = 'Free guided sleep meditations, 7 to 19 minutes | Sleep Moore';
+const description = 'Free guided sleep meditations: the two-minute method, a body scan, a meditation for racing thoughts, one for waking at 3am, and Yoga Nidra. Read every word and hear the first minutes.';
+const list = { '@type': 'ItemList', '@id': `${url}#list`, itemListElement: MEDITATIONS.map((m, i) => ({ '@type': 'ListItem', position: i + 1, url: pageUrl(`/meditations/${m.id}/`), name: m.name })) };
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={graph(webPage(url, 'Guided sleep meditations', description), breadcrumbs(url, [['Sleep meditations', '/meditations/']]), list)} />
+  <CoverHub
+    eyebrow="Guided meditations"
+    title="Quiet the mind, soften the body."
+    lede="Short sessions for the moments sleep will not come, read slowly by one calm voice over a soft pad. Each page has every word, so you can read it first. Tap a cover for the first minutes."
+    base="meditations"
+    items={MEDITATIONS.map((m) => ({ ...m, meta: `${m.minutes} min · ${m.kind}`, cover: MEDITATION_COVERS[m.id], color: MEDITATION_COLORS[m.id] }))}
+  />
+</Base>

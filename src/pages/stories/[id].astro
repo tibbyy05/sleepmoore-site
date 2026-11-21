@@ -1,0 +1,57 @@
+---
+// One page per night journey: the opening to hear and to read, and what the rest is like.
+import { getImage } from 'astro:assets';
+import GuidedView from '../../components/GuidedView.astro';
+import { STORY_PAGES } from '../../data/guides';
+import { COVER_ALT, STORY_COLORS, STORY_COVERS } from '../../data/scenes';
+import { breadcrumbs, faqPage, graph, pageUrl, webPage } from '../../data/schema';
+import scripts from '../../data/scripts.json';
+import { SITE } from '../../data/site';
+import { STORIES, type Story } from '../../data/worlds';
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return STORIES.map((story) => ({ params: { id: story.id }, props: { story } }));
+}
+type Props = { story: Story };
+const { story } = Astro.props;
+const page = STORY_PAGES.find((p) => p.id === story.id)!;
+const script = (scripts as Record<string, { opening?: string[]; text?: string[]; words: number }>)[story.id];
+
+const path = `/stories/${story.id}/`;
+const url = pageUrl(path);
+const og = await getImage({ src: STORY_COVERS[story.id], width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const ogUrl = new URL(og.src, SITE).href;
+const work = {
+  '@type': 'CreativeWork',
+  name: story.name,
+  abstract: story.tagline,
+  genre: 'Sleep story',
+  inLanguage: 'en',
+  timeRequired: `PT${story.minutes}M`,
+  isAccessibleForFree: true,
+  publisher: { '@id': `${SITE}/#org` },
+  audio: { '@type': 'AudioObject', name: `${story.name}, the opening`, contentUrl: `${SITE}/audio/story-${story.id}.m4a`, encodingFormat: 'audio/mp4' },
+};
+const ld = graph(
+  { ...webPage(url, story.name, page.description, ogUrl), mainEntity: work },
+  breadcrumbs(url, [['Sleep stories', '/stories/'], [story.name, path]]),
+  faqPage(url, page.faq),
+);
+const others = STORIES.filter((s) => s.id !== story.id).map((s) => ({ ...s, cover: STORY_COVERS[s.id], color: STORY_COLORS[s.id], meta: `Night journey · ${s.minutes} min` }));
+---
+<Base title={page.title} description={page.description} image={ogUrl} imageAlt={COVER_ALT[story.id]}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+  <GuidedView
+    kind="story"
+    item={story}
+    page={page}
+    cover={STORY_COVERS[story.id]}
+    coverAlt={COVER_ALT[story.id]}
+    color={STORY_COLORS[story.id]}
+    cap={`Night journey · ${story.minutes} min`}
+    words={script.opening ?? []}
+    totalWords={script.words}
+    others={others}
+  />
+</Base>

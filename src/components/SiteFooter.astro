@@ -1,14 +1,18 @@
 ---
-import { EMAIL } from '../data/site';
+import { SOUND_MIXES } from '../data/worlds';
+import { EMAIL, FOOTER } from '../data/site';
 ---
 <footer>
   <div class="wrap">
     <span class="foot-brand">Sleep Moore</span>
     <nav aria-label="Footer">
-      <a href="/support/">Support</a>
-      <a href="/privacy/">Privacy</a>
+      {FOOTER.map((l) => <a href={l.href}>{l.label}</a>)}
       <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
     </nav>
     <span class="foot-copy">© 2026 Sleep Moore. Sleep well.</span>
+  </div>
+  <div class="wrap foot-sounds">
+    <span>Sleep sounds:</span>
+    {SOUND_MIXES.map((m) => <a href={`/sounds/${m.slug}/`}>{m.name}</a>)}
   </div>
 </footer>

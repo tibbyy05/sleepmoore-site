@@ -1,0 +1,73 @@
+---
+// A guide: the answer first in a few sentences, then the detail, then questions.
+import Faq from '../../components/Faq.astro';
+import GetApp from '../../components/GetApp.astro';
+import Icon from '../../components/Icon.astro';
+import { GUIDES, type Guide } from '../../data/guides';
+import { breadcrumbs, faqPage, graph, pageUrl, webPage } from '../../data/schema';
+import { SITE, stripTags } from '../../data/site';
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return GUIDES.map((guide) => ({ params: { slug: guide.slug }, props: { guide } }));
+}
+type Props = { guide: Guide };
+const { guide } = Astro.props;
+const path = `/guides/${guide.slug}/`;
+const url = pageUrl(path);
+const article = {
+  '@type': 'Article',
+  '@id': `${url}#article`,
+  headline: guide.h1,
+  description: guide.description,
+  abstract: stripTags(guide.answer),
+  inLanguage: 'en',
+  datePublished: guide.updated,
+  dateModified: guide.updated,
+  author: { '@id': `${SITE}/#org` },
+  publisher: { '@id': `${SITE}/#org` },
+  mainEntityOfPage: { '@id': url },
+  image: `${SITE}/img/og-cabin.jpg`,
+};
+const ld = graph(webPage(url, guide.h1, guide.description), article, breadcrumbs(url, [['Guides', '/guides/'], [guide.short, path]]), faqPage(url, guide.faq));
+const updated = new Date(guide.updated + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const others = GUIDES.filter((g) => g.slug !== guide.slug);
+---
+<Base title={guide.title} description={guide.description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <a class="back-link" href="/guides/"><Icon name="arrow-left" /> All guides</a>
+      <h1>{guide.h1}</h1>
+      <p class="guide-meta">By the Sleep Moore team · Updated <time datetime={guide.updated}>{updated}</time></p>
+    </div>
+  </section>
+  <div class="wrap">
+    <article class="prose guide">
+      <div class="guide-answer">
+        <p class="cap">The short answer</p>
+        <p set:html={guide.answer} />
+      </div>
+      {guide.sections.map((s) => (
+        <>
+          <h2>{s.h}</h2>
+          {s.p.map((p) => <p set:html={p} />)}
+          {s.list && <ul>{s.list.map((li) => <li set:html={li} />)}</ul>}
+        </>
+      ))}
+      <nav class="guide-next" aria-label="Listen">
+        {guide.related.map((r) => <a class="guide-chip" href={r.href}>{r.label} <Icon name="arrow-right" /></a>)}
+      </nav>
+    </article>
+  </div>
+  <Faq faq={guide.faq} title="More questions." />
+  <section class="lib-related" aria-labelledby="more-guides">
+    <div class="wrap">
+      <header class="sec-head"><h2 id="more-guides">More guides.</h2></header>
+      <ul class="guide-list" role="list">
+        {others.map((g) => <li><a href={`/guides/${g.slug}/`}><span>{g.short}</span><Icon name="arrow-right" /></a></li>)}
+      </ul>
+    </div>
+  </section>
+  <GetApp />
+</Base>

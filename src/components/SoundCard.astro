@@ -1,0 +1,21 @@
+---
+// A sound as a small card: its tile, its name and one line. A plain click starts the sound on the
+// way to its page (app.ts handles a[data-play-world]), like the world cards.
+import { Picture } from 'astro:assets';
+import { TILE_COLORS, TILES } from '../data/scenes';
+import type { SoundPage } from '../data/library';
+import Icon from './Icon.astro';
+
+interface Props {
+  page: SoundPage;
+}
+const { page } = Astro.props;
+---
+<a class="sound-card" href={`/sounds/${page.slug}/`} data-play-world={`sound-${page.slug}`}>
+  <Picture src={TILES[page.tile]} formats={['avif', 'webp']} widths={[240, 360, 480]} sizes="(max-width: 760px) 44vw, 240px" alt="" loading="lazy" decoding="async" style={`background-color:${TILE_COLORS[page.tile]}`} />
+  <span class="sound-card-text">
+    <span class="sound-card-name">{page.h1.replace(/ for sleep(ing)?$/, '')}</span>
+    <span class="sound-card-cap">{page.cap}</span>
+  </span>
+  <span class="go-ring sm" aria-hidden="true"><Icon name="arrow-right" /></span>
+</a>

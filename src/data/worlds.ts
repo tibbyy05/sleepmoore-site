@@ -4,6 +4,7 @@
 export type SoundId =
   | 'rain' | 'fire' | 'wind' | 'ocean' | 'night' | 'snow' | 'thunder' | 'stream' | 'chimes' | 'palms' | 'train' | 'ferry'
   | 'story-midnight-express' | 'story-night-ferry' | 'story-lighthouse-keeper' | 'calm-pad'
+  | 'white' | 'pink' | 'brown' | 'green' | 'fan' | 'heavy-rain' | 'rain-storm'
   | 'meditation-two-minute-method' | 'meditation-soften-head-to-toe' | 'meditation-let-the-day-go' | 'meditation-back-to-sleep' | 'meditation-yoga-nidra';
 
 /** Each sound's label, Phosphor icon, and a line for the world pages. Audio lives in public/audio/<id>.{opus,flac,m4a}. */
@@ -21,6 +22,13 @@ export const SOUNDS: Record<SoundId, { label: string; icon: string; line: string
   palms: { label: 'Palms', icon: 'palms', line: 'Palm fronds rustling overhead.' },
   train: { label: 'Train', icon: 'train', line: 'A sleeper carriage, rocking steadily on.' },
   ferry: { label: 'Water', icon: 'boat', line: 'Small waves along a slow hull.' },
+  white: { label: 'White noise', icon: 'waveform', line: 'Every frequency at once, an even hiss.' },
+  pink: { label: 'Pink noise', icon: 'waveform', line: 'Softer than white, like steady rain.' },
+  brown: { label: 'Brown noise', icon: 'waveform', line: 'A deep, low rumble, like a far waterfall.' },
+  green: { label: 'Green noise', icon: 'waveform', line: 'The middle of the sound, like wind in trees.' },
+  fan: { label: 'Fan', icon: 'fan', line: 'A box fan on low, steady all night.' },
+  'heavy-rain': { label: 'Heavy rain', icon: 'rain', line: 'A downpour, close and full.' },
+  'rain-storm': { label: 'Storm', icon: 'thunder', line: 'Rain on glass with a storm passing.' },
   'story-midnight-express': { label: 'Narrator', icon: 'narrator', line: 'The Midnight Express, read aloud.', loop: false },
   'story-night-ferry': { label: 'Narrator', icon: 'narrator', line: 'The Night Ferry, read aloud.', loop: false },
   'story-lighthouse-keeper': { label: 'Narrator', icon: 'narrator', line: 'The Lighthouse Keeper, read aloud.', loop: false },
@@ -247,9 +255,35 @@ export const MEDITATIONS: Meditation[] = [
 ];
 export const MEDITATIONS_BY_ID: Record<string, Meditation> = Object.fromEntries(MEDITATIONS.map((m) => [m.id, m]));
 
-/** Anything the player can play: a world, a story or a meditation. */
+/**
+ * One page per sound people search for (/sounds/<slug>/): the sound on its own, with two faders
+ * to blend in something else (they start at zero unless the mix needs them). Mix id: sound-<slug>.
+ * The words for each page are in library.ts.
+ */
+export type SoundMix = { id: string; slug: string; name: string; layers: [SoundId, number][] };
+const soundMix = (slug: string, name: string, layers: [SoundId, number][]): SoundMix => ({ id: `sound-${slug}`, slug, name, layers });
+export const SOUND_MIXES: SoundMix[] = [
+  soundMix('rain', 'Rain', [['rain', 80], ['heavy-rain', 0], ['thunder', 0]]),
+  soundMix('thunderstorm', 'Thunderstorm', [['rain-storm', 75], ['thunder', 55], ['wind', 0]]),
+  soundMix('ocean-waves', 'Ocean waves', [['ocean', 80], ['wind', 0], ['palms', 0]]),
+  soundMix('brown-noise', 'Brown noise', [['brown', 70], ['rain', 0], ['fan', 0]]),
+  soundMix('white-noise', 'White noise', [['white', 55], ['fan', 0], ['rain', 0]]),
+  soundMix('pink-noise', 'Pink noise', [['pink', 65], ['rain', 0], ['ocean', 0]]),
+  soundMix('green-noise', 'Green noise', [['green', 65], ['stream', 0], ['night', 0]]),
+  soundMix('fan', 'Fan', [['fan', 75], ['brown', 0], ['rain', 0]]),
+  soundMix('fireplace', 'Fireplace', [['fire', 80], ['rain', 0], ['wind', 0]]),
+  soundMix('train', 'Train', [['train', 75], ['rain', 0], ['wind', 0]]),
+  soundMix('crickets', 'Crickets', [['night', 75], ['stream', 0], ['wind', 0]]),
+  soundMix('river', 'River and stream', [['stream', 80], ['night', 0], ['wind', 0]]),
+];
+export const SOUND_MIXES_BY_ID: Record<string, SoundMix> = Object.fromEntries(SOUND_MIXES.map((m) => [m.id, m]));
+
+/** Anything the player can play: a world, a sound, a story or a meditation. */
 export type Mix = { id: string; name: string; layers: [SoundId, number][] };
-export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...STORIES_BY_ID, ...MEDITATIONS_BY_ID };
+export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...SOUND_MIXES_BY_ID, ...STORIES_BY_ID, ...MEDITATIONS_BY_ID };
+/** The page that belongs to a mix: the dock links back to it. */
+export const mixHref = (id: string) =>
+  id in STORIES_BY_ID ? `/stories/${id}/` : id in MEDITATIONS_BY_ID ? `/meditations/${id}/` : id in SOUND_MIXES_BY_ID ? `/sounds/${SOUND_MIXES_BY_ID[id].slug}/` : `/worlds/${id}/`;
 /** Stories and meditations are guided: a voice that plays once over a bed, then the mix ends. */
 export const guidedKind = (id: string): 'story' | 'meditation' | null => (id in STORIES_BY_ID ? 'story' : id in MEDITATIONS_BY_ID ? 'meditation' : null);
 export const isStory = (id: string) => guidedKind(id) !== null;

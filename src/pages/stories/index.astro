@@ -1,0 +1,22 @@
+---
+import CoverHub from '../../components/CoverHub.astro';
+import { STORY_COLORS, STORY_COVERS } from '../../data/scenes';
+import { breadcrumbs, graph, pageUrl, webPage } from '../../data/schema';
+import { STORIES } from '../../data/worlds';
+import Base from '../../layouts/Base.astro';
+
+const url = pageUrl('/stories/');
+const title = 'Sleep stories for adults: free night journeys | Sleep Moore';
+const description = 'Free sleep stories for adults: slow night journeys on a ferry, a sleeper train and a lighthouse, read by one calm voice over real sounds of the place. Hear each opening here.';
+const list = { '@type': 'ItemList', '@id': `${url}#list`, itemListElement: STORIES.map((s, i) => ({ '@type': 'ListItem', position: i + 1, url: pageUrl(`/stories/${s.id}/`), name: s.name })) };
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={graph(webPage(url, 'Sleep stories', description), breadcrumbs(url, [['Sleep stories', '/stories/']]), list)} />
+  <CoverHub
+    eyebrow="Night journeys"
+    title="Stories to fall asleep to."
+    lede="Slow journeys where nothing goes wrong, read by one calm voice with the real sounds of the place underneath. When the voice ends, the sound carries on and fades. Tap a cover to hear how it begins."
+    base="stories"
+    items={STORIES.map((s) => ({ ...s, meta: `Night journey · ${s.minutes} min`, cover: STORY_COVERS[s.id], color: STORY_COLORS[s.id] }))}
+  />
+</Base>

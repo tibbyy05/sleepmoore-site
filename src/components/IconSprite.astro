@@ -32,13 +32,18 @@ import narrator from '@phosphor-icons/core/light/book-open-text-light.svg?raw';
 import train from '@phosphor-icons/core/light/train-simple-light.svg?raw';
 import leaf from '@phosphor-icons/core/light/leaf-light.svg?raw';
 import lotus from '@phosphor-icons/core/light/flower-lotus-light.svg?raw';
+import fan from '@phosphor-icons/core/light/fan-light.svg?raw';
+import bed from '@phosphor-icons/core/light/bed-light.svg?raw';
+import clock from '@phosphor-icons/core/light/clock-light.svg?raw';
+import ear from '@phosphor-icons/core/light/ear-light.svg?raw';
+import book from '@phosphor-icons/core/light/book-open-light.svg?raw';
 import pause from '@phosphor-icons/core/fill/pause-fill.svg?raw';
 import play from '@phosphor-icons/core/fill/play-fill.svg?raw';
 
 const icons: Record<string, string> = {
   'arrow-left': arrowLeft, 'arrow-right': arrowRight, 'arrow-up-right': arrowUpRight,
   chimes, rain, thunder, phone, water, fire, lock, night, moon, sliders, snow, sparkle, speaker, muted, timer,
-  palms, 'no-account': noAccount, waveform, waves, wind, close, pause, play, boat, lighthouse, narrator, train, leaf, lotus,
+  palms, 'no-account': noAccount, waveform, waves, wind, close, pause, play, boat, lighthouse, narrator, train, leaf, lotus, fan, bed, clock, ear, book,
 };
 const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 const symbols = Object.entries(icons)

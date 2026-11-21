@@ -11,6 +11,8 @@ import { COVER_ALT } from '../data/scenes';
 
 export type CarouselItem = {
   id: string;
+  /** The item's own page. */
+  href: string;
   name: string;
   line: string;
   meta: string;
@@ -71,7 +73,7 @@ const titleId = `${sectionId}-title`;
             </figure>
             <div class="story-body">
               <p class="story-meta"><Icon name={item.icon} /> {item.meta}</p>
-              {real ? <h3 class="story-name">{item.name}</h3> : <p class="story-name">{item.name}</p>}
+              {real ? <h3 class="story-name"><a href={item.href}>{item.name}</a></h3> : <p class="story-name">{item.name}</p>}
               <p class="story-line">{item.line}</p>
               <button class="story-play" type="button" data-play-world={item.id} aria-pressed="false" tabindex={real ? undefined : -1}>
                 <span class="story-play-ring"><PlayIcons /></span>

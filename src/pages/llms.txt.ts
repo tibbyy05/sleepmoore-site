@@ -3,6 +3,8 @@
 // Format: https://llmstxt.org
 import type { APIRoute } from 'astro';
 import { EMAIL, FAQ, SITE, stripTags } from '../data/site';
+import { GUIDES } from '../data/guides';
+import { SOUND_PAGES } from '../data/library';
 import { MEDITATIONS, SOUNDS, STORIES, WORLDS } from '../data/worlds';
 
 export const GET: APIRoute = () => {
@@ -27,13 +29,21 @@ export const GET: APIRoute = () => {
     '',
     ...WORLDS.map((w) => `- [${w.name}](${SITE}/worlds/${w.id}/): ${w.line} Sounds: ${sounds(w.layers)}.${w.inApp ? '' : ' (Website mix; build it in the app from any world.)'}`),
     '',
+    '## Sleep sounds (each playable on its own page)',
+    '',
+    ...SOUND_PAGES.map((p) => `- [${p.h1}](${SITE}/sounds/${p.slug}/): ${p.line}`),
+    '',
     '## Sleep stories',
     '',
-    ...STORIES.map((s) => `- ${s.name} (${s.minutes} min): ${s.tagline}`),
+    ...STORIES.map((s) => `- [${s.name}](${SITE}/stories/${s.id}/) (${s.minutes} min): ${s.tagline}`),
     '',
     '## Guided sleep meditations',
     '',
-    ...MEDITATIONS.map((m) => `- ${m.name} (${m.minutes} min, ${m.kind.toLowerCase()}): ${m.tagline}`),
+    ...MEDITATIONS.map((m) => `- [${m.name}](${SITE}/meditations/${m.id}/) (${m.minutes} min, ${m.kind.toLowerCase()}): ${m.tagline}`),
+    '',
+    '## Guides',
+    '',
+    ...GUIDES.map((g) => `- [${g.h1}](${SITE}/guides/${g.slug}/): ${stripTags(g.answer)}`),
     '',
     '## Questions',
     '',
@@ -41,6 +51,7 @@ export const GET: APIRoute = () => {
     '## Pages',
     '',
     `- [Home](${SITE}/): overview, live sound mixer, stories, meditations and questions`,
+    `- [About](${SITE}/about/): who makes Sleep Moore and how the sounds are made`,
     `- [Support](${SITE}/support/): help and contact`,
     `- [Privacy policy](${SITE}/privacy/): what the app stores and why`,
     '',

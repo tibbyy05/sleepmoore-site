@@ -1,0 +1,57 @@
+---
+// One page per guided meditation: the first minutes to hear, and every word to read.
+import { getImage } from 'astro:assets';
+import GuidedView from '../../components/GuidedView.astro';
+import { MEDITATION_PAGES } from '../../data/guides';
+import { COVER_ALT, MEDITATION_COLORS, MEDITATION_COVERS } from '../../data/scenes';
+import { breadcrumbs, faqPage, graph, pageUrl, webPage } from '../../data/schema';
+import scripts from '../../data/scripts.json';
+import { SITE } from '../../data/site';
+import { MEDITATIONS, type Meditation } from '../../data/worlds';
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return MEDITATIONS.map((m) => ({ params: { id: m.id }, props: { m } }));
+}
+type Props = { m: Meditation };
+const { m } = Astro.props;
+const page = MEDITATION_PAGES.find((p) => p.id === m.id)!;
+const script = (scripts as Record<string, { opening?: string[]; text?: string[]; words: number }>)[m.id];
+
+const path = `/meditations/${m.id}/`;
+const url = pageUrl(path);
+const og = await getImage({ src: MEDITATION_COVERS[m.id], width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const ogUrl = new URL(og.src, SITE).href;
+const work = {
+  '@type': 'CreativeWork',
+  name: m.name,
+  abstract: m.tagline,
+  genre: 'Guided sleep meditation',
+  inLanguage: 'en',
+  timeRequired: `PT${m.minutes}M`,
+  isAccessibleForFree: true,
+  publisher: { '@id': `${SITE}/#org` },
+  audio: { '@type': 'AudioObject', name: `${m.name}, the first minutes`, contentUrl: `${SITE}/audio/meditation-${m.id}.m4a`, encodingFormat: 'audio/mp4' },
+};
+const ld = graph(
+  { ...webPage(url, m.name, page.description, ogUrl), mainEntity: work },
+  breadcrumbs(url, [['Sleep meditations', '/meditations/'], [m.name, path]]),
+  faqPage(url, page.faq),
+);
+const others = MEDITATIONS.filter((o) => o.id !== m.id).map((o) => ({ ...o, cover: MEDITATION_COVERS[o.id], color: MEDITATION_COLORS[o.id], meta: `${o.minutes} min · ${o.kind}` }));
+---
+<Base title={page.title} description={page.description} image={ogUrl} imageAlt={COVER_ALT[m.id]}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+  <GuidedView
+    kind="meditation"
+    item={m}
+    page={page}
+    cover={MEDITATION_COVERS[m.id]}
+    coverAlt={COVER_ALT[m.id]}
+    color={MEDITATION_COLORS[m.id]}
+    cap={`${m.kind} · ${m.minutes} min`}
+    words={script.text ?? []}
+    totalWords={script.words}
+    others={others}
+  />
+</Base>

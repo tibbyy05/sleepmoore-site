@@ -6,6 +6,8 @@ import PlayIcons from '../components/PlayIcons.astro';
 import PlayRing from '../components/PlayRing.astro';
 import Scene from '../components/Scene.astro';
 import GuidedCarousel from '../components/GuidedCarousel.astro';
+import SoundCard from '../components/SoundCard.astro';
+import { SOUND_PAGES, SOUND_PAGES_BY_SLUG } from '../data/library';
 import { MEDITATION_COLORS, MEDITATION_COVERS, STORY_COLORS, STORY_COVERS } from '../data/scenes';
 import { MEDITATIONS, STORIES } from '../data/worlds';
 import Base from '../layouts/Base.astro';
@@ -60,8 +62,11 @@ const graph = {
   ],
 };
 
-const storyItems = STORIES.map((s) => ({ id: s.id, name: s.name, line: s.tagline, meta: `Night journey · ${s.minutes} min`, icon: s.icon, cover: STORY_COVERS[s.id], color: STORY_COLORS[s.id], badge: s.isNew ? 'New' : undefined }));
-const meditationItems = MEDITATIONS.map((m) => ({ id: m.id, name: m.name, line: m.tagline, meta: `${m.minutes} min · ${m.kind}`, icon: m.icon, cover: MEDITATION_COVERS[m.id], color: MEDITATION_COLORS[m.id] }));
+/** The sounds people search for most, on the home page; the rest are on /sounds/. */
+const HOME_SOUNDS = ['rain', 'brown-noise', 'ocean-waves', 'thunderstorm', 'white-noise', 'fan', 'fireplace', 'pink-noise'];
+
+const storyItems = STORIES.map((s) => ({ href: `/stories/${s.id}/`, id: s.id, name: s.name, line: s.tagline, meta: `Night journey · ${s.minutes} min`, icon: s.icon, cover: STORY_COVERS[s.id], color: STORY_COLORS[s.id], badge: s.isNew ? 'New' : undefined }));
+const meditationItems = MEDITATIONS.map((m) => ({ href: `/meditations/${m.id}/`, id: m.id, name: m.name, line: m.tagline, meta: `${m.minutes} min · ${m.kind}`, icon: m.icon, cover: MEDITATION_COVERS[m.id], color: MEDITATION_COLORS[m.id] }));
 const storyRange = `${Math.min(...STORIES.map((s) => s.minutes))} to ${Math.max(...STORIES.map((s) => s.minutes))}`;
 
 /** The night story: what the stage shows at each step (scene behind, app screen on the phone). */
@@ -172,6 +177,20 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
           ),
         )}
       </ul>
+    </div>
+  </section>
+
+  <!-- Every sound on its own -->
+  <section class="sounds-home" id="sounds" aria-labelledby="sounds-title">
+    <div class="wrap">
+      <header class="sec-head reveal">
+        <h2 id="sounds-title">Every sound, on its own.</h2>
+        <p class="sub">Rain, a fire, a night train, brown noise. Tap one to hear it, then blend in another.</p>
+      </header>
+      <ul class="sound-grid reveal" role="list">
+        {HOME_SOUNDS.map((slug) => <li><SoundCard page={SOUND_PAGES_BY_SLUG[slug]} /></li>)}
+      </ul>
+      <p class="sounds-more"><a href="/sounds/">All {SOUND_PAGES.length} sleep sounds</a><span aria-hidden="true">·</span><a href="/guides/brown-pink-white-green-noise/">Brown, pink or white noise?</a></p>
     </div>
   </section>
 

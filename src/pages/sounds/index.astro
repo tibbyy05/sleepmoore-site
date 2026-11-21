@@ -1,0 +1,57 @@
+---
+// Every sleep sound on its own, grouped the way people look for them.
+import GetApp from '../../components/GetApp.astro';
+import SoundCard from '../../components/SoundCard.astro';
+import { GUIDES_BY_SLUG } from '../../data/guides';
+import { SOUND_PAGES } from '../../data/library';
+import { breadcrumbs, graph, pageUrl, webPage } from '../../data/schema';
+import Base from '../../layouts/Base.astro';
+
+const url = pageUrl('/sounds/');
+const title = 'Free sleep sounds: rain, ocean, brown noise | Sleep Moore';
+const description = `${SOUND_PAGES.length} free sleep sounds you can play in your browser: rain, thunderstorms, ocean waves, a fire, a night train, crickets, a fan, and white, pink, brown and green noise.`;
+const GROUPS = [
+  { title: 'Nature', note: 'Real recordings, looped with no seam.', caps: ['Nature sound'] },
+  { title: 'Noise', note: 'Steady colours of noise, from bright to deep.', caps: ['Noise colour'] },
+  { title: 'Home and journeys', note: 'The sounds of rooms and travel.', caps: ['Home sound', 'Journey sound'] },
+];
+const list = {
+  '@type': 'ItemList',
+  '@id': `${url}#list`,
+  itemListElement: SOUND_PAGES.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: pageUrl(`/sounds/${p.slug}/`), name: p.h1 })),
+};
+const ld = graph(webPage(url, 'Free sleep sounds', description), breadcrumbs(url, [['Sleep sounds', '/sounds/']]), list);
+const noiseGuide = GUIDES_BY_SLUG['brown-pink-white-green-noise'];
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <p class="eyebrow">Sleep sounds</p>
+      <h1>Every sound, on its own.</h1>
+      <p>Tap any sound to hear it straight away, here in your browser. Each page has faders to blend in a second or third sound, a sleep timer, and plain answers about how to use it.</p>
+    </div>
+  </section>
+
+  {GROUPS.map((g) => (
+    <section class="lib-group" aria-labelledby={`g-${g.title.toLowerCase().replace(/\W+/g, '-')}`}>
+      <div class="wrap">
+        <header class="lib-group-head">
+          <h2 id={`g-${g.title.toLowerCase().replace(/\W+/g, '-')}`}>{g.title}</h2>
+          <p>{g.note}</p>
+        </header>
+        <ul class="sound-grid" role="list">
+          {SOUND_PAGES.filter((p) => g.caps.includes(p.cap)).map((p) => <li><SoundCard page={p} /></li>)}
+        </ul>
+      </div>
+    </section>
+  ))}
+
+  <section class="lib-group lib-group-last">
+    <div class="wrap">
+      <p class="lib-guide-link">Not sure which noise? <a href={`/guides/${noiseGuide.slug}/`}>{noiseGuide.short}</a>.</p>
+    </div>
+  </section>
+
+  <GetApp />
+</Base>

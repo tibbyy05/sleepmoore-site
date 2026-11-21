@@ -1,7 +1,7 @@
 /* Page wiring for sleepmoore.app. The sound engine (engine.ts) lives for the whole visit; this file
    binds whatever page is showing, on first load and after every client-side page change, and
    tears it down again before the next one. */
-import { guidedKind, HERO_EFFECTS, isStory, MIXES_BY_ID, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
+import { guidedKind, HERO_EFFECTS, isStory, MIXES_BY_ID, mixHref, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
 import * as engine from './engine';
 
 const { state } = engine;
@@ -114,7 +114,7 @@ function renderDock() {
   dock.setAttribute('aria-hidden', String(!show));
   const world = MIXES_BY_ID[state.current];
   const link = $<HTMLAnchorElement>('[data-dock-link]', dock);
-  if (link) link.href = guidedKind(world.id) === 'story' ? '/#stories' : guidedKind(world.id) === 'meditation' ? '/#meditations' : '/worlds/' + world.id + '/';
+  if (link) link.href = mixHref(world.id);
   const thumb = $<HTMLImageElement>('[data-dock-thumb]', dock);
   const want = (JSON.parse(dock.dataset.thumbs || '{}') as Record<string, string>)[world.id];
   if (thumb && want && thumb.getAttribute('src') !== want) thumb.src = want;

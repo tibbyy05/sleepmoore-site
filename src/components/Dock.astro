@@ -2,7 +2,8 @@
 // The player dock: rises from the bottom once sound has started and stays through every page
 // change (transition:persist), so the night keeps playing while you look around.
 import { getImage } from 'astro:assets';
-import { MEDITATION_COVERS, SCENES, STORY_COVERS } from '../data/scenes';
+import { SOUND_PAGES } from '../data/library';
+import { MEDITATION_COVERS, SCENES, STORY_COVERS, TILES } from '../data/scenes';
 import { MEDITATIONS, STORIES, WORLDS } from '../data/worlds';
 import Icon from './Icon.astro';
 import PlayIcons from './PlayIcons.astro';
@@ -19,6 +20,10 @@ for (const s of STORIES) {
 for (const m of MEDITATIONS) {
   const img = await getImage({ src: MEDITATION_COVERS[m.id], width: 112, height: 112, fit: 'cover', format: 'webp' });
   thumbs[m.id] = img.src;
+}
+for (const p of SOUND_PAGES) {
+  const img = await getImage({ src: TILES[p.tile], width: 112, height: 112, fit: 'cover', format: 'webp' });
+  thumbs[`sound-${p.slug}`] = img.src;
 }
 ---
 <aside id="dock" class="dock" aria-label="Now playing" aria-hidden="true" inert data-thumbs={JSON.stringify(thumbs)} transition:persist transition:name="dock">

@@ -1,0 +1,51 @@
+---
+// The top of a library page (a sound, a story, a meditation): words and a play button on one side,
+// the art on the other, over a glow in the art's own colour.
+import type { ImageMetadata } from 'astro';
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import PlayIcons from './PlayIcons.astro';
+
+interface Props {
+  back: { href: string; label: string };
+  cap: string;
+  title: string;
+  line: string;
+  /** Mix to play; leave out for a page with nothing to play. */
+  mix?: string;
+  play?: string;
+  chips?: { icon: string; label: string }[];
+  art: ImageMetadata;
+  artAlt: string;
+  color: string;
+  /** 'square' for sound tiles, 'tall' for 3:4 covers. */
+  shape?: 'square' | 'tall';
+}
+const { back, cap, title, line, mix, play = 'Play', chips = [], art, artAlt, color, shape = 'square' } = Astro.props;
+---
+<section class="lib-hero" aria-labelledby="lib-title" style={`--glow:${color}`}>
+  <div class="wrap lib-hero-grid">
+    <div class="lib-copy">
+      <a class="back-link" href={back.href}><Icon name="arrow-left" /> {back.label}</a>
+      <p class="cap">{cap}</p>
+      <h1 id="lib-title">{title}</h1>
+      <p class="lib-line">{line}</p>
+      <div class="world-actions">
+        {mix && (
+          <button class="play-pill" type="button" data-play-world={mix} aria-pressed="false" data-dock-hide>
+            <PlayIcons />
+            <span data-label data-idle={play}>{play}</span>
+          </button>
+        )}
+        {chips.length > 0 && (
+          <ul class="world-sounds" role="list">
+            {chips.map((c) => <li><Icon name={c.icon} />{c.label}</li>)}
+          </ul>
+        )}
+      </div>
+    </div>
+    <figure class:list={['lib-art', shape]}>
+      <Picture src={art} formats={['avif', 'webp']} widths={shape === 'tall' ? [420, 640, 840] : [360, 480]} sizes={shape === 'tall' ? '(max-width: 760px) 70vw, 420px' : '(max-width: 760px) 70vw, 440px'} alt={artAlt} loading="eager" fetchpriority="high" decoding="async" style={`background-color:${color};view-transition-name:world-scene`} />
+    </figure>
+  </div>
+</section>

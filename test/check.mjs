@@ -3,14 +3,16 @@
 // audio file the pages reference must exist, every world in site.js must have
 // its audio files, and the pages must carry the basics (title, description,
 // viewport, canonical, one h1). Run with `npm test`.
-import { readFileSync, existsSync, statSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { join, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 if (!existsSync(join(root, 'index.html'))) { console.error('dist/ is missing: run `npm run build` first'); process.exit(1); }
-const { WORLDS, SOUNDS, STORIES, MEDITATIONS, MIXES_BY_ID } = await import('../src/data/worlds.ts');
-const pages = ['index.html', 'support/index.html', 'privacy/index.html', 'lab/motion/index.html', 'lab/motion/2/index.html', ...WORLDS.map((w) => `worlds/${w.id}/index.html`)];
+const { WORLDS, SOUNDS, STORIES, MEDITATIONS, SOUND_MIXES, MIXES_BY_ID } = await import('../src/data/worlds.ts');
+// Every built page, found on disk, so new pages are checked without listing them here.
+const walk = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? walk(join(dir, d.name)) : d.name === 'index.html' ? [join(dir, d.name).split(sep).join('/')] : []));
+const pages = walk('');
 const failures = [];
 const fail = (m) => failures.push(m);
 const exists = (p) => existsSync(join(root, p));
@@ -54,12 +56,12 @@ for (const page of pages) {
     if (!/\salt(=|\s|$)/.test(m[1])) fail(`${page}: <img> without alt: ${m[1].slice(0, 60)}`);
   }
   for (const m of html.matchAll(/<button\b([^>]*)>/g)) {
-    if (!/type="button"/.test(m[1])) fail(`${page}: <button> without type="button": ${m[1].slice(0, 60)}`);
+    if (!/type="(button|submit)"/.test(m[1])) fail(`${page}: <button> without type="button": ${m[1].slice(0, 60)}`);
   }
 }
 
 // Audio files for every sound a world uses, in all three formats.
-const sounds = new Set([...WORLDS, ...STORIES, ...MEDITATIONS].flatMap((w) => w.layers.map(([id]) => id)));
+const sounds = new Set([...WORLDS, ...SOUND_MIXES, ...STORIES, ...MEDITATIONS].flatMap((w) => w.layers.map(([id]) => id)));
 for (const s of sounds) {
   if (!SOUNDS[s]) fail(`worlds.ts: ${s} has no entry in SOUNDS`);
   for (const ext of ['opus', 'flac', 'm4a']) {
@@ -78,7 +80,7 @@ for (const page of pages.filter((p) => !p.startsWith('lab/'))) {
   const symbols = new Set([...html.matchAll(/<symbol id="i-([a-z-]+)"/g)].map((m) => m[1]));
   for (const m of html.matchAll(/<use href="#i-([a-z-]+)"/g)) if (!symbols.has(m[1])) fail(`${page}: icon ${m[1]} is not in the sprite`);
 }
-for (const w of [...WORLDS, ...STORIES, ...MEDITATIONS]) for (const [id] of w.layers) if (!SOUNDS[id].icon) fail(`${id} has no icon`);
+for (const w of [...WORLDS, ...SOUND_MIXES, ...STORIES, ...MEDITATIONS]) for (const [id] of w.layers) if (!SOUNDS[id].icon) fail(`${id} has no icon`);
 for (const s of [...STORIES, ...MEDITATIONS]) if (SOUNDS[s.layers[0][0]].loop !== false) fail(`${s.id}: its first layer should be the narration`);
 const home = readFileSync(join(root, 'index.html'), 'utf8');
 for (const s of [...STORIES, ...MEDITATIONS]) if (!home.includes(`data-play-world="${s.id}"`)) fail(`home page has no card for ${s.id}`);
@@ -92,7 +94,7 @@ for (const m of css.matchAll(/url\(["']?(\/[^"')]+)/g)) {
 // Search engines: robots.txt points at the sitemap, and the sitemap lists the real pages only.
 if (!exists('robots.txt') || !/Sitemap: https:\/\/sleepmoore\.app\/sitemap-index\.xml/.test(readFileSync(join(root, 'robots.txt'), 'utf8'))) fail('robots.txt missing or has no sitemap line');
 const sitemapXml = exists('sitemap-0.xml') ? readFileSync(join(root, 'sitemap-0.xml'), 'utf8') : '';
-for (const url of ['https://sleepmoore.app/', 'https://sleepmoore.app/support/', 'https://sleepmoore.app/privacy/', ...WORLDS.map((w) => `https://sleepmoore.app/worlds/${w.id}/`)]) {
+for (const url of pages.filter((p) => !p.startsWith('lab/') && !p.startsWith('admin/')).map((p) => `https://sleepmoore.app/${p.replace(/index\.html$/, '')}`)) {
   if (!sitemapXml.includes(`<loc>${url}</loc>`)) fail(`sitemap is missing ${url}`);
 }
 if (sitemapXml.includes('/lab/')) fail('sitemap lists the unlisted motion lab');

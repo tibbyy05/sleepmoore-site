@@ -1,0 +1,122 @@
+---
+// One page per sound people search for ("brown noise", "rain sounds for sleep"): the sound itself,
+// playable at once with two faders to blend, then plain answers about it, its worlds and questions.
+import { getImage } from 'astro:assets';
+import Faq from '../../components/Faq.astro';
+import GetApp from '../../components/GetApp.astro';
+import Icon from '../../components/Icon.astro';
+import LibHero from '../../components/LibHero.astro';
+import Mixer from '../../components/Mixer.astro';
+import Scene from '../../components/Scene.astro';
+import SoundCard from '../../components/SoundCard.astro';
+import { SOUND_PAGES, SOUND_PAGES_BY_SLUG, type SoundPage } from '../../data/library';
+import { TILE_COLORS, TILES } from '../../data/scenes';
+import { breadcrumbs, faqPage, graph, pageUrl, webPage } from '../../data/schema';
+import { SITE } from '../../data/site';
+import { SOUND_MIXES_BY_ID, SOUNDS, WORLDS_BY_ID } from '../../data/worlds';
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return SOUND_PAGES.map((page) => ({ params: { slug: page.slug }, props: { page } }));
+}
+type Props = { page: SoundPage };
+const { page } = Astro.props;
+
+const mix = SOUND_MIXES_BY_ID[`sound-${page.slug}`];
+const main = SOUNDS[mix.layers[0][0]];
+const path = `/sounds/${page.slug}/`;
+const url = pageUrl(path);
+const og = await getImage({ src: TILES[page.tile], width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const ogUrl = new URL(og.src, SITE).href;
+const audio = {
+  '@type': 'AudioObject',
+  name: `${page.h1} (Sleep Moore)`,
+  description: main.line,
+  contentUrl: `${SITE}/audio/${mix.layers[0][0]}.m4a`,
+  encodingFormat: 'audio/mp4',
+  duration: 'PT30S',
+  isAccessibleForFree: true,
+};
+const ld = graph(
+  { ...webPage(url, page.h1, page.description, ogUrl), mainEntity: audio },
+  breadcrumbs(url, [['Sleep sounds', '/sounds/'], [page.h1, path]]),
+  faqPage(url, page.faq),
+);
+// Four suggestions: the hand-picked ones, topped up from the rest so the row is always full.
+const related = [...page.related, ...SOUND_PAGES.map((p) => p.slug).filter((s) => s !== page.slug && !page.related.includes(s))].slice(0, 4).map((s) => SOUND_PAGES_BY_SLUG[s]);
+const worlds = page.worlds.map((id) => WORLDS_BY_ID[id]);
+---
+<Base title={page.title} description={page.description} image={ogUrl} imageAlt={page.tileAlt}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+
+  <div data-world-page={mix.id}>
+  <LibHero
+    back={{ href: '/sounds/', label: 'All sleep sounds' }}
+    cap={page.cap}
+    title={page.h1}
+    line={page.line}
+    mix={mix.id}
+    play={`Play ${mix.name.toLowerCase()}`}
+    chips={page.chips.map((label, i) => ({ icon: i === 0 ? main.icon : i === 1 ? 'waveform' : 'sparkle', label }))}
+    art={TILES[page.tile]}
+    artAlt={page.tileAlt}
+    color={TILE_COLORS[page.tile]}
+  />
+
+  <section class="lib-body" aria-label={`About ${mix.name.toLowerCase()}`}>
+    <div class="wrap lib-grid">
+      <article class="lib-article">
+        {page.sections.map((s) => (
+          <>
+            <h2>{s.h}</h2>
+            {s.p.map((p) => <p set:html={p} />)}
+            {s.list && <ul>{s.list.map((li) => <li set:html={li} />)}</ul>}
+          </>
+        ))}
+      </article>
+      <aside class="lib-aside" aria-label="Player">
+        <Mixer world={mix.id} class="world-mixer" />
+        <p class="lib-aside-note">The same recordings the app plays, mixed live in your browser. Bring up a fader to blend another sound in.</p>
+      </aside>
+    </div>
+  </section>
+
+  {worlds.length > 0 && (
+    <section class="world-more lib-worlds" aria-labelledby="worlds-title">
+      <div class="wrap">
+        <header class="sec-head">
+          <h2 id="worlds-title">Worlds with {mix.name.toLowerCase()}.</h2>
+          <p class="sub">The same sound, as part of a place, mixed with two others.</p>
+        </header>
+        <div class="more-worlds">
+          {worlds.map((w) => (
+            <a class="more-card" href={`/worlds/${w.id}/`} data-play-world={w.id}>
+              <Scene id={w.id} widths={[700, 1100]} sizes="(max-width: 760px) 100vw, 50vw" />
+              <span class="more-text">
+                <span class="cap">{w.cap}</span>
+                <span class="more-name">{w.name}</span>
+                <span class="more-line">{w.line}</span>
+              </span>
+              <span class="go-ring" aria-hidden="true"><Icon name="arrow-right" /></span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="lib-related" aria-labelledby="related-title">
+    <div class="wrap">
+      <header class="sec-head">
+        <h2 id="related-title">Try next.</h2>
+      </header>
+      <ul class="sound-grid" role="list">
+        {related.map((r) => <li><SoundCard page={r} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <Faq faq={page.faq} />
+  <GetApp />
+  </div>
+</Base>
