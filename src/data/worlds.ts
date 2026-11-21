@@ -81,7 +81,7 @@ export const WORLDS: World[] = [
     cap: 'Forest retreat',
     line: 'Rain on the roof, a fire in the grate.',
     intro: 'A cabin on a pine island in a mountain lake, every window lit. Rain drums on the roof, a fire settles in the grate, and the wind stays out on the water.',
-    layers: [['rain', 75], ['fire', 70], ['night', 30], ['wind', 30]],
+    layers: [['rain', 75], ['fire', 70], ['night', 45], ['wind', 30]],
     inApp: true,
     focus: '45% 55%',
     effects: [{ kind: 'rain', sound: 'rain' }, { kind: 'glow', sound: 'fire', at: [0.44, 0.58], radius: 0.16, color: '255,170,90' }],

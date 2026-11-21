@@ -50,7 +50,7 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
   const playingHere = () => state.playing && state.current === o.worldId;
   const target = (e: Effect) => playingHere()
     ? IDLE + soundLevel(o.worldId, e.sound) * (0.55 + 1.1 * energy)
-    : 0.08 + 0.32 * faderLevel(o.worldId, e.sound);
+    : 0.1 + 0.5 * faderLevel(o.worldId, e.sound);
   const wind = () => 0.25 + soundLevel(o.worldId, 'wind') * 1.2 + soundLevel(o.worldId, 'palms') * 0.4;
 
   function spawn(e: Effect, i: number) {
@@ -60,18 +60,18 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
     const clip = o.glass;
     switch (e.kind) {
       case 'rain': {
-        const want = Math.round((clip ? 30 : 60) * area + (clip ? 150 : 260) * L * area);
+        const want = Math.round((clip ? 70 : 60) * area + (clip ? 420 : 260) * L * area);
         while (pool.length < want) {
           const x0 = clip ? px(clip[0]) : -40, x1 = clip ? px(clip[2]) : w + 40;
-          pool.push({ x: rand(x0, x1), y: rand(clip ? py(clip[1]) : -h, clip ? py(clip[3]) : h), vx: 0, vy: rand(700, 1200), r: rand(10, 24), a: rand(0.06, 0.2), life: 1e9, age: 0, seed: Math.random() });
+          pool.push({ x: rand(x0, x1), y: rand(clip ? py(clip[1]) : -h, clip ? py(clip[3]) : h), vx: 0, vy: rand(700, 1200), r: rand(clip ? 14 : 10, clip ? 34 : 24), a: rand(clip ? 0.12 : 0.06, clip ? 0.3 : 0.2), life: 1e9, age: 0, seed: Math.random() });
         }
         if (pool.length > want + 4) pool.length = want;
         if (clip) {
           // A few drops resting on the glass, sliding now and then.
           const drops = pools[i] as P[] & { drops?: P[] };
           if (!drops.drops) drops.drops = [];
-          const dwant = Math.round(6 + 26 * L);
-          while (drops.drops.length < dwant) drops.drops.push({ x: rand(px(clip[0]), px(clip[2])), y: rand(py(clip[1]), py(clip[3])), vx: 0, vy: 0, r: rand(0.8, 2.4), a: rand(0.25, 0.6), life: rand(4, 14), age: 0, seed: Math.random() });
+          const dwant = Math.round(14 + 50 * L);
+          while (drops.drops.length < dwant) drops.drops.push({ x: rand(px(clip[0]), px(clip[2])), y: rand(py(clip[1]), py(clip[3])), vx: 0, vy: 0, r: rand(1.1, 3.4), a: rand(0.35, 0.75), life: rand(4, 14), age: 0, seed: Math.random() });
           if (drops.drops.length > dwant + 2) drops.drops.length = dwant;
         }
         break;
@@ -88,7 +88,7 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
         break;
       }
       case 'fireflies': {
-        const want = Math.round(6 + 22 * L);
+        const want = Math.round(o.glass ? 16 + 34 * L : 6 + 22 * L);
         const fx0 = o.glass ? px(o.glass[0]) : 0, fx1 = o.glass ? px(o.glass[2]) : w;
         while (pool.length < want) pool.push({ x: rand(fx0, fx1), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-8, 8), vy: rand(-6, 6), r: rand(1, 1.8), a: 0, life: 1e9, age: rand(0, 10), seed: Math.random() * 6.28 });
         if (pool.length > want + 1) pool.length = want;
@@ -127,13 +127,13 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
           c.save();
           if (clip) { c.beginPath(); c.rect(px(clip[0]), py(clip[1]), px(clip[2]) - px(clip[0]), py(clip[3]) - py(clip[1])); c.clip(); }
           c.lineCap = 'round';
-          c.lineWidth = clip ? 0.8 : 1;
+          c.lineWidth = clip ? 1.1 : 1;
           const slant = 0.12 + wd * 0.18;
           const top = clip ? py(clip[1]) : -30, bottom = clip ? py(clip[3]) : h + 30;
           for (const p of pool) {
             p.y += p.vy * dt; p.x += p.vy * slant * dt;
             if (p.y > bottom) { p.y = top - rand(0, 60); p.x = rand(clip ? px(clip[0]) - 40 : -60, clip ? px(clip[2]) : w); }
-            c.strokeStyle = `rgba(205,218,238,${(p.a * (0.6 + L * 0.7)).toFixed(3)})`;
+            c.strokeStyle = `rgba(205,218,238,${Math.min(0.85, p.a * (clip ? 0.9 + L * 1.3 : 0.6 + L * 0.7)).toFixed(3)})`;
             c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x - p.r * slant, p.y - p.r); c.stroke();
           }
           const drops = (pool as P[] & { drops?: P[] }).drops;
@@ -193,12 +193,13 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
             const gx0 = o.glass ? px(o.glass[0]) : -10, gx1 = o.glass ? px(o.glass[2]) : w + 10;
           if (p.x < gx0) p.x = gx1; if (p.x > gx1) p.x = gx0;
             if (p.y < y0) p.vy += 8 * dt * 10; if (p.y > y1) p.vy -= 8 * dt * 10;
-            const blink = Math.max(0, Math.sin(p.age * 1.3 + p.seed)) ** 3;
-            const a = blink * (0.35 + L * 0.65);
+            const blink = Math.max(0, Math.sin(p.age * 1.3 + p.seed)) ** (o.glass ? 2 : 3);
+            const a = Math.min(1, blink * (o.glass ? 0.55 + L * 0.9 : 0.35 + L * 0.65));
             if (a < 0.01) continue;
-            const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, 9);
+            const fr = o.glass ? 7 + 9 * a : 9;
+            const g = c.createRadialGradient(p.x, p.y, 0, p.x, p.y, fr);
             g.addColorStop(0, `rgba(236,248,170,${a.toFixed(3)})`); g.addColorStop(0.3, `rgba(200,230,110,${(a * 0.45).toFixed(3)})`); g.addColorStop(1, 'rgba(160,210,80,0)');
-            c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, 9, 0, 6.283); c.fill();
+            c.fillStyle = g; c.beginPath(); c.arc(p.x, p.y, fr, 0, 6.283); c.fill();
           }
           c.globalCompositeOperation = 'source-over';
           break;
