@@ -199,7 +199,7 @@ begin
       'feedback_total', (select count(*) from appstore.feedback),
       'runs', (select coalesce(jsonb_agg(to_jsonb(r) - 'id' order by r.started_at desc), '[]') from (
           select * from appstore.runs order by started_at desc limit 12) r),
-      'scheduled', exists (select 1 from cron.job where jobname = 'asc-sync' and active));
+      'scheduled', exists (select 1 from cron.job where jobname = 'asc-sync' and active))
   );
 end $$;
 revoke all on function public.admin_appstore(timestamptz, timestamptz, text) from public, anon;
