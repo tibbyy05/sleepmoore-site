@@ -3,7 +3,7 @@
    loudness, so the picture answers the mix. Plain 2D canvas, paused off screen and in background
    tabs, never started under prefers-reduced-motion. */
 import type { Effect } from '../data/worlds';
-import { energy, soundLevel } from './engine';
+import { energy, faderLevel, soundLevel, state } from './engine';
 
 type Options = {
   worldId: string;
@@ -46,7 +46,11 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
   const level = o.effects.map(() => IDLE);
   let flash = 0, nextFlash = performance.now() + rand(6000, 14000);
 
-  const target = (e: Effect) => IDLE + soundLevel(o.worldId, e.sound) * (0.55 + 1.1 * energy);
+  // Playing: the fader and the live loudness. Paused: a quiet preview that still follows the fader.
+  const playingHere = () => state.playing && state.current === o.worldId;
+  const target = (e: Effect) => playingHere()
+    ? IDLE + soundLevel(o.worldId, e.sound) * (0.55 + 1.1 * energy)
+    : 0.08 + 0.32 * faderLevel(o.worldId, e.sound);
   const wind = () => 0.25 + soundLevel(o.worldId, 'wind') * 1.2 + soundLevel(o.worldId, 'palms') * 0.4;
 
   function spawn(e: Effect, i: number) {
@@ -85,7 +89,8 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
       }
       case 'fireflies': {
         const want = Math.round(6 + 22 * L);
-        while (pool.length < want) pool.push({ x: rand(0, w), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-8, 8), vy: rand(-6, 6), r: rand(1, 1.8), a: 0, life: 1e9, age: rand(0, 10), seed: Math.random() * 6.28 });
+        const fx0 = o.glass ? px(o.glass[0]) : 0, fx1 = o.glass ? px(o.glass[2]) : w;
+        while (pool.length < want) pool.push({ x: rand(fx0, fx1), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-8, 8), vy: rand(-6, 6), r: rand(1, 1.8), a: 0, life: 1e9, age: rand(0, 10), seed: Math.random() * 6.28 });
         if (pool.length > want + 1) pool.length = want;
         break;
       }
@@ -99,6 +104,10 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
         const want = Math.round(16 + 70 * L);
         while (pool.length < want) pool.push({ x: rand(0, w), y: rand(Math.max(0, py(e.band[0])), Math.min(h, py(e.band[1]))), vx: rand(-6, 6), vy: -rand(4, 16), r: rand(0.6, 1.6), a: 0, life: rand(3, 8), age: 0, seed: Math.random() * 6.28 });
         if (pool.length > want + 2) pool.length = want;
+        break;
+      }
+      case 'mist': {
+        while (pool.length < 7) pool.push({ x: rand(-0.3, 1.1), y: rand(e.band[0], e.band[1]), vx: rand(0.006, 0.014), vy: 0, r: rand(0.2, 0.38), a: rand(0.6, 1), life: 1e9, age: 0, seed: Math.random() * 6.28 });
         break;
       }
     }
@@ -181,7 +190,8 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
             p.vx += rand(-14, 14) * dt; p.vy += rand(-10, 10) * dt;
             p.vx *= 0.99; p.vy *= 0.99;
             p.x += (p.vx + wd * 4) * dt; p.y += p.vy * dt;
-            if (p.x < -10) p.x = w + 10; if (p.x > w + 10) p.x = -10;
+            const gx0 = o.glass ? px(o.glass[0]) : -10, gx1 = o.glass ? px(o.glass[2]) : w + 10;
+          if (p.x < gx0) p.x = gx1; if (p.x > gx1) p.x = gx0;
             if (p.y < y0) p.vy += 8 * dt * 10; if (p.y > y1) p.vy -= 8 * dt * 10;
             const blink = Math.max(0, Math.sin(p.age * 1.3 + p.seed)) ** 3;
             const a = blink * (0.35 + L * 0.65);
@@ -232,6 +242,26 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
           g.addColorStop(0, `rgba(${e.color},${a.toFixed(3)})`); g.addColorStop(1, `rgba(${e.color},0)`);
           c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
           c.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'mist': {
+          // Wide soft bands of cloud in the valley, drifting with the wind
+          const g0 = o.glass;
+          c.save();
+          if (g0) { c.beginPath(); c.rect(px(g0[0]), py(g0[1]), px(g0[2]) - px(g0[0]), py(g0[3]) - py(g0[1])); c.clip(); }
+          const span = g0 ? g0[2] - g0[0] : 1, start = g0 ? g0[0] : 0;
+          for (const p of pool) {
+            p.x += p.vx * dt * (0.4 + wd * 1.6);
+            if (p.x > 1.35) p.x = -0.35;
+            const x = px(start + p.x * span), y = py(p.y), rx = p.r * span * map.dw;
+            const a = 0.16 * L * p.a;
+            if (a < 0.004) continue;
+            const g = c.createRadialGradient(x, y, 0, x, y, rx);
+            g.addColorStop(0, `rgba(200,210,230,${a.toFixed(3)})`); g.addColorStop(1, 'rgba(200,210,230,0)');
+            c.fillStyle = g; c.save(); c.translate(x, y); c.scale(1, 0.2); c.translate(-x, -y);
+            c.beginPath(); c.arc(x, y, rx, 0, 6.283); c.fill(); c.restore();
+          }
+          c.restore();
           break;
         }
         case 'lightning': {

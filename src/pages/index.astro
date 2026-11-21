@@ -83,7 +83,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
   menu={MENU_HOME}>
   <Fragment slot="preload">
     <link rel="preload" as="image" href="/img/hero-cabin-1440.webp" imagesrcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w, /img/hero-cabin-2560.webp 2560w" imagesizes="100vw" media="(min-width: 761px)" fetchpriority="high">
-    <link rel="preload" as="image" href="/img/hero-cabin-mobile.webp" imagesrcset="/img/hero-cabin-mobile.webp 900w, /img/hero-cabin-mobile-2x.webp 1350w" imagesizes="100vw" media="(max-width: 760px)" fetchpriority="high">
+    <link rel="preload" as="image" href="/img/hero-cabin-stove-mobile.webp" imagesrcset="/img/hero-cabin-stove-mobile.webp 450w, /img/hero-cabin-stove-mobile-2x.webp 800w" imagesizes="100vw" media="(max-width: 760px)" fetchpriority="high">
   </Fragment>
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(graph)} />
@@ -93,11 +93,10 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero-art" aria-hidden="true">
       <picture>
-        <source media="(max-width: 760px)" srcset="/img/hero-cabin-mobile.webp 900w, /img/hero-cabin-mobile-2x.webp 1350w" sizes="100vw" width="900" height="1200">
+        <source media="(max-width: 760px)" srcset="/img/hero-cabin-stove-mobile.webp 450w, /img/hero-cabin-stove-mobile-2x.webp 800w" sizes="100vw" width="800" height="1434">
         <source srcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w, /img/hero-cabin-2560.webp 2560w" sizes="100vw" type="image/webp">
         <img src="/img/hero-cabin.jpg" alt="" width="1920" height="1074" fetchpriority="high" decoding="async">
       </picture>
-      <video class="hero-video" muted loop playsinline preload="none" width="1280" height="716" tabindex="-1" data-webm="/video/hero.webm" data-mp4="/video/hero.mp4"></video>
       <canvas class="ambience" data-ambience="hero"></canvas>
     </div>
     <div class="hero-copy">
@@ -108,7 +107,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
         <PlayIcons />
         <span data-label>Play this soundscape</span>
       </button>
-      <p class="hero-note">This is the real app sound. Try it before you download.</p>
+      <p class="hero-note">The real app sound. Move a fader and the room follows.</p>
     </div>
 
     <p class="ios-hint" data-ios-hint>Hearing nothing on iPhone? Flip the side switch off silent and turn the volume up.</p>
@@ -118,7 +117,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
       </button>
       <span class="player-name" data-now>Rainy Cabin</span>
       <span class="meter" aria-hidden="true" data-meter><i></i><i></i><i></i><i></i><i></i></span>
-      <div class="player-bar" aria-hidden="true"><div class="player-fill" data-fill></div><div class="player-knob" data-knob></div></div>
+      <div class="hero-mix" data-hero-mix="rainy-cabin" role="group" aria-label="Mix the cabin: each fader changes the sound and the picture"></div>
       <span class="player-time" data-time>45:00</span>
       <button class="player-mute" type="button" aria-label="Mute" aria-pressed="false" data-mute>
         <Icon name="speaker" class="ic-vol" /><Icon name="muted" class="ic-muted" />

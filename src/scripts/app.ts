@@ -1,7 +1,7 @@
 /* Page wiring for sleepmoore.app. The sound engine (engine.ts) lives for the whole visit; this file
    binds whatever page is showing, on first load and after every client-side page change, and
    tears it down again before the next one. */
-import { guidedKind, HERO_EFFECTS, isStory, MIXES_BY_ID, mixHref, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
+import { guidedKind, HERO_SCENE, isStory, MIXES_BY_ID, mixHref, SOUNDS, type SoundId, WORLDS_BY_ID } from '../data/worlds';
 import * as engine from './engine';
 
 const { state } = engine;
@@ -238,7 +238,7 @@ document.addEventListener('astro:page-load', () => {
   }
 
   bindNightStory();
-  bindHeroVideo();
+  bindHeroMix();
   $$('[data-carousel]').forEach(bindCarousel);
   render();
 
@@ -260,15 +260,15 @@ document.addEventListener('astro:page-load', () => {
         for (const cv of canvases) {
           const kind = cv.dataset.ambience!;
           if (kind === 'hero') {
-            const mobile = window.matchMedia('(max-width: 760px)').matches;
-            const glass = mobile ? HERO_EFFECTS.window.mobile : HERO_EFFECTS.window.desktop;
+            const L = window.matchMedia('(max-width: 760px)').matches ? HERO_SCENE.mobile : HERO_SCENE.desktop;
             teardown.push(mountAmbience(cv, {
               worldId: 'rainy-cabin',
-              effects: [{ kind: 'rain', sound: 'rain' }, ...(mobile ? HERO_EFFECTS.mobile : HERO_EFFECTS.desktop)],
-              natural: mobile ? [900, 1200] : [1920, 1074],
-              position: mobile ? [0.62, 0.4] : [0.5, 0.4],
-              glass,
+              effects: [{ kind: 'rain', sound: 'rain' }, ...L.effects],
+              natural: L.natural, position: L.position, glass: L.glass,
             }));
+            import('./stove').then(({ mountStove }) => {
+              teardown.push(mountStove(cv.parentElement!, { worldId: 'rainy-cabin', natural: L.natural, position: L.position, stove: L.stove }));
+            }).catch(() => {});
           } else {
             const world = WORLDS_BY_ID[kind];
             if (!world) continue;
@@ -405,6 +405,30 @@ function bindCarousel(root: HTMLElement) {
 }
 
 // ---------- Hero video: desktop, motion allowed, no data saver ----------
+// ---------- Hero mix: four small faders in the hero player; the picture follows them ----------
+function bindHeroMix() {
+  const box = $<HTMLElement>('[data-hero-mix]');
+  if (!box) return;
+  const worldId = box.dataset.heroMix!;
+  box.innerHTML = '';
+  engine.levelsFor(worldId).forEach(([id, level]) => {
+    const s = SOUNDS[id as SoundId];
+    const label = document.createElement('label');
+    label.className = 'hm';
+    label.innerHTML =
+      '<span class="hm-name"><svg class="icon" aria-hidden="true"><use href="#i-' + s.icon + '"></use></svg>' + s.label + '</span>' +
+      '<input type="range" min="0" max="100" step="1" value="' + level + '" style="--p:' + level + '%" aria-valuetext="' + level + ' percent">';
+    box.appendChild(label);
+    const input = $<HTMLInputElement>('input', label)!;
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      input.style.setProperty('--p', v + '%');
+      input.setAttribute('aria-valuetext', v + ' percent');
+      engine.setLevel(worldId, id, v);
+    });
+  });
+}
+
 function bindHeroVideo() {
   const v = $<HTMLVideoElement>('.hero-video');
   if (!v || !v.canPlayType) return;

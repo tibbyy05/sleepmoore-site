@@ -1,0 +1,1640 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0e15">
+<meta name="robots" content="noindex, nofollow">
+<title>Sleep Moore motion lab, batch three</title>
+<meta name="description" content="Internal test page: ten motion ideas for sleepmoore.app, all live. The page itself runs from 9 pm to sunrise as you scroll.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #0b0e15; --bg-2: #0f131d; --surface: #171c27; --raised: #222838;
+    --line: rgba(243,234,219,.12); --line-strong: rgba(243,234,219,.28);
+    --text: #f3eadb; --text-2: #d9d2c4; --muted: #b8b3a7; --faint: #8e8778;
+    --gold: #d5a24f; --dusk: #86a9e3; --sage: #9ab88f;
+    --card: rgba(9,12,20,.9); --stage: #080b13;
+    --sans: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --ease: cubic-bezier(.2,.7,.2,1);
+    --gutter: clamp(16px, 4vw, 64px);
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: #05070d; color: var(--text); font: 400 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: clip; }
+  a { color: var(--gold); text-underline-offset: 3px; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  h1, h2, h3 { font-weight: 800; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+  .wrap { width: min(1180px, 100% - 2 * var(--gutter)); margin-inline: auto; }
+  .cap { font: 700 11px/1.4 var(--sans); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); margin: 0; }
+
+  /* ---------- 01 The fixed night sky behind the page ---------- */
+  .sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(180deg, var(--s1, #111833) 0%, var(--s2, #22284a) 58%, var(--s3, #4a3a5c) 100%); }
+  .sky-dim { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #020308; opacity: 0; transition: opacity 1.4s var(--ease); }
+  #stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .moon { position: fixed; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; z-index: 0; pointer-events: none;
+    background: radial-gradient(circle at 36% 34%, #fffaf0 0%, #efe4cc 46%, #cdbf9f 100%);
+    box-shadow: 0 0 40px 8px rgba(243,234,219,.22), 0 0 140px 40px rgba(134,169,227,.12); will-change: transform; }
+  .moon::after { content: ""; position: absolute; left: 22%; top: 30%; width: 16%; height: 16%; border-radius: 50%; background: rgba(160,145,115,.35); box-shadow: 18px 10px 0 -2px rgba(160,145,115,.25), 8px 22px 0 -3px rgba(160,145,115,.22); }
+  .sun { position: fixed; left: 68%; top: 0; width: 70vmax; height: 70vmax; margin: -35vmax 0 0 -35vmax; border-radius: 50%; z-index: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle, rgba(255,226,160,.95) 0%, rgba(255,196,120,.55) 6%, rgba(245,160,110,.22) 22%, rgba(245,160,110,0) 50%); will-change: transform, opacity; }
+  .hills { position: fixed; left: 0; right: 0; bottom: 0; height: 22vh; min-height: 120px; z-index: 0; pointer-events: none; }
+  .hills svg { width: 100%; height: 100%; display: block; }
+
+  /* Clock pill and hour rail (the scroll bar is a clock) */
+  .clock { position: fixed; left: 16px; top: 16px; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 10px; border-radius: 999px; background: rgba(9,12,20,.72); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .clock .dial { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid rgba(243,234,219,.5); position: relative; flex: none; }
+  .clock .dial i { position: absolute; left: 50%; bottom: 50%; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--text); transform-origin: 50% 100%; }
+  .clock .dial .hh { height: 7px; } .clock .dial .mm { height: 10px; background: var(--gold); }
+  .clock b { font: 800 17px/1 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .clock small { display: block; font: 600 11px/1.2 var(--sans); color: var(--muted); letter-spacing: .02em; }
+  .rail { position: fixed; right: 22px; top: 50%; height: 56vh; margin-top: -28vh; width: 2px; z-index: 20; background: rgba(243,234,219,.14); border-radius: 2px; }
+  .rail .tick { position: absolute; right: 10px; transform: translateY(-50%); font: 700 11px/1 var(--sans); color: var(--faint); white-space: nowrap; }
+  .rail .tick::after { content: ""; position: absolute; right: -14px; top: 50%; width: 6px; height: 1px; background: rgba(243,234,219,.3); }
+  .rail .dot { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(213,162,79,.2), 0 0 18px rgba(213,162,79,.6); }
+
+  /* 10 Lights-out cord */
+  .cord { position: fixed; right: 64px; top: 0; z-index: 40; width: 44px; height: 150px; display: flex; flex-direction: column; align-items: center; touch-action: none; }
+  .cord .string { width: 1.5px; height: 96px; background: linear-gradient(180deg, rgba(243,234,219,.15), rgba(243,234,219,.6)); transform-origin: 50% 0; }
+  .cord button { width: 44px; height: 44px; margin-top: -6px; border: 0; padding: 0; background: none; cursor: grab; display: grid; place-items: center; touch-action: none; }
+  .cord .bead { width: 16px; height: 22px; border-radius: 8px 8px 9px 9px; background: linear-gradient(180deg, #e8c27a, #b07f35); box-shadow: 0 2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.35); }
+  .cord .hint { position: absolute; right: 46px; top: 104px; padding: 5px 9px; border-radius: 999px; background: var(--gold); color: #241d15; font: 800 11px/1 var(--sans); white-space: nowrap; pointer-events: none; opacity: 0; scale: .4; transition: scale .55s cubic-bezier(.34,1.56,.64,1), opacity .3s; box-shadow: 0 6px 20px rgba(0,0,0,.35); transform-origin: 100% 50%; animation: nudge 2.6s ease-in-out infinite; }
+  .cord .hint::after { content: ""; position: absolute; right: -5px; top: 50%; margin-top: -5px; border: 5px solid transparent; border-right: 0; border-left: 6px solid var(--gold); }
+  .cord .hint.show { opacity: 1; scale: 1; }
+  @keyframes nudge { 0%, 100% { transform: rotate(-4deg) translateX(0); } 50% { transform: rotate(-2deg) translateX(-5px); } }
+  .cord .grab { position: relative; display: flex; flex-direction: column; align-items: center; will-change: transform; }
+
+  /* 06 Sheep counter */
+  .sheep-pill { position: fixed; left: 50%; bottom: 16px; translate: -50% 0; z-index: 30; display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px; background: rgba(9,12,20,.78); border: 1px solid var(--line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .sheep-pill .field { position: relative; width: 150px; height: 40px; overflow: hidden; border-radius: 999px; border: 0; padding: 0; cursor: pointer; background: linear-gradient(180deg, rgba(134,169,227,.08), rgba(154,184,143,.12)); }
+  .sheep-pill .ground { position: absolute; left: 0; right: 0; bottom: 6px; height: 1px; background: rgba(243,234,219,.18); }
+  .sheep-pill .fence { position: absolute; left: 66px; bottom: 6px; width: 18px; height: 16px; }
+  .sheep-pill .sheep { position: absolute; left: 0; bottom: 5px; width: 30px; height: 22px; transform: translateX(8px); }
+  .sheep-pill b { font: 800 15px/1 var(--sans); font-variant-numeric: tabular-nums; }
+  .sheep-pill span { color: var(--muted); font-size: 13px; font-weight: 600; }
+
+  /* Page frame */
+  main { position: relative; z-index: 1; padding-bottom: 120px; }
+  .hero { min-height: 92vh; display: flex; flex-direction: column; justify-content: center; padding: 120px 0 80px; }
+  .hero h1 { font-size: clamp(46px, 7.4vw, 104px); line-height: .98; margin: 18px 0 22px; max-width: 11ch; }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+  .hero .lede { font-size: clamp(18px, 1.6vw, 21px); color: var(--text-2); max-width: 46ch; margin: 0; }
+  .hero .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 44px; max-width: 900px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(9,12,20,.55); color: var(--text-2); text-decoration: none; font: 600 14px/1 var(--sans); transition: border-color .3s, background .3s; }
+  .chip i { font-style: normal; font: 800 11px/1 var(--sans); color: var(--gold); letter-spacing: .08em; }
+  .chip:hover { border-color: var(--line-strong); background: rgba(23,28,39,.8); }
+  .scroll-cue { margin-top: 56px; display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .scroll-cue .mouse { width: 22px; height: 34px; border-radius: 11px; border: 1.5px solid rgba(243,234,219,.45); position: relative; }
+  .scroll-cue .mouse::after { content: ""; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px; margin-left: -1.5px; border-radius: 2px; background: var(--gold); animation: cue 2.4s var(--ease) infinite; }
+  @keyframes cue { 0% { transform: translateY(0); opacity: 1; } 70% { transform: translateY(10px); opacity: 0; } 100% { opacity: 0; } }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(9,12,20,.4); color: var(--text); font: 700 15px/1 var(--sans); cursor: pointer; text-decoration: none; transition: background .25s, color .25s, border-color .25s; }
+  .btn:hover { background: rgba(243,234,219,.1); }
+  .btn.primary { background: var(--text); color: #0b0e15; border-color: var(--text); }
+  .btn.primary:hover { background: #fff; }
+  .btn.gold { background: var(--gold); color: #0b0e15; border-color: var(--gold); }
+  .btn[aria-pressed="true"] { background: var(--text); color: #0b0e15; border-color: var(--text); }
+  .btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* Idea sections */
+  .idea { margin-top: 18vh; background: var(--card); border: 1px solid var(--line); border-radius: 32px; padding: clamp(22px, 3.4vw, 44px); transition: background 1.2s var(--ease); }
+  .idea-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; align-items: baseline; }
+  .num { font: 800 13px/1 var(--sans); letter-spacing: .2em; color: var(--gold); grid-row: span 2; padding-top: 10px; }
+  .idea h2 { font-size: clamp(30px, 3.6vw, 48px); line-height: 1.04; }
+  .idea .what { color: var(--text-2); max-width: 62ch; margin: 10px 0 0; font-size: 18px; }
+  .idea .why { color: var(--muted); font-size: 15px; margin: 8px 0 0; max-width: 62ch; }
+  .idea .why b { color: var(--text-2); font-weight: 700; }
+  .stage { position: relative; margin-top: 28px; border-radius: 22px; background: var(--stage); border: 1px solid rgba(243,234,219,.07); overflow: hidden; transition: background 1.2s var(--ease); }
+  .btn[hidden] { display: none; }
+  .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; border: 1px solid var(--line); }
+  .seg .btn { min-height: 40px; border-color: transparent; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+  .note { color: var(--faint); font-size: 14px; }
+
+  /* 01 night strip */
+  .night-strip { padding: 34px clamp(18px, 3vw, 40px) 30px; }
+  .night-now { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .night-now b { font: 800 clamp(48px, 7vw, 88px)/1 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+  .night-now span { color: var(--muted); font-weight: 600; }
+  .bar { position: relative; height: 14px; border-radius: 999px; margin-top: 26px; background: linear-gradient(90deg, #4a3a5c 0%, #1b2340 18%, #0a0f1d 38%, #070a14 58%, #1a2447 80%, #b9806f 92%, #f2c07e 100%); }
+  .bar .pin { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 5px rgba(243,234,219,.18), 0 0 20px rgba(243,234,219,.5); }
+  .bar-labels { display: flex; justify-content: space-between; margin-top: 12px; color: var(--faint); font: 700 12px/1 var(--sans); letter-spacing: .06em; }
+
+  /* 02 breathing: a flower of light that opens and closes */
+  .breath { height: clamp(460px, 52vw, 600px); background: radial-gradient(70% 80% at 50% 50%, #121a33 0%, #0a0e1c 55%, #06080f 100%); }
+  .breath canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .breath-center { position: absolute; left: 50%; top: 50%; translate: -50% -50%; text-align: center; pointer-events: none; z-index: 2; }
+  .breath-center b { display: block; font: 800 clamp(30px, 3.6vw, 46px)/1 var(--sans); letter-spacing: -.02em; color: #fffaf0; text-shadow: 0 2px 30px rgba(10,14,28,.7); white-space: nowrap; }
+  .breath-center span { display: block; margin-top: 14px; font: 800 20px/1 var(--sans); color: var(--gold); font-variant-numeric: tabular-nums; }
+  .breath-steps { position: absolute; left: 0; right: 0; bottom: 18px; display: flex; justify-content: center; gap: 8px; z-index: 2; }
+  .breath-steps i { font-style: normal; font: 700 12px/1 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(243,234,219,.1); transition: color .8s, border-color .8s, background .8s; }
+  .breath-steps i.on { color: var(--text); border-color: rgba(213,162,79,.5); background: rgba(213,162,79,.12); }
+  .motion-off { display: none; margin-top: 18px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(213,162,79,.45); background: rgba(213,162,79,.1); color: var(--text-2); font-size: 15px; max-width: 62ch; }
+  html.still .motion-off { display: block; }
+  .breathes { animation: breathe 10s ease-in-out infinite; }
+  @keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(213,162,79,0); } 40% { box-shadow: 0 0 26px 2px rgba(213,162,79,.4); } }
+
+  /* 03 sound you can see */
+  .cabin { aspect-ratio: 16 / 9; }
+  .cabin img, .cabin canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cabin .stove { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; clip-path: inset(7.5% 8% 7% 8% round 48% 48% 3% 3% / 15% 15% 2% 2%); }
+  .cabin .stove video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; display: block; }
+  .cabin .stove #fireMid, .cabin .stove #fireHigh { opacity: 0; }
+  .cabin .play-big { position: absolute; left: 50%; top: 40%; translate: -50% -50%; z-index: 2; }
+  .faders { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 28px; margin-top: 20px; }
+  .fader label { display: flex; justify-content: space-between; font: 700 14px/1 var(--sans); color: var(--text-2); margin-bottom: 10px; }
+  .fader label span { color: var(--faint); font-variant-numeric: tabular-nums; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; cursor: pointer; margin: 0; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--gold) var(--p, 50%), rgba(243,234,219,.14) var(--p, 50%)); }
+  input[type="range"]::-moz-range-track { height: 6px; border-radius: 6px; background: rgba(243,234,219,.14); }
+  input[type="range"]::-moz-range-progress { height: 6px; border-radius: 6px; background: var(--gold); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--text); border: 0; box-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--text); border: 0; }
+  .meter { display: flex; gap: 3px; align-items: flex-end; height: 16px; }
+  .meter i { width: 3px; border-radius: 2px; background: var(--gold); height: 3px; transition: height .08s; }
+
+  /* 04 your clock */
+  .yoursky { height: clamp(300px, 36vw, 400px); }
+  .yoursky canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .yoursky .readout { position: absolute; left: 24px; top: 20px; z-index: 2; text-shadow: 0 1px 12px rgba(0,0,0,.6); }
+  .yoursky .readout b { display: block; font: 800 clamp(28px, 3.4vw, 40px)/1.05 var(--sans); letter-spacing: -.02em; }
+  .yoursky .readout span { display: block; margin-top: 6px; color: var(--text-2); font-weight: 600; font-size: 15px; }
+  .hour-pick { flex: 1 1 260px; max-width: 420px; }
+
+  /* 05 sleepy words */
+  .words { height: clamp(260px, 30vw, 340px); display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .sleepy { position: relative; font: 800 clamp(44px, 8vw, 104px)/1 var(--sans); letter-spacing: -.03em; white-space: nowrap; color: var(--text); }
+  .sleepy .ch { display: inline-block; transform-origin: 50% 100%; will-change: transform; }
+  .sleepy .sp { display: inline-block; width: .26em; }
+  .zz { position: absolute; font: 800 22px/1 var(--sans); color: var(--dusk); pointer-events: none; }
+  .words .tap { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; color: var(--faint); font: 600 13px/1 var(--sans); letter-spacing: .04em; }
+
+  /* 06 big sheep */
+  .meadow { height: 300px; }
+  .meadow svg.land { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .meadow .big-sheep { position: absolute; left: 0; bottom: 64px; width: 110px; height: 80px; transform: translateX(-140px); cursor: grab; touch-action: none; -webkit-user-select: none; user-select: none; z-index: 2; }
+  .meadow .big-sheep.held { cursor: grabbing; filter: drop-shadow(0 18px 14px rgba(0,0,0,.45)); }
+  .meadow .grab-hint { position: absolute; left: 24px; top: 22px; max-width: 46%; color: var(--text-2); font: 700 15px/1.35 var(--sans); pointer-events: none; transition: opacity .6s; }
+  .meadow .grab-hint small { display: block; margin-top: 4px; color: var(--muted); font-weight: 600; font-size: 13px; }
+  .meadow .shadow { position: absolute; left: 0; bottom: 58px; width: 80px; height: 12px; margin-left: 15px; border-radius: 50%; background: rgba(0,0,0,.35); filter: blur(3px); pointer-events: none; }
+  .meadow .big-fence { position: absolute; left: 50%; bottom: 60px; width: 70px; height: 62px; margin-left: -35px; }
+  .meadow .count { position: absolute; right: 24px; top: 20px; text-align: right; }
+  .meadow .count b { display: block; font: 800 56px/1 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+  .meadow .count span { color: var(--muted); font-weight: 600; font-size: 14px; }
+  .meadow .count span i { font-style: normal; color: var(--gold); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .meadow .count b.bump { animation: bump .45s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); color: var(--gold); } 100% { transform: scale(1); } }
+  .meadow .toast { position: absolute; left: 50%; top: 20px; translate: -50% 0; padding: 8px 16px; border-radius: 999px; background: var(--gold); color: #241d15; font: 800 15px/1.2 var(--sans); white-space: nowrap; pointer-events: none; opacity: 0; scale: .6; transition: opacity .25s, scale .45s cubic-bezier(.34,1.56,.64,1); z-index: 3; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .meadow .toast.show { opacity: 1; scale: 1; }
+  .meadow .plus { position: absolute; font: 800 20px/1 var(--sans); color: var(--gold); pointer-events: none; z-index: 3; text-shadow: 0 2px 10px rgba(0,0,0,.6); animation: rise 1.1s ease-out forwards; }
+  @keyframes rise { from { transform: translate(-50%, 0) scale(.7); opacity: 0; } 15% { opacity: 1; transform: translate(-50%, -8px) scale(1.1); } to { transform: translate(-50%, -60px) scale(1); opacity: 0; } }
+  .meadow .star { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; background: #ffe2a0; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); pointer-events: none; z-index: 3; animation: burst 1s cubic-bezier(.2,.7,.2,1) forwards; }
+  @keyframes burst { from { transform: translate(0, 0) scale(.4) rotate(0deg); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(1.3) rotate(160deg); opacity: 0; } }
+
+  /* 07 build a scene */
+  .scene { aspect-ratio: 1000 / 440; touch-action: pan-y; }
+  .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .scene .hint { position: absolute; left: 0; right: 0; top: 18px; text-align: center; color: var(--text-2); font: 700 15px/1.2 var(--sans); transition: opacity .6s; pointer-events: none; text-shadow: 0 1px 10px rgba(0,0,0,.7); }
+  .scene.over { box-shadow: inset 0 0 0 2px rgba(213,162,79,.6); }
+  .tokens { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .tok { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 18px 0 8px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(23,28,39,.9); color: var(--text); font: 700 15px/1 var(--sans); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transition: border-color .25s, background .25s; }
+  .tok .ico { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(243,234,219,.08); }
+  .tok .ico svg { width: 20px; height: 20px; }
+  .tok[aria-pressed="true"] { border-color: var(--gold); background: rgba(213,162,79,.14); }
+  .tok:active { cursor: grabbing; }
+  .ghost { position: fixed; z-index: 60; pointer-events: none; translate: -50% -50%; }
+  .placed { cursor: pointer; }
+  .pop { transform-box: fill-box; transform-origin: 50% 100%; }
+  .flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1.1s ease-in-out infinite alternate; }
+  .flame.f2 { animation-duration: .8s; animation-delay: -.3s; } .flame.f3 { animation-duration: 1.4s; animation-delay: -.6s; }
+  @keyframes flick { 0% { transform: scale(1, 1) skewX(0deg); } 35% { transform: scale(.94, 1.08) skewX(-3deg); } 70% { transform: scale(1.04, .94) skewX(3deg); } 100% { transform: scale(.98, 1.04) skewX(-1deg); } }
+  .fireglow { animation: glowpulse 1.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  @keyframes glowpulse { from { opacity: .7; transform: scale(.95); } to { opacity: 1; transform: scale(1.05); } }
+  .drop { animation: fall .9s linear infinite; }
+  @keyframes fall { from { transform: translateY(0); opacity: 0; } 15% { opacity: .9; } to { transform: translateY(150px); opacity: 0; } }
+  .cloud { animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+  .water { stroke-dasharray: 18 26; animation: flow 2.4s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -88; } }
+  .fly { transform-box: fill-box; animation: hover 5s ease-in-out infinite alternate, blink 2.6s ease-in-out infinite; }
+  @keyframes hover { from { transform: translate(0, 0); } 50% { transform: translate(12px, -10px); } to { transform: translate(-8px, 6px); } }
+  @keyframes blink { 0%, 100% { opacity: .15; } 50% { opacity: 1; } }
+  .gust { stroke-dasharray: 160 900; animation: gust 4.2s var(--ease) infinite; }
+  @keyframes gust { from { stroke-dashoffset: 160; opacity: 0; } 20% { opacity: .8; } to { stroke-dashoffset: -900; opacity: 0; } }
+  .twinkle { animation: tw 4s ease-in-out infinite alternate; }
+  @keyframes tw { from { opacity: .25; } to { opacity: .9; } }
+
+  /* 08 dream morph */
+  .dream { height: clamp(360px, 40vw, 440px); cursor: pointer; }
+  .morph { position: absolute; left: 50%; top: 44%; translate: -50% -50%; width: 260px; height: 190px; border-radius: 16px; overflow: hidden; background-color: #16213f; border: 8px solid #4a3b2c; box-shadow: 0 30px 80px -20px rgba(0,0,0,.8); }
+  .morph > * { position: absolute; inset: 0; }
+  .m-sky { background: linear-gradient(180deg, #0c1329 0%, #1a2550 70%, #2b2f5a 100%); }
+  .m-sky i { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: .8; }
+  .m-hill { top: auto; height: 34%; background: #0a0f1d; border-radius: 60% 40% 0 0 / 50% 40% 0 0; }
+  .m-panes::before, .m-panes::after { content: ""; position: absolute; background: #4a3b2c; }
+  .m-panes::before { left: 50%; top: 0; bottom: 0; width: 6px; margin-left: -3px; }
+  .m-panes::after { top: 50%; left: 0; right: 0; height: 6px; margin-top: -3px; }
+  .m-moon { background: radial-gradient(circle at 36% 34%, #fffaf0 0%, #efe4cc 50%, #cdbf9f 100%); opacity: 0; }
+  .m-shadow { inset: -6% -6% -6% 34%; border-radius: 50%; background: #080b13; opacity: 0; }
+  .m-play { display: grid; place-items: center; background: var(--gold); opacity: 0; }
+  .m-play svg { width: 40%; height: 40%; fill: #0b0e15; margin-left: 8%; }
+  .dream-caption { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; }
+  .dream-caption b { display: block; font: 800 24px/1.1 var(--sans); letter-spacing: -.01em; }
+  .dream-caption span { color: var(--muted); font-weight: 600; font-size: 14px; }
+  .steps { position: absolute; right: 20px; top: 20px; display: flex; gap: 6px; }
+  .steps i { width: 8px; height: 8px; border-radius: 50%; background: rgba(243,234,219,.2); transition: background .4s, transform .4s; }
+  .steps i.on { background: var(--gold); transform: scale(1.25); }
+
+  /* 09 sleep graph (sticky) */
+  .graph-track { height: 260vh; margin-top: 18vh; }
+  .graph-sticky { position: sticky; top: 7vh; }
+  .graph-sticky .idea { margin-top: 0; }
+  .hypno { padding: 22px clamp(12px, 2vw, 26px) 14px; }
+  .hypno svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .moments { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  .moment { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: rgba(23,28,39,.5); opacity: .32; transform: translateY(8px); transition: opacity .7s var(--ease), transform .7s var(--ease), border-color .7s; }
+  .moment.on { opacity: 1; transform: none; border-color: rgba(213,162,79,.45); }
+  .moment i { font-style: normal; font: 800 11px/1 var(--sans); color: var(--gold); letter-spacing: .14em; }
+  .moment b { display: block; margin-top: 6px; font: 800 16px/1.25 var(--sans); }
+  .moment span { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+  /* 10 lamp */
+  .lamp-stage { height: 280px; display: grid; place-items: center; }
+  .lamp-stage svg { width: 220px; height: 220px; }
+  .lamp-light { transition: opacity 1.2s var(--ease); }
+  .lamp-stage .glows { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s var(--ease) .3s; }
+  .lamp-stage .glows i { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #fbf6b8; box-shadow: 0 0 10px 3px rgba(240,236,140,.7), 0 0 30px 8px rgba(240,236,140,.25); animation: hover 6s ease-in-out infinite alternate, blink 3s ease-in-out infinite; }
+  .lamp-stage .glows i:nth-child(3n) { width: 5px; height: 5px; }
+
+  /* Lamp on = light mode: cream paper cards. Pull the cord = dark mode: the night. Scenes inside .stage stay night either way. */
+  @property --text { syntax: '<color>'; inherits: true; initial-value: #f3eadb; }
+  @property --text-2 { syntax: '<color>'; inherits: true; initial-value: #d9d2c4; }
+  @property --muted { syntax: '<color>'; inherits: true; initial-value: #b8b3a7; }
+  @property --faint { syntax: '<color>'; inherits: true; initial-value: #8e8778; }
+  @property --card { syntax: '<color>'; inherits: true; initial-value: rgba(9,12,20,.9); }
+  @property --line { syntax: '<color>'; inherits: true; initial-value: rgba(243,234,219,.12); }
+  @property --line-strong { syntax: '<color>'; inherits: true; initial-value: rgba(243,234,219,.28); }
+  @property --gold-text { syntax: '<color>'; inherits: true; initial-value: #d5a24f; }
+  @property --pill { syntax: '<color>'; inherits: true; initial-value: rgba(9,12,20,.72); }
+  @property --track { syntax: '<color>'; inherits: true; initial-value: rgba(243,234,219,.14); }
+  @property --soft { syntax: '<color>'; inherits: true; initial-value: rgba(23,28,39,.9); }
+  .idea, .clock, .sheep-pill, .cord, .stage { transition: --text 1.1s var(--ease), --text-2 1.1s var(--ease), --muted 1.1s var(--ease), --faint 1.1s var(--ease), --card 1.1s var(--ease), --line 1.1s var(--ease), --line-strong 1.1s var(--ease), --gold-text 1.1s var(--ease), --pill 1.1s var(--ease), --track 1.1s var(--ease), --soft 1.1s var(--ease), box-shadow 1.1s var(--ease); }
+  .idea { background: var(--card); }
+  .num, .chip i { color: var(--gold-text); }
+  .clock, .sheep-pill { background: var(--pill); color: var(--text); }
+  input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--gold) var(--p, 50%), var(--track) var(--p, 50%)); }
+  input[type="range"]::-moz-range-track { background: var(--track); }
+  .tok { background: var(--soft); }
+  html.light .idea, html.light .clock, html.light .sheep-pill, html.light .cord {
+    --text: #241d15; --text-2: #3e3428; --muted: #6e6152; --faint: #8f8270; --card: #f7f1e6;
+    --line: rgba(36,29,21,.12); --line-strong: rgba(36,29,21,.3); --gold-text: #9c6a1c; --pill: rgba(250,245,235,.9);
+    --track: rgba(36,29,21,.14); --soft: rgba(36,29,21,.05);
+  }
+  html.light .idea { box-shadow: 0 40px 120px -30px rgba(255,214,150,.28), 0 0 0 1px rgba(255,236,200,.4); }
+  /* Scenes stay night in light mode */
+  html.light .stage { --text: #f3eadb; --text-2: #d9d2c4; --muted: #b8b3a7; --faint: #8e8778; --line: rgba(243,234,219,.12); --gold-text: #d5a24f; --soft: rgba(23,28,39,.9); }
+  html.light .idea .btn { background: transparent; }
+  html.light .btn.gold { color: #241d15; }
+  html.light .clock .dial { border-color: rgba(36,29,21,.4); }
+  html.light .clock .dial .hh { background: #241d15; }
+  html.light .sheep-pill .ground { background: rgba(36,29,21,.2); }
+  .idea { color: var(--text); }
+  .stage { color: var(--text); }
+  .sheep-pill span { white-space: nowrap; }
+  html.light .idea .btn.primary, html.light .idea .btn[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #fbf6ec; }
+  html.light .btn.gold { background: var(--gold); border-color: var(--gold); color: #241d15; }
+  html.light .stage .btn { color: #f3eadb; }
+  html.light .sheep-pill .field { background: linear-gradient(180deg, #141c36, #1f2c40); }
+  html.light .sheep-pill .ground { background: rgba(243,234,219,.2); }
+  html:not(.light) .lamp-light { opacity: 0; }
+  html:not(.light) .lamp-stage .glows { opacity: 1; }
+  html:not(.light) .sky-dim { opacity: .35; }
+
+  footer.end { margin-top: 26vh; min-height: 62vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: clamp(28px, 4vw, 56px) 0 22vh; text-shadow: 0 2px 24px rgba(40,30,60,.45); }
+  footer.end .cap { color: #fff3dc; }
+  footer.end .btn { background: rgba(20,22,40,.35); border-color: rgba(255,243,220,.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); text-shadow: none; }
+  footer.end h2 { font-size: clamp(52px, 8vw, 120px); line-height: 1; margin-top: 10px; color: #fffaf0; }
+  footer.end p { color: #fff3dc; font-size: 19px; max-width: 52ch; margin: 14px auto 0; }
+  footer.end .row { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+
+  /* Still version: no looping motion */
+  html.still *, html.still *::before, html.still *::after { animation: none !important; }
+
+  @media (max-width: 900px) {
+    .faders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .moments { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rail { display: none; }
+    .cord { right: 8px; }
+  }
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    .hero { padding-top: 96px; }
+    .idea { border-radius: 24px; margin-top: 12vh; }
+    .idea-head { grid-template-columns: 1fr; }
+    .num { grid-row: auto; padding-top: 0; }
+    .idea .what { font-size: 17px; }
+    .stage { border-radius: 16px; margin-top: 20px; }
+    .cabin { aspect-ratio: 4 / 3; }
+    .breath { height: 440px; }
+    .moments { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .moment { padding: 10px 12px; } .moment b { font-size: 14px; } .moment span { display: none; }
+    .graph-track { height: 220vh; }
+    .scene { aspect-ratio: 1000 / 560; }
+    .tok { min-height: 48px; padding-right: 14px; font-size: 14px; }
+    .clock { left: 10px; top: 10px; }
+    .sheep-pill .field { width: 120px; } .sheep-pill .fence { left: 52px; }
+    .meadow .count b { font-size: 44px; }
+    .scroll-cue { display: none; }
+    .cord { right: 4px; height: 110px; } .cord .string { height: 52px; } .cord .hint { top: 60px; right: 42px; font-size: 10px; }
+    .hypno svg text { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 01: the sky behind the whole page; scroll position sets the hour -->
+<div class="sky" id="sky" aria-hidden="true"></div>
+<div class="sky-dim" aria-hidden="true"></div>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="sun" id="sun" aria-hidden="true"></div>
+<div class="moon" id="moon" aria-hidden="true"></div>
+<div class="hills" aria-hidden="true">
+  <svg viewBox="0 0 1440 220" preserveAspectRatio="none">
+    <path d="M0 120 C 160 70 300 90 420 110 S 700 60 860 96 S 1180 70 1300 92 S 1420 100 1440 96 L1440 220 L0 220 Z" fill="#0a0e19" opacity=".75"/>
+    <path d="M0 160 C 200 120 380 150 560 140 S 900 110 1080 140 S 1340 130 1440 150 L1440 220 L0 220 Z" fill="#05070d"/>
+  </svg>
+</div>
+
+<div class="clock breathes" aria-hidden="true">
+  <div class="dial"><i class="hh" id="hh"></i><i class="mm" id="mm"></i></div>
+  <div><b id="clockTime">9:00 pm</b><small>scroll = time</small></div>
+</div>
+<div class="rail" aria-hidden="true">
+  <span class="tick" style="top:0%">9 pm</span><span class="tick" style="top:20%">11 pm</span><span class="tick" style="top:40%">1 am</span>
+  <span class="tick" style="top:60%">3 am</span><span class="tick" style="top:80%">5 am</span><span class="tick" style="top:100%">7 am</span>
+  <i class="dot" id="railDot"></i>
+</div>
+
+<div class="cord" id="cord">
+  <div class="grab" id="cordGrab">
+    <div class="string"></div>
+    <button type="button" id="cordBtn" aria-label="Pull the cord to turn the lights out" aria-pressed="false"><span class="bead"></span></button>
+    <span class="hint" id="cordHint" aria-hidden="true">Pull me!</span>
+  </div>
+</div>
+
+<div class="sheep-pill" aria-live="polite">
+  <button type="button" class="field" id="pillHop" aria-label="Count a sheep">
+    <div class="ground"></div>
+    <svg class="fence" viewBox="0 0 18 16"><rect x="2" y="2" width="2.4" height="14" rx="1" fill="#8a7458"/><rect x="13.6" y="2" width="2.4" height="14" rx="1" fill="#8a7458"/><rect x="0" y="5" width="18" height="2" rx="1" fill="#a68c6a"/><rect x="0" y="10" width="18" height="2" rx="1" fill="#a68c6a"/></svg>
+    <svg class="sheep" id="pillSheep" viewBox="0 0 60 44" aria-hidden="true"><use href="#sheepShape"/></svg>
+  </button>
+  <b id="sheepCount">0</b><span id="sheepWord">sheep &middot; tap</span>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="sheepShape">
+      <rect x="20" y="27" width="3" height="13" rx="1.5" fill="#2b2620"/><rect x="26" y="28" width="3" height="12" rx="1.5" fill="#2b2620"/>
+      <rect x="34" y="28" width="3" height="12" rx="1.5" fill="#2b2620"/><rect x="40" y="27" width="3" height="13" rx="1.5" fill="#2b2620"/>
+      <g fill="#f3eadb"><circle cx="30" cy="20" r="11"/><circle cx="20" cy="22" r="8"/><circle cx="40" cy="22" r="8"/><circle cx="25" cy="13" r="7"/><circle cx="35" cy="13" r="7"/><circle cx="30" cy="27" r="8"/><circle cx="14" cy="18" r="4"/></g>
+      <ellipse cx="47" cy="17" rx="6.5" ry="5.5" fill="#2b2620"/><ellipse cx="44" cy="12" rx="3" ry="1.6" fill="#2b2620" transform="rotate(-30 44 12)"/>
+      <path d="M47.5 16.5 q1.6 1.2 3.2 0" stroke="#f3eadb" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+</svg>
+
+<main>
+  <div class="wrap">
+    <section class="hero" aria-labelledby="title">
+      <p class="cap">Motion lab · batch three · not public</p>
+      <h1 id="title">The page that <em>falls asleep.</em></h1>
+      <p class="lede">Ten motion ideas for sleepmoore.app, all live. Scroll slowly: the sky behind this page runs from 9 pm to sunrise, a sheep counts every idea you pass, and the cord at the top right turns the lights out.</p>
+      <div class="row">
+        <a class="btn primary" href="#i1">Start the night</a>
+        <button type="button" class="btn" id="stillBtn" aria-pressed="false">Still version</button>
+      </div>
+      <p class="motion-off">Motion is paused. If you didn't press "Still version", your computer is set to reduce animations. Press "Still version" to turn motion back on.</p>
+      <nav class="chips" aria-label="The ten ideas">
+        <a class="chip" href="#i1"><i>01</i>Scroll is one night</a>
+        <a class="chip" href="#i2"><i>02</i>The page breathes</a>
+        <a class="chip" href="#i3"><i>03</i>Sound you can see</a>
+        <a class="chip" href="#i4"><i>04</i>Your real sky</a>
+        <a class="chip" href="#i5"><i>05</i>Sleepy words</a>
+        <a class="chip" href="#i6"><i>06</i>Counting sheep</a>
+        <a class="chip" href="#i7"><i>07</i>Build your scene</a>
+        <a class="chip" href="#i8"><i>08</i>Dream changes</a>
+        <a class="chip" href="#i9"><i>09</i>Sleep graph</a>
+        <a class="chip" href="#i10"><i>10</i>Lights out</a>
+      </nav>
+      <div class="scroll-cue"><span class="mouse" aria-hidden="true"></span>Scroll to move through the night</div>
+    </section>
+
+    <!-- 01 -->
+    <section class="idea" id="i1" data-idea>
+      <div class="idea-head">
+        <span class="num">01</span>
+        <h2>The scroll is one night</h2>
+        <div>
+          <p class="what">Look behind these cards. The sky darkens, the stars come out and the moon crosses as you scroll. The clock in the top corner is the scroll bar. The bottom of the page is sunrise.</p>
+          <p class="why"><b>Why it stands out:</b> the whole site becomes one story, from bedtime to waking, instead of a pile of sections.</p>
+        </div>
+      </div>
+      <div class="stage night-strip">
+        <div class="night-now"><b id="nightBig">9:00 pm</b><span id="nightPhase">Dusk. The first stars.</span></div>
+        <div class="bar" aria-hidden="true"><i class="pin" id="nightPin"></i></div>
+        <div class="bar-labels" aria-hidden="true"><span>9 pm</span><span>11 pm</span><span>1 am</span><span>3 am</span><span>5 am</span><span>7 am</span></div>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="idea" id="i2" data-idea>
+      <div class="idea-head">
+        <span class="num">02</span>
+        <h2>The page breathes</h2>
+        <div>
+          <p class="what">A flower of soft light opens for 4 seconds while you breathe in, then folds closed for 6 while you breathe out. Specks of light drift in with each breath and float away as you let it go. That's 6 breaths a minute, a slow, calming pace.</p>
+          <p class="why"><b>Why it stands out:</b> visitors calm down without being told to. The motion does the work.</p>
+        </div>
+      </div>
+      <div class="stage breath" id="breathStage">
+        <canvas id="breathFx" aria-hidden="true"></canvas>
+        <div class="breath-center" aria-live="off"><b id="breathText">Breathe in</b><span id="breathCount">4</span></div>
+        <div class="breath-steps" aria-hidden="true"><i id="stIn" class="on">In · 4</i><i id="stOut">Out · 6</i></div>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn" id="guideBtn" aria-pressed="true">Words on</button>
+        <span class="note">6 breaths a minute. The clock pill at the top breathes at the same pace.</span>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="idea" id="i3" data-idea>
+      <div class="idea-head">
+        <span class="num">03</span>
+        <h2>Sound you can see</h2>
+        <div>
+          <p class="what">Press play. The picture listens to the real sound: rain runs down the glass, the stove flickers with each crackle, fireflies pulse with the crickets and wind pushes mist across the valley. Turn a slider down and that part of the picture fades.</p>
+          <p class="why"><b>Why it stands out:</b> it's proof the app is real, and nobody can copy it with stock video. Wind even tilts the rain.</p>
+        </div>
+      </div>
+      <div class="stage cabin" id="cabin">
+        <img src="/img/hero-cabin-1440.webp" srcset="/img/hero-cabin-960.webp 960w, /img/hero-cabin-1440.webp 1440w, /img/hero-cabin-1920.webp 1920w" sizes="(max-width: 1240px) 92vw, 1110px" alt="A cabin bedroom at night: a wood stove, a big window over misty pine valleys and a full moon" loading="lazy" width="1440" height="810">
+        <div class="stove" id="stove" aria-hidden="true"><video id="fireLow" src="fire/fire-low.mp4" muted loop playsinline autoplay preload="auto"></video><video id="fireMid" src="fire/fire-mid.mp4" muted loop playsinline autoplay preload="auto"></video><video id="fireHigh" src="fire/fire-high.mp4" muted loop playsinline autoplay preload="auto"></video></div>
+        <canvas id="cabinFx" aria-hidden="true"></canvas>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn gold" id="cabinPlay" aria-pressed="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path class="pl" d="M4 2.5v11l9-5.5z"/></svg><span>Play the cabin</span></button>
+        <div class="meter" id="cabinMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="note" id="cabinNote">Sound plays only while this section is on screen.</span>
+      </div>
+      <div class="faders">
+        <div class="fader"><label for="f-rain">Rain <span>70</span></label><input id="f-rain" type="range" min="0" max="100" value="70" data-snd="rain"></div>
+        <div class="fader"><label for="f-fire">Fire <span>55</span></label><input id="f-fire" type="range" min="0" max="100" value="55" data-snd="fire"></div>
+        <div class="fader"><label for="f-night">Crickets <span>45</span></label><input id="f-night" type="range" min="0" max="100" value="45" data-snd="night"></div>
+        <div class="fader"><label for="f-wind">Wind <span>20</span></label><input id="f-wind" type="range" min="0" max="100" value="20" data-snd="wind"></div>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="idea" id="i4" data-idea>
+      <div class="idea-head">
+        <span class="num">04</span>
+        <h2>Your real sky, right now</h2>
+        <div>
+          <p class="what">This sky uses your own clock. The colours match your time of day, and the moon is tonight's real phase in roughly the right place. Drag the slider to see other hours.</p>
+          <p class="why"><b>Why it stands out:</b> the site looks different at 11 pm than at lunch, so it always feels made for that moment.</p>
+        </div>
+      </div>
+      <div class="stage yoursky">
+        <canvas id="yourSky" aria-hidden="true"></canvas>
+        <div class="readout"><b id="skyTime">It's 10:00 pm where you are</b><span id="skyMoon">Moon</span></div>
+      </div>
+      <div class="controls">
+        <div class="hour-pick fader"><label for="hourPick">Try another hour <span id="hourLabel">now</span></label><input id="hourPick" type="range" min="0" max="24" step="0.25" value="22"></div>
+        <button type="button" class="btn" id="nowBtn">Back to now</button>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="idea" id="i5" data-idea>
+      <div class="idea-head">
+        <span class="num">05</span>
+        <h2>Words that fall asleep</h2>
+        <div>
+          <p class="what">Leave the heading alone and it slowly nods off: letters droop, lean on each other, and little z's drift up. Hover or tap and it wakes with a stretch.</p>
+          <p class="why"><b>Why it stands out:</b> it has character and makes people smile. It could live on the hero heading or the 404 page.</p>
+        </div>
+      </div>
+      <div class="stage words" id="words" role="button" tabindex="0" aria-label="Sleepy heading. Hover, tap or press Enter to wake it.">
+        <div class="sleepy" id="sleepy" aria-hidden="true">Somewhere quieter.</div>
+        <span class="tap">Tap to wake it</span>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="idea" id="i6" data-idea>
+      <div class="idea-head">
+        <span class="num">06</span>
+        <h2>Counting sheep</h2>
+        <div>
+          <p class="what">Look at the bottom of your screen. Press and hold the sheep and carry it over the fence yourself, with a mouse or a finger. Too low and it bumps into the fence; let go and it drops back to the grass. In Manual (the default) you can also tap the little field at the bottom of the screen. In Automatic, sheep jump the fence one after another until you press Pause.</p>
+          <p class="why"><b>Why it stands out:</b> a tiny joke everyone gets at once, and it gives the page a reading-progress bar.</p>
+        </div>
+      </div>
+      <div class="stage meadow">
+        <svg class="land" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0c1226"/><stop offset="1" stop-color="#1a2342"/></linearGradient></defs>
+          <rect width="1000" height="300" fill="url(#mg)"/>
+          <path d="M0 230 C 200 200 360 215 520 222 S 820 200 1000 214 L1000 300 L0 300 Z" fill="#101a1c"/>
+          <path d="M0 246 C 240 236 520 244 1000 238 L1000 300 L0 300 Z" fill="#0b1214"/>
+        </svg>
+        <svg class="big-fence" viewBox="0 0 70 62" aria-hidden="true"><rect x="8" y="4" width="7" height="58" rx="3" fill="#7d6a50"/><rect x="55" y="4" width="7" height="58" rx="3" fill="#7d6a50"/><rect x="0" y="16" width="70" height="7" rx="3" fill="#9c8564"/><rect x="0" y="36" width="70" height="7" rx="3" fill="#9c8564"/></svg>
+        <div class="shadow" id="sheepShadow" aria-hidden="true"></div>
+        <svg class="big-sheep" id="bigSheep" viewBox="0 0 60 44" role="img" aria-label="A sheep. Press, hold and drag it over the fence."><use href="#sheepShape"/></svg>
+        <p class="grab-hint" id="grabHint">Press and hold the sheep, then lift it over the fence.<small>Works with a mouse or a finger.</small></p>
+        <div class="count"><b id="bigCount">0</b><span>score &middot; best <i id="bestScore">0</i></span></div>
+        <div class="toast" id="sheepToast" aria-live="polite"></div>
+      </div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="How sheep are counted"><button type="button" class="btn" id="modeManual" aria-pressed="true">Manual</button><button type="button" class="btn" id="modeAuto" aria-pressed="false">Automatic</button></div>
+        <button type="button" class="btn gold" id="hopBtn">Count a sheep</button>
+        <button type="button" class="btn gold" id="autoToggle" hidden>Pause</button>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="idea" id="i7" data-idea>
+      <div class="idea-head">
+        <span class="num">07</span>
+        <h2>Build your scene</h2>
+        <div>
+          <p class="what">Drag a sound into the night. A campfire lights where you drop it, rain clouds roll in, a stream starts to run, and you hear each one. Tap anything you placed to remove it.</p>
+          <p class="why"><b>Why it stands out:</b> the mixer becomes a little world you build yourself. It's play, not settings.</p>
+        </div>
+      </div>
+      <div class="stage scene" id="scene">
+        <svg id="sceneSvg" viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070b18"/><stop offset=".7" stop-color="#16203e"/><stop offset="1" stop-color="#2a2d52"/></linearGradient>
+            <radialGradient id="fg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffb35c" stop-opacity=".75"/><stop offset=".45" stop-color="#ff8a3c" stop-opacity=".22"/><stop offset="1" stop-color="#ff8a3c" stop-opacity="0"/></radialGradient>
+            <radialGradient id="ffg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f4f0a0" stop-opacity="1"/><stop offset=".35" stop-color="#e6e07a" stop-opacity=".45"/><stop offset="1" stop-color="#e6e07a" stop-opacity="0"/></radialGradient>
+            <radialGradient id="mglow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f3eadb" stop-opacity=".35"/><stop offset="1" stop-color="#f3eadb" stop-opacity="0"/></radialGradient>
+            <linearGradient id="wat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c4a78"/><stop offset="1" stop-color="#16294a"/></linearGradient>
+          </defs>
+          <rect width="1000" height="440" fill="url(#sk)"/>
+          <g fill="#fff" id="sceneStars"></g>
+          <circle cx="820" cy="84" r="70" fill="url(#mglow)"/>
+          <circle cx="820" cy="84" r="24" fill="#efe4cc"/>
+          <path d="M0 250 L120 180 L210 226 L330 150 L450 232 L560 170 L690 236 L800 186 L1000 250 L1000 440 L0 440 Z" fill="#111a33"/>
+          <path d="M0 300 C 160 262 300 282 460 292 S 780 262 1000 286 L1000 440 L0 440 Z" fill="#0c1324"/>
+          <path d="M0 340 C 220 322 480 336 700 330 S 920 326 1000 334 L1000 440 L0 440 Z" fill="#080d19"/>
+          <g id="placedLayer"></g>
+        </svg>
+        <p class="hint" id="sceneHint">Drag a sound into the night</p>
+      </div>
+      <div class="tokens" id="tokens">
+        <button type="button" class="tok" data-tok="fire" aria-pressed="false"><span class="ico"><svg viewBox="0 0 20 20"><path d="M10 2c1 3 4 4.5 4 8.5A4 4 0 0 1 6 10.5C6 8 8 7.5 8 5c1.5 1 2 2.5 2 4 1-1 .5-4 0-7z" fill="#ffb35c"/></svg></span>Campfire</button>
+        <button type="button" class="tok" data-tok="rain" aria-pressed="false"><span class="ico"><svg viewBox="0 0 20 20"><path d="M5.5 11a3.5 3.5 0 0 1 .4-7 4.5 4.5 0 0 1 8.4 1.4A2.8 2.8 0 0 1 14.5 11z" fill="#b9c6e4"/><path d="M7 13.5l-1 3M10.5 13.5l-1 3M14 13.5l-1 3" stroke="#86a9e3" stroke-width="1.5" stroke-linecap="round"/></svg></span>Rain cloud</button>
+        <button type="button" class="tok" data-tok="stream" aria-pressed="false"><span class="ico"><svg viewBox="0 0 20 20"><path d="M2 8c2.5-2 5.5 2 8 0s5.5 2 8 0M2 13c2.5-2 5.5 2 8 0s5.5 2 8 0" stroke="#86a9e3" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg></span>Stream</button>
+        <button type="button" class="tok" data-tok="night" aria-pressed="false"><span class="ico"><svg viewBox="0 0 20 20"><circle cx="6" cy="8" r="2" fill="#f4f0a0"/><circle cx="13" cy="5.5" r="1.4" fill="#f4f0a0" opacity=".7"/><circle cx="14" cy="13" r="2.2" fill="#f4f0a0"/><circle cx="7" cy="15" r="1.2" fill="#f4f0a0" opacity=".6"/></svg></span>Crickets</button>
+        <button type="button" class="tok" data-tok="wind" aria-pressed="false"><span class="ico"><svg viewBox="0 0 20 20"><path d="M2 7h10a2.5 2.5 0 1 0-2.5-2.5M2 11h13a2.5 2.5 0 1 1-2.5 2.5M2 15h6" stroke="#d9d2c4" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span>Wind</button>
+        <button type="button" class="btn" id="clearScene">Clear</button>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="idea" id="i8" data-idea>
+      <div class="idea-head">
+        <span class="num">08</span>
+        <h2>Dream-like changes</h2>
+        <div>
+          <p class="what">Nothing cuts or slides. Shapes melt into the next thing, the way scenes change in a dream: the cabin window becomes the moon, and the moon becomes the play button. Tap to step through it.</p>
+          <p class="why"><b>Why it stands out:</b> moving between pages feels like drifting, not clicking. On the site, a tapped world card would melt into the player.</p>
+        </div>
+      </div>
+      <div class="stage dream" id="dream" role="button" tabindex="0" aria-label="Step the dream change">
+        <div class="morph" id="morph" aria-hidden="true">
+          <div class="m-sky" id="mSky"><i style="left:18%;top:22%"></i><i style="left:62%;top:16%"></i><i style="left:40%;top:36%"></i><i style="left:80%;top:30%"></i><i style="left:28%;top:10%"></i></div>
+          <div class="m-hill" id="mHill"></div>
+          <div class="m-panes" id="mPanes"></div>
+          <div class="m-moon" id="mMoon"></div>
+          <div class="m-shadow" id="mShadow"></div>
+          <div class="m-play" id="mPlay"><svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg></div>
+        </div>
+        <div class="steps" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+        <div class="dream-caption" aria-live="polite"><b id="dreamTitle">The cabin window</b><span id="dreamSub">Tap to drift on</span></div>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn" id="dreamAuto" aria-pressed="true">Auto play</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 09: sticky, the line draws as you scroll through this tall track -->
+  <div class="graph-track wrap" id="graphTrack">
+    <div class="graph-sticky">
+      <section class="idea" id="i9" data-idea>
+        <div class="idea-head">
+          <span class="num">09</span>
+          <h2>The sleep graph draws itself</h2>
+          <div>
+            <p class="what">Keep scrolling. A night of sleep draws itself across the screen, and each feature lights up at the moment in the night where it helps you.</p>
+          </div>
+        </div>
+        <div class="stage hypno">
+          <svg viewBox="0 0 1000 330" aria-hidden="true">
+            <defs>
+              <linearGradient id="hg" x1="0" y1="30" x2="0" y2="270" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d5a24f"/><stop offset=".35" stop-color="#c7b6e8"/><stop offset=".65" stop-color="#86a9e3"/><stop offset="1" stop-color="#4f73c4"/></linearGradient>
+              <linearGradient id="ha" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86a9e3" stop-opacity=".16"/><stop offset="1" stop-color="#86a9e3" stop-opacity="0"/></linearGradient>
+              <clipPath id="hclip"><rect id="hclipRect" x="0" y="0" width="0" height="330"/></clipPath>
+            </defs>
+            <g font-family="Nunito, sans-serif" font-size="13" font-weight="700" fill="#8e8778">
+              <text x="0" y="44">Awake</text><text x="0" y="114">Dreaming</text><text x="0" y="184">Light</text><text x="0" y="264">Deep</text>
+            </g>
+            <g stroke="rgba(243,234,219,.07)"><line x1="90" y1="40" x2="990" y2="40"/><line x1="90" y1="110" x2="990" y2="110"/><line x1="90" y1="180" x2="990" y2="180"/><line x1="90" y1="260" x2="990" y2="260"/></g>
+            <g font-family="Nunito, sans-serif" font-size="12" font-weight="700" fill="#8e8778" text-anchor="middle" id="hTimes"></g>
+            <path id="hArea" fill="url(#ha)" clip-path="url(#hclip)"/>
+            <path id="hLine" fill="none" stroke="url(#hg)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+            <g id="hMarks"></g>
+            <circle id="hTip" r="7" fill="#f3eadb" opacity="0"/>
+            <circle id="hTipGlow" r="18" fill="#f3eadb" opacity="0" style="filter: blur(6px)"/>
+          </svg>
+          <div class="moments" id="moments">
+            <div class="moment"><i>11:14 PM</i><b>Asleep in 14 minutes</b><span>Rain and Fire, your usual mix</span></div>
+            <div class="moment"><i>11:40 PM</i><b>Sound fades out by itself</b><span>Deep sleep reached, the mix dims</span></div>
+            <div class="moment"><i>2:20 AM</i><b>Dreaming, left alone</b><span>No sounds, no alerts</span></div>
+            <div class="moment"><i>6:48 AM</i><b>Smart alarm</b><span>Woken in light sleep, 12 minutes early</span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- 10 -->
+    <section class="idea" id="i10" data-idea>
+      <div class="idea-head">
+        <span class="num">10</span>
+        <h2>Pull the cord: light mode to dark mode</h2>
+        <div>
+          <p class="what">The page starts lamp-lit, with cream paper cards over the night. Pull the cord at the top right (drag it down or tap it) and the lamp clicks off: everything fades to night and the fireflies come out. Pull again to switch the lamp back on.</p>
+          <p class="why"><b>Why it stands out:</b> a dark-mode switch everyone understands without a label, and people pull it again and again just to watch. On the real site it could also start a sleep sound.</p>
+        </div>
+      </div>
+      <div class="stage lamp-stage">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <defs><radialGradient id="lg" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd890" stop-opacity=".55"/><stop offset="1" stop-color="#ffd890" stop-opacity="0"/></radialGradient></defs>
+          <circle class="lamp-light" cx="110" cy="92" r="104" fill="url(#lg)"/>
+          <g class="lamp-body">
+            <path d="M70 52 h80 l20 64 h-120 z" fill="#efe1c3"/>
+            <rect x="104" y="116" width="12" height="54" fill="#8a6a44"/>
+            <ellipse cx="110" cy="178" rx="46" ry="10" fill="#6d5236"/>
+          </g>
+          <path class="lamp-light" d="M60 116 h100 l-12 -6 h-76 z" fill="#ffe9b8" opacity=".9"/>
+        </svg>
+        <div class="glows" aria-hidden="true"><i style="left:14%;top:30%"></i><i style="left:24%;top:62%;animation-delay:-2s,-1s"></i><i style="left:33%;top:22%;animation-delay:-4s,-2s"></i><i style="left:67%;top:34%;animation-delay:-1s,-.5s"></i><i style="left:78%;top:58%;animation-delay:-3s,-1.6s"></i><i style="left:86%;top:24%;animation-delay:-5s,-2.4s"></i><i style="left:58%;top:70%;animation-delay:-2.5s,-.8s"></i><i style="left:42%;top:74%;animation-delay:-1.5s,-2.2s"></i></div>
+      </div>
+      <div class="controls">
+        <button type="button" class="btn" id="lightsBtn" aria-pressed="false">Lights out (dark mode)</button>
+      </div>
+    </section>
+
+    <footer class="end">
+      <p class="cap">7:00 am</p>
+      <h2>Good morning.</h2>
+      <p>That's the whole night. Which ones should go on the real site? Reply with numbers, for example 1, 3 and 10.</p>
+      <div class="row"><a class="btn" href="#title">Back to 9 pm</a><a class="btn" href="/lab/motion/">Lab, batch one</a><a class="btn" href="/lab/motion/2/">Lab, batch two</a></div>
+    </footer>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@14.14.0/dist/motion.js" crossorigin="anonymous"></script>
+<script>
+(() => {
+  'use strict';
+  const M = window.Motion || {};
+  const animate = M.animate, stagger = M.stagger, spring = M.spring, inView = M.inView;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const root = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  let still = reduce.matches;
+  root.classList.toggle('still', still);
+  const stillBtn = $('#stillBtn');
+  stillBtn.setAttribute('aria-pressed', String(still));
+  stillBtn.addEventListener('click', () => {
+    still = !still; root.classList.toggle('still', still); stillBtn.setAttribute('aria-pressed', String(still));
+  });
+
+  /* ---------- Colours of the sky by hour (shared by 01 and 04) ---------- */
+  const SKY = [
+    [0, '#060912', '#0a0f1d', '#121a30'], [3, '#05070e', '#090d19', '#10172b'], [4.75, '#0a1022', '#16213d', '#2a3354'],
+    [5.75, '#1a2447', '#46466e', '#b9806f'], [6.75, '#3b5c99', '#b08a8c', '#f2c07e'], [8, '#4f7fc0', '#8fb3dc', '#d9e6f0'],
+    [12, '#3f74c0', '#78a8de', '#c4dcf2'], [16, '#4371b4', '#86a8d2', '#e0d2b8'], [18, '#2c3c70', '#8a6680', '#eaa06a'],
+    [19.25, '#1a2248', '#3d3a63', '#8a5a6a'], [20.5, '#111833', '#22284a', '#4a3a5c'], [22, '#0a0e1d', '#111830', '#1b2340'], [24, '#060912', '#0a0f1d', '#121a30']
+  ];
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const SKY_RGB = SKY.map(([h, ...c]) => [h, ...c.map(hex)]);
+  function skyAt(hour) {
+    const h = ((hour % 24) + 24) % 24;
+    let i = 0; while (i < SKY_RGB.length - 2 && SKY_RGB[i + 1][0] <= h) i++;
+    const a = SKY_RGB[i], b = SKY_RGB[i + 1];
+    const t = smooth(clamp((h - a[0]) / (b[0] - a[0])));
+    return [1, 2, 3].map((k) => a[k].map((v, j) => Math.round(lerp(v, b[k][j], t))));
+  }
+  const rgb = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  function starAlpha(hour) {
+    const h = ((hour % 24) + 24) % 24;
+    if (h >= 21.5 || h <= 4.5) return 1;
+    if (h > 19.5 && h < 21.5) return (h - 19.5) / 2;
+    if (h > 4.5 && h < 6.25) return 1 - (h - 4.5) / 1.75;
+    return 0;
+  }
+  const fmt = (hour) => {
+    const h = ((hour % 24) + 24) % 24; let hh = Math.floor(h); const mm = Math.floor((h - hh) * 60);
+    const ap = hh >= 12 ? 'pm' : 'am'; hh = hh % 12 || 12;
+    return `${hh}:${String(mm).padStart(2, '0')} ${ap}`;
+  };
+
+  /* ---------- 01 The scroll is one night ---------- */
+  const sky = $('#sky'), moon = $('#moon'), sun = $('#sun');
+  const clockTime = $('#clockTime'), hh = $('#hh'), mm = $('#mm'), railDot = $('#railDot');
+  const nightBig = $('#nightBig'), nightPin = $('#nightPin'), nightPhase = $('#nightPhase');
+  let pageHour = 21, stars = [], shooting = null, nextShoot = 6;
+  const PHASES = [[21, 'Dusk. The first stars.'], [22.5, 'Night falls. The moon is up.'], [24.5, 'Deep night. Everything is still.'], [27.5, 'The quietest hour.'], [29, 'Blue hour. Birds soon.'], [30.2, 'First light.'], [30.8, 'Sunrise.']];
+  function readScroll() {
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    const p = clamp(scrollY / max);
+    pageHour = 21 + p * 10;
+    const c = skyAt(pageHour);
+    sky.style.setProperty('--s1', rgb(c[0])); sky.style.setProperty('--s2', rgb(c[1])); sky.style.setProperty('--s3', rgb(c[2]));
+    const t = fmt(pageHour);
+    clockTime.textContent = t; nightBig.textContent = t;
+    const hr = pageHour % 12, mins = (pageHour % 1) * 60;
+    hh.style.transform = `rotate(${hr * 30}deg)`; mm.style.transform = `rotate(${mins * 6}deg)`;
+    railDot.style.top = (p * 100) + '%';
+    nightPin.style.left = (p * 100) + '%';
+    let ph = PHASES[0][1]; for (const [h, s] of PHASES) if (pageHour >= h) ph = s; nightPhase.textContent = ph;
+    // Moon crosses from low left (9 pm) to low right (5:30 am), then sets
+    const m = clamp((pageHour - 21) / 8.5);
+    const narrow = innerWidth < 600;
+    const mx = innerWidth * (0.64 + 0.28 * m), my = innerHeight * (narrow ? 0.62 - Math.sin(Math.PI * m) * 0.5 : 0.56 - Math.sin(Math.PI * m) * 0.42);
+    moon.style.transform = `translate(${mx}px, ${my}px)`;
+    moon.style.opacity = String((innerWidth < 600 ? 0.75 : 1) * (1 - clamp((pageHour - 29.4) / 0.9)));
+    // Sun rises at the very end
+    const s = clamp((pageHour - 29.7) / 1.3);
+    sun.style.opacity = String(smooth(s));
+    sun.style.transform = `translateY(${innerHeight * (1.25 - 0.42 * smooth(s))}px)`;
+  }
+  addEventListener('scroll', readScroll, { passive: true });
+  addEventListener('resize', readScroll);
+
+  const starCanvas = $('#stars'), sctx = starCanvas.getContext('2d');
+  function sizeStars() {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    starCanvas.width = innerWidth * dpr; starCanvas.height = innerHeight * dpr; sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(Math.min(260, innerWidth * innerHeight / 5200));
+    stars = Array.from({ length: n }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight * 0.82, r: Math.random() < 0.08 ? 1.5 + Math.random() : 0.5 + Math.random() * 0.8, ph: Math.random() * 6.3, sp: 0.4 + Math.random() * 1.4 }));
+  }
+  sizeStars(); addEventListener('resize', sizeStars);
+  function drawStars(t) {
+    sctx.clearRect(0, 0, innerWidth, innerHeight);
+    const out = root.classList.contains('out');
+    const base = Math.max(starAlpha(pageHour), out ? 0.55 : 0) * (out ? 1.35 : 1);
+    if (base <= 0.01) return;
+    sctx.fillStyle = '#fff';
+    for (const s of stars) {
+      const tw = still ? 0.8 : 0.55 + 0.45 * Math.sin(t * s.sp + s.ph);
+      sctx.globalAlpha = clamp(base * tw * (s.r > 1.4 ? 1 : 0.75));
+      sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, 6.283); sctx.fill();
+    }
+    // An occasional shooting star
+    if (!still && base > 0.6) {
+      if (!shooting && t > nextShoot) shooting = { x: Math.random() * innerWidth * 0.7 + innerWidth * 0.1, y: Math.random() * innerHeight * 0.3, t0: t };
+      if (shooting) {
+        const k = (t - shooting.t0) / 1.1;
+        if (k >= 1) { shooting = null; nextShoot = t + 7 + Math.random() * 9; }
+        else {
+          const x = shooting.x + k * 260, y = shooting.y + k * 110;
+          const g = sctx.createLinearGradient(x - 120, y - 51, x, y);
+          g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, `rgba(255,255,255,${0.9 * Math.sin(Math.PI * k)})`);
+          sctx.globalAlpha = 1; sctx.strokeStyle = g; sctx.lineWidth = 1.6;
+          sctx.beginPath(); sctx.moveTo(x - 120, y - 51); sctx.lineTo(x, y); sctx.stroke();
+        }
+      }
+    }
+    sctx.globalAlpha = 1;
+  }
+
+  /* ---------- Audio: one engine, groups that fade when their section leaves the screen ---------- */
+  const EXT = (() => { try { return new Audio().canPlayType('audio/ogg; codecs=opus') ? 'opus' : 'm4a'; } catch { return 'm4a'; } })();
+  const sound = (() => {
+    let ctx = null, master = null; const buffers = {}, groups = {}, ch = {};
+    function ensure() {
+      if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+    function group(name) {
+      ensure();
+      if (!groups[name]) { const g = ctx.createGain(); g.gain.value = 1; g.connect(master); groups[name] = g; }
+      return groups[name];
+    }
+    function load(id) {
+      if (!buffers[id]) buffers[id] = fetch(`/audio/${id}.${EXT}`).then((r) => r.arrayBuffer()).then((b) => new Promise((res, rej) => ctx.decodeAudioData(b, res, rej)));
+      return buffers[id];
+    }
+    async function start(key, id, vol, grp) {
+      ensure();
+      let c = ch[key];
+      if (!c) {
+        const gain = ctx.createGain(); gain.gain.value = 0;
+        const an = ctx.createAnalyser(); an.fftSize = 1024;
+        gain.connect(an); an.connect(group(grp));
+        c = ch[key] = { gain, an, src: null, data: new Float32Array(1024), level: 0, vol };
+      }
+      c.vol = vol;
+      if (!c.src) {
+        c.src = 'loading';
+        const buf = await load(id);
+        if (c.src !== 'loading') return; // stopped while loading
+        const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; src.connect(c.gain);
+        src.start(0, Math.random() * buf.duration * 0.5); c.src = src;
+      }
+      c.gain.gain.setTargetAtTime(c.vol, ctx.currentTime, 0.25);
+    }
+    function setVol(key, vol) { const c = ch[key]; if (!c) return; c.vol = vol; if (ctx) c.gain.gain.setTargetAtTime(vol, ctx.currentTime, 0.12); }
+    function stop(key) {
+      const c = ch[key]; if (!c || !ctx) return;
+      c.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+      const src = c.src; c.src = null;
+      if (src && src !== 'loading') setTimeout(() => { try { src.stop(); } catch {} }, 1600);
+    }
+    function level(key) {
+      const c = ch[key]; if (!c || !c.src || c.src === 'loading') return 0;
+      c.an.getFloatTimeDomainData(c.data);
+      let s = 0; for (let i = 0; i < c.data.length; i += 2) s += c.data[i] * c.data[i];
+      const rms = Math.sqrt(s / (c.data.length / 2));
+      c.level += (Math.min(1, rms * 5) - c.level) * 0.3;
+      return c.level;
+    }
+    function fadeGroup(name, on) { if (!ctx || !groups[name]) return; groups[name].gain.setTargetAtTime(on ? 1 : 0, ctx.currentTime, 0.5); }
+    return { start, setVol, stop, level, fadeGroup, ensure };
+  })();
+
+  /* ---------- 02 Breathing: petals of light, motes drawn in and let go ---------- */
+  const bStage = $('#breathStage'), bfx = $('#breathFx'), bctx = bfx.getContext('2d');
+  const breathText = $('#breathText'), breathCount = $('#breathCount'), stIn = $('#stIn'), stOut = $('#stOut'), guideBtn = $('#guideBtn');
+  let bw = 0, bh = 0, bVisible = false, showWords = true, lastPhase = '';
+  const motes = Array.from({ length: 140 }, () => ({ a: Math.random() * 6.283, d: 0.25 + Math.random() * 0.75, s: 0.6 + Math.random() * 1.6, ph: Math.random() * 6.283, sp: (Math.random() - 0.5) * 0.12 }));
+  const PETALS = 8;
+  function sizeBreath() { const r = bStage.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); bw = r.width; bh = r.height; bfx.width = bw * dpr; bfx.height = bh * dpr; bctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  guideBtn.addEventListener('click', () => {
+    showWords = !showWords; guideBtn.setAttribute("aria-pressed", String(showWords)); guideBtn.textContent = showWords ? 'Words on' : 'Words off';
+    breathText.parentElement.style.opacity = showWords ? '1' : '0';
+  });
+  breathText.parentElement.style.transition = 'opacity .8s';
+  function setPhase(word) {
+    if (word === lastPhase) return; lastPhase = word;
+    stIn.classList.toggle('on', word === 'Breathe in'); stOut.classList.toggle('on', word === 'Breathe out');
+    if (animate && !still) {
+      animate(breathText, { opacity: [0, 1], filter: ['blur(8px)', 'blur(0px)'], y: [8, 0] }, { duration: 1.1, ease: 'easeOut' });
+    }
+    breathText.textContent = word;
+  }
+  function drawBreath(t) {
+    const c = t % 10; // 4 s in, 6 s out
+    const k = still ? 0.6 : (c < 4 ? smooth(c / 4) : 1 - smooth((c - 4) / 6));
+    const inhale = c < 4;
+    setPhase(inhale ? 'Breathe in' : 'Breathe out');
+    breathCount.textContent = String(Math.ceil(inhale ? 4 - c : 10 - c));
+    if (!bVisible || !bw) return;
+    const cx = bw / 2, cy = bh / 2, S = Math.min(bw, bh);
+    bctx.clearRect(0, 0, bw, bh);
+    // Ambient halo
+    let g = bctx.createRadialGradient(cx, cy, 0, cx, cy, S * (0.35 + 0.25 * k));
+    g.addColorStop(0, `rgba(213,162,79,${0.10 + 0.18 * k})`); g.addColorStop(1, 'rgba(213,162,79,0)');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, bw, bh);
+    // Motes: pulled in on the breath in, released on the breath out
+    for (const m of motes) {
+      if (!still) m.a += m.sp * 0.016;
+      const rr = S * (0.16 + m.d * (0.62 - 0.36 * k));
+      const x = cx + Math.cos(m.a) * rr, y = cy + Math.sin(m.a) * rr * 0.92;
+      const tw = 0.45 + 0.55 * Math.sin(t * 1.3 + m.ph);
+      bctx.globalAlpha = clamp((0.25 + 0.6 * tw) * (inhale ? 0.6 + 0.4 * k : 0.9 - 0.3 * k));
+      bctx.fillStyle = m.d > 0.7 ? '#cfe0ff' : '#ffe8c2';
+      bctx.beginPath(); bctx.arc(x, y, m.s * (0.7 + 0.3 * k), 0, 6.283); bctx.fill();
+    }
+    bctx.globalAlpha = 1;
+    // Petals: translucent circles that open from the centre and turn slowly
+    const R = S * (0.085 + 0.095 * k), spread = S * (0.02 + 0.13 * k), rot = t * 0.06 + k * 0.9;
+    bctx.save(); bctx.globalCompositeOperation = 'screen';
+    for (let i = 0; i < PETALS; i++) {
+      const a = rot + i * (6.283 / PETALS);
+      const px = cx + Math.cos(a) * spread, py = cy + Math.sin(a) * spread;
+      const warm = i % 2 === 0;
+      const pg = bctx.createRadialGradient(px - R * 0.25, py - R * 0.3, R * 0.1, px, py, R);
+      if (warm) { pg.addColorStop(0, 'rgba(255,196,110,.46)'); pg.addColorStop(0.65, 'rgba(214,138,56,.24)'); pg.addColorStop(1, 'rgba(214,138,56,.04)'); }
+      else { pg.addColorStop(0, 'rgba(150,176,255,.42)'); pg.addColorStop(0.65, 'rgba(98,120,214,.22)'); pg.addColorStop(1, 'rgba(98,120,214,.04)'); }
+      bctx.fillStyle = pg; bctx.beginPath(); bctx.arc(px, py, R, 0, 6.283); bctx.fill();
+      bctx.strokeStyle = warm ? 'rgba(255,214,150,.38)' : 'rgba(176,196,255,.34)'; bctx.lineWidth = 1.2; bctx.stroke();
+    }
+    bctx.restore();
+    // Soft core so the words sit on calm light
+    g = bctx.createRadialGradient(cx, cy, 0, cx, cy, S * 0.16);
+    g.addColorStop(0, 'rgba(10,14,28,.62)'); g.addColorStop(0.6, 'rgba(10,14,28,.25)'); g.addColorStop(1, 'rgba(10,14,28,0)');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, bw, bh);
+    // Progress ring: fills on the breath in, empties on the breath out
+    const RR = S * 0.39;
+    bctx.lineCap = 'round';
+    bctx.strokeStyle = 'rgba(243,234,219,.08)'; bctx.lineWidth = 2; bctx.beginPath(); bctx.arc(cx, cy, RR, 0, 6.283); bctx.stroke();
+    bctx.strokeStyle = 'rgba(213,162,79,.85)'; bctx.lineWidth = 3; bctx.beginPath(); bctx.arc(cx, cy, RR, -Math.PI / 2, -Math.PI / 2 + 6.283 * Math.max(0.001, k)); bctx.stroke();
+    const ex = cx + Math.cos(-Math.PI / 2 + 6.283 * k) * RR, ey = cy + Math.sin(-Math.PI / 2 + 6.283 * k) * RR;
+    g = bctx.createRadialGradient(ex, ey, 0, ex, ey, 14); g.addColorStop(0, 'rgba(255,236,190,.95)'); g.addColorStop(1, 'rgba(255,236,190,0)');
+    bctx.fillStyle = g; bctx.beginPath(); bctx.arc(ex, ey, 14, 0, 6.283); bctx.fill();
+  }
+  if (inView) inView(bStage, () => { bVisible = true; sizeBreath(); return () => { bVisible = false; }; }); else { bVisible = true; sizeBreath(); }
+  addEventListener('resize', () => bVisible && sizeBreath());
+
+  /* ---------- 03 Sound you can see ---------- */
+  const cabin = $('#cabin'), fx = $('#cabinFx'), fctx = fx.getContext('2d');
+  const playBtn = $('#cabinPlay'), meterBars = $$('#cabinMeter i');
+  const vols = { rain: 0.7, fire: 0.55, night: 0.45, wind: 0.2 };
+  const lv = { rain: 0, fire: 0, night: 0, wind: 0 };
+  let cabinPlaying = false, cabinVisible = false, cw = 0, chh = 0;
+  const WIN = { x0: 0.175, x1: 0.885, y0: 0.06, y1: 0.715 }; // window glass in the photo
+  // On narrow screens the photo is cropped from the right, so the stove and its fire stay in view
+  let cabinX = 0.5;
+  function sizeCabin() {
+    const r = cabin.getBoundingClientRect(); const dpr = Math.min(2, devicePixelRatio || 1);
+    cabinX = r.width < 560 ? 0.06 : 0.5; cabin.querySelector('img').style.objectPosition = `${cabinX * 100}% 50%`;
+    cw = r.width; chh = r.height; fx.width = cw * dpr; fx.height = chh * dpr; fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const [sx0, sy0] = px(0.05759, 0.56762), [sx1, sy1] = px(0.13051, 0.70538), st = $('#stove');
+    st.style.left = sx0 + 'px'; st.style.top = sy0 + 'px'; st.style.width = (sx1 - sx0) + 'px'; st.style.height = (sy1 - sy0) + 'px';
+  }
+  // The photo is cover-fitted; map photo fractions to canvas pixels
+  function px(fxv, fyv) {
+    const ia = 1920 / 1075, ca = cw / chh; let w, h, ox = 0, oy = 0;
+    if (ca > ia) { w = cw; h = cw / ia; oy = (chh - h) / 2; } else { h = chh; w = chh * ia; ox = (cw - w) * cabinX; }
+    return [ox + fxv * w, oy + fyv * h, w, h];
+  }
+  const rain = Array.from({ length: 220 }, () => ({ x: Math.random(), y: Math.random(), l: 0.02 + Math.random() * 0.05, v: 0.5 + Math.random() * 0.7 }));
+  const drops = Array.from({ length: 46 }, () => ({ x: Math.random(), y: Math.random(), r: 1.2 + Math.random() * 3.2, v: 0, wait: Math.random() * 6 }));
+  const flies = Array.from({ length: 26 }, () => ({ x: 0.2 + Math.random() * 0.66, y: 0.44 + Math.random() * 0.25, a: Math.random() * 6.3, ph: Math.random() * 6.3, sp: 0.6 + Math.random() }));
+  const mist = Array.from({ length: 6 }, (_, i) => ({ x: Math.random(), y: 0.5 + i * 0.03, w: 0.25 + Math.random() * 0.25, sp: 0.01 + Math.random() * 0.015 }));
+  $$('.fader input[data-snd]').forEach((inp) => {
+    const set = () => {
+      const v = inp.value / 100; vols[inp.dataset.snd] = v; inp.style.setProperty('--p', inp.value + '%');
+      inp.previousElementSibling.querySelector('span').textContent = inp.value;
+      if (cabinPlaying) sound.setVol('cabin:' + inp.dataset.snd, v * 0.8);
+    };
+    inp.addEventListener('input', set); set();
+  });
+  function setCabinPlaying(on) {
+    cabinPlaying = on; playBtn.setAttribute('aria-pressed', String(on));
+    playBtn.querySelector('span').textContent = on ? 'Pause the cabin' : 'Play the cabin';
+    playBtn.querySelector('.pl').setAttribute('d', on ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z');
+    for (const k of Object.keys(vols)) on ? sound.start('cabin:' + k, k, vols[k] * 0.8, 'cabin') : sound.stop('cabin:' + k);
+  }
+  playBtn.addEventListener('click', () => setCabinPlaying(!cabinPlaying));
+  // Stove glass in the photo (fractions of the image), arched at the top
+  const STOVE = { x0: 0.0615, x1: 0.1266, y0: 0.575, y1: 0.698, bar: 0.0948 };
+  const sparks = [];
+  let fireLevelPrev = 0, fireSize = 0;
+  const fireVids = ['#fireLow', '#fireMid', '#fireHigh'].map((q) => $(q));
+  function drawFire(t, dt) {
+    const real = cabinPlaying ? sound.level('cabin:fire') : 0;
+    fireSize += (vols.fire - fireSize) * Math.min(1, dt * 5 + (still ? 1 : 0));
+    const v = fireSize;
+    // Embers underneath; the steady fire fades in over the first half of the slider, the roaring fire over the second
+    fireVids[1].style.opacity = smooth(clamp(v * 2)).toFixed(3);
+    fireVids[2].style.opacity = smooth(clamp(v * 2 - 1)).toFixed(3);
+    const [gx0, gy0] = px(STOVE.x0, STOVE.y0), [gx1, gy1] = px(STOVE.x1, STOVE.y1);
+    const gw = gx1 - gx0, gh = gy1 - gy0, cx = (gx0 + gx1) / 2, baseY = gy0 + gh * 0.62;
+    // Crackles in the sound throw sparks up from the logs
+    if (dt > 0 && cabinPlaying && real - fireLevelPrev > 0.035 && v > 0.15) for (let i = 0; i < 1 + Math.round(4 * v); i++) sparks.push({ x: cx + (Math.random() - 0.5) * gw * 0.4, y: baseY, vx: (Math.random() - 0.5) * gw * 0.8, vy: -gh * (0.8 + Math.random() * 1.2), life: 0, max: 0.4 + Math.random() * 0.5 });
+    fireLevelPrev = real;
+    fctx.save();
+    fctx.beginPath(); fctx.rect(gx0, gy0, gw, gh); fctx.clip();
+    fctx.globalCompositeOperation = 'lighter';
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const sp = sparks[i]; sp.life += dt; const k = sp.life / sp.max; if (k >= 1) { sparks.splice(i, 1); continue; }
+      sp.x += sp.vx * dt; sp.y += sp.vy * dt; sp.vy += gh * 1.4 * dt;
+      fctx.fillStyle = `rgba(255,214,140,${(1 - k).toFixed(3)})`; fctx.beginPath(); fctx.arc(sp.x, sp.y, Math.max(0.7, gw * 0.011), 0, 6.283); fctx.fill();
+    }
+    fctx.restore();
+    // Firelight on the stone, floor and bed grows with the fire and flickers with the crackle
+    if (v > 0.01) {
+      const fl = still ? 0.75 : 0.62 + 0.18 * Math.sin(t * 8.3) * Math.sin(t * 4.7) + 0.12 * Math.random() + 0.25 * Math.min(1, real * 2);
+      fctx.save(); fctx.globalCompositeOperation = 'lighter';
+      const g = fctx.createRadialGradient(cx, baseY, gw * 0.4, cx, baseY, gw * 5);
+      g.addColorStop(0, `rgba(255,150,70,${(0.2 * v * fl).toFixed(3)})`); g.addColorStop(1, 'rgba(255,150,70,0)');
+      fctx.fillStyle = g; fctx.fillRect(0, 0, cw, chh);
+      fctx.restore();
+    }
+  }
+  function drawCabin(t, dt) {
+    if (!cabinVisible || !cw) return;
+    for (const k of Object.keys(lv)) {
+      const real = cabinPlaying ? sound.level('cabin:' + k) : 0;
+      // Paused: a gentle preview; playing: driven by the live level of each sound
+      const target = vols[k] * (cabinPlaying ? 0.3 + 0.9 * Math.min(1, real * 2.2) : 0.32 + 0.05 * Math.sin(t * 2 + k.length));
+      lv[k] += (target - lv[k]) * Math.min(1, dt * 8);
+    }
+    fctx.clearRect(0, 0, cw, chh);
+    const [wx0, wy0, W, H] = px(WIN.x0, WIN.y0); const [wx1, wy1] = px(WIN.x1, WIN.y1);
+    const ww = wx1 - wx0, wh = wy1 - wy0;
+    const speed = still ? 0 : dt;
+    // Wind: mist drifting across the valley
+    if (lv.wind > 0.01) {
+      fctx.save(); fctx.beginPath(); fctx.rect(wx0, wy0, ww, wh); fctx.clip();
+      for (const m of mist) {
+        m.x += m.sp * speed * (0.5 + lv.wind * 3); if (m.x > 1.3) m.x = -0.4;
+        const cx = wx0 + m.x * ww, cy = wy0 + m.y * wh, rx = m.w * ww;
+        const g = fctx.createRadialGradient(cx, cy, 0, cx, cy, rx);
+        g.addColorStop(0, `rgba(200,210,230,${0.16 * lv.wind})`); g.addColorStop(1, 'rgba(200,210,230,0)');
+        fctx.fillStyle = g; fctx.save(); fctx.translate(cx, cy); fctx.scale(1, 0.18); fctx.translate(-cx, -cy);
+        fctx.beginPath(); fctx.arc(cx, cy, rx, 0, 6.283); fctx.fill(); fctx.restore();
+      }
+      fctx.restore();
+    }
+    // Crickets: fireflies in the trees
+    if (lv.night > 0.01) {
+      fctx.save(); fctx.globalCompositeOperation = 'lighter';
+      for (const f of flies) {
+        f.a += (Math.random() - 0.5) * 0.6 * speed * 4; f.x += Math.cos(f.a) * 0.008 * speed; f.y += Math.sin(f.a) * 0.005 * speed;
+        if (f.x < 0.2 || f.x > 0.86) f.a = Math.PI - f.a; if (f.y < 0.44 || f.y > 0.7) f.a = -f.a;
+        const pulse = 0.5 + 0.5 * Math.sin(t * f.sp * 2.4 + f.ph);
+        const a = lv.night * pulse * pulse;
+        const [x, y] = px(f.x, f.y); const r = 3 + 9 * a;
+        const g = fctx.createRadialGradient(x, y, 0, x, y, r * 2.2);
+        g.addColorStop(0, `rgba(250,246,170,${Math.min(1, a * 1.4)})`); g.addColorStop(0.3, `rgba(226,226,120,${a * 0.5})`); g.addColorStop(1, 'rgba(226,226,120,0)');
+        fctx.fillStyle = g; fctx.beginPath(); fctx.arc(x, y, r * 2.2, 0, 6.283); fctx.fill();
+      }
+      fctx.restore();
+    }
+    // Rain: streaks outside, drops running down the glass. Wind tilts the rain.
+    if (lv.rain > 0.01) {
+      fctx.save(); fctx.beginPath(); fctx.rect(wx0, wy0, ww, wh); fctx.clip();
+      const tilt = 0.08 + vols.wind * 0.5;
+      const n = Math.round(rain.length * Math.min(1, lv.rain * 1.3));
+      fctx.strokeStyle = `rgba(200,214,240,${0.1 + 0.3 * lv.rain})`; fctx.lineWidth = 1; fctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const d = rain[i]; d.y += d.v * speed * (0.9 + lv.rain); d.x += d.v * speed * tilt * 0.5;
+        if (d.y > 1) { d.y = -d.l; d.x = Math.random() * 1.1 - 0.1; } if (d.x > 1) d.x -= 1;
+        const x = wx0 + d.x * ww, y = wy0 + d.y * wh, l = d.l * wh;
+        fctx.moveTo(x, y); fctx.lineTo(x + l * tilt, y + l);
+      }
+      fctx.stroke();
+      const nd = Math.round(drops.length * Math.min(1, lv.rain * 1.4));
+      for (let i = 0; i < nd; i++) {
+        const d = drops[i];
+        d.wait -= speed; if (d.wait < 0) { d.v += speed * 0.08; d.y += d.v * speed; }
+        if (d.y > 1.05) { d.y = Math.random() * 0.4; d.x = Math.random(); d.v = 0; d.wait = 2 + Math.random() * 6; }
+        const x = wx0 + d.x * ww, y = wy0 + d.y * wh, dr = d.r * clamp(W / 1500, 0.4, 1);
+        if (d.v > 0.01) { fctx.strokeStyle = `rgba(220,230,250,${0.1 * lv.rain})`; fctx.lineWidth = dr * 0.7; fctx.beginPath(); fctx.moveTo(x, y - dr * 6); fctx.lineTo(x, y); fctx.stroke(); }
+        fctx.fillStyle = `rgba(225,232,248,${0.22 * Math.min(1, lv.rain * 1.6)})`; fctx.beginPath(); fctx.arc(x, y, dr, 0, 6.283); fctx.fill();
+        fctx.fillStyle = `rgba(255,255,255,${0.5 * Math.min(1, lv.rain * 1.6)})`; fctx.beginPath(); fctx.arc(x - dr * 0.35, y - dr * 0.35, dr * 0.35, 0, 6.283); fctx.fill();
+      }
+      fctx.restore();
+    }
+    // Fire: real flames in the stove. The slider sets the size; the crackle throws sparks.
+    drawFire(t, speed);
+    // Meter
+    if (cabinPlaying) {
+      const total = (lv.rain + lv.fire + lv.night + lv.wind) / 2;
+      meterBars.forEach((b, i) => { b.style.height = (3 + Math.max(0, Math.min(1, total * (0.6 + 0.6 * Math.sin(t * 7 + i * 1.7)))) * 13) + 'px'; });
+    }
+  }
+  if (inView) inView(cabin, () => { cabinVisible = true; sizeCabin(); sound.fadeGroup('cabin', true); fireVids.forEach((vd) => { const p = vd.play(); if (p) p.catch(() => {}); }); return () => { cabinVisible = false; sound.fadeGroup('cabin', false); fireVids.forEach((vd) => vd.pause()); }; }, { amount: 0.15 });
+  else cabinVisible = true;
+  addEventListener('resize', () => cabinVisible && sizeCabin());
+
+  /* ---------- 04 Your real sky ---------- */
+  const ys = $('#yourSky'), yctx = ys.getContext('2d'), hourPick = $('#hourPick'), hourLabel = $('#hourLabel');
+  let pickedHour = null; // null = live clock
+  const yStars = Array.from({ length: 160 }, () => ({ x: Math.random(), y: Math.random() * 0.75, r: 0.4 + Math.random() * 1.1, ph: Math.random() * 6.3 }));
+  function moonPhase(date) {
+    const synodic = 29.530588853, ref = Date.UTC(2000, 0, 6, 18, 14);
+    const days = (date.getTime() - ref) / 86400000;
+    return (((days % synodic) + synodic) % synodic) / synodic;
+  }
+  function phaseName(p) {
+    const n = ['New moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
+    return n[Math.round(p * 8) % 8];
+  }
+  function drawMoonPhase(ctx, x, y, r, p) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(243,234,219,.08)'; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+    const c = Math.cos(2 * Math.PI * p), rx = Math.max(0.01, Math.abs(c) * r), waxing = p < 0.5;
+    ctx.shadowColor = 'rgba(243,234,219,.55)'; ctx.shadowBlur = r * 1.2; ctx.fillStyle = '#f1e6cf';
+    ctx.beginPath();
+    if (waxing) {
+      ctx.arc(x, y, r, -Math.PI / 2, Math.PI / 2, false);
+      if (c > 0) ctx.ellipse(x, y, rx, r, 0, Math.PI / 2, -Math.PI / 2, true); else ctx.ellipse(x, y, rx, r, 0, Math.PI / 2, Math.PI * 1.5, false);
+    } else {
+      ctx.arc(x, y, r, Math.PI / 2, Math.PI * 1.5, false);
+      if (c > 0) ctx.ellipse(x, y, rx, r, 0, Math.PI * 1.5, Math.PI / 2, true); else ctx.ellipse(x, y, rx, r, 0, -Math.PI / 2, Math.PI / 2, false);
+    }
+    ctx.fill(); ctx.restore();
+  }
+  let ysw = 0, ysh = 0, ysVisible = false;
+  function sizeYs() { const r = ys.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); ysw = r.width; ysh = r.height; ys.width = ysw * dpr; ys.height = ysh * dpr; yctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function nowHour() { const d = new Date(); return d.getHours() + d.getMinutes() / 60; }
+  hourPick.addEventListener('input', () => { pickedHour = +hourPick.value; hourLabel.textContent = fmt(pickedHour); });
+  $('#nowBtn').addEventListener('click', () => { pickedHour = null; hourPick.value = String(nowHour()); hourLabel.textContent = 'now'; });
+  hourPick.value = String(nowHour());
+  const skyMoon = $('#skyMoon'), skyTime = $('#skyTime');
+  function drawYourSky(t) {
+    if (!ysVisible || !ysw) return;
+    const hour = pickedHour == null ? nowHour() : pickedHour;
+    const date = new Date(); if (pickedHour != null) date.setHours(Math.floor(hour), (hour % 1) * 60);
+    const p = moonPhase(date), lit = Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * 100);
+    skyTime.textContent = pickedHour == null ? `It's ${fmt(hour)} where you are` : `At ${fmt(hour)}`;
+    skyMoon.textContent = `${phaseName(p)} tonight, ${lit}% lit`;
+    const c = skyAt(hour); const g = yctx.createLinearGradient(0, 0, 0, ysh);
+    g.addColorStop(0, rgb(c[0])); g.addColorStop(0.6, rgb(c[1])); g.addColorStop(1, rgb(c[2]));
+    yctx.fillStyle = g; yctx.fillRect(0, 0, ysw, ysh);
+    const sa = starAlpha(hour);
+    if (sa > 0.01) { yctx.fillStyle = '#fff'; for (const s of yStars) { yctx.globalAlpha = sa * (still ? 0.7 : 0.45 + 0.4 * Math.sin(t * 1.3 + s.ph)); yctx.beginPath(); yctx.arc(s.x * ysw, s.y * ysh, s.r, 0, 6.283); yctx.fill(); } yctx.globalAlpha = 1; }
+    // Sun: arc from 6 am to 6 pm
+    const sunK = (hour - 6) / 12;
+    if (sunK > -0.08 && sunK < 1.08) {
+      const sx = ysw * (0.08 + 0.84 * sunK), sy = ysh * (0.86 - Math.sin(Math.PI * clamp(sunK)) * 0.66);
+      const sg = yctx.createRadialGradient(sx, sy, 0, sx, sy, ysh * 0.5);
+      sg.addColorStop(0, 'rgba(255,240,200,1)'); sg.addColorStop(0.06, 'rgba(255,226,160,.95)'); sg.addColorStop(0.2, 'rgba(255,200,130,.3)'); sg.addColorStop(1, 'rgba(255,200,130,0)');
+      yctx.fillStyle = sg; yctx.fillRect(0, 0, ysw, ysh);
+    }
+    // Moon: highest when it crosses the sky's middle, which shifts about 50 minutes a day with the phase
+    const transit = (12 + p * 24) % 24; let off = hour - transit; if (off > 12) off -= 24; if (off < -12) off += 24;
+    if (Math.abs(off) < 6.5) {
+      const k = (off + 6.5) / 13;
+      const mx = ysw * (0.08 + 0.84 * k), my = ysh * (0.8 - Math.sin(Math.PI * k) * 0.6), r = Math.min(30, ysh * 0.08);
+      yctx.globalAlpha = 1 - 0.6 * clamp(1 - starAlpha(hour)); drawMoonPhase(yctx, mx, my, r, p); yctx.globalAlpha = 1;
+    }
+    // Hills
+    yctx.fillStyle = 'rgba(8,12,24,.88)'; yctx.beginPath(); yctx.moveTo(0, ysh * 0.8);
+    for (let x = 0; x < ysw + 20; x += 20) { const xx = Math.min(x, ysw); yctx.lineTo(xx, ysh * (0.8 - 0.05 * Math.sin(xx / ysw * 7) - 0.03 * Math.sin(xx / ysw * 19))); }
+    yctx.lineTo(ysw, ysh); yctx.lineTo(0, ysh); yctx.fill();
+    yctx.fillStyle = '#05070d'; yctx.beginPath(); yctx.moveTo(0, ysh * 0.9);
+    for (let x = 0; x < ysw + 20; x += 20) { const xx = Math.min(x, ysw); yctx.lineTo(xx, ysh * (0.9 - 0.03 * Math.sin(xx / ysw * 5 + 1))); }
+    yctx.lineTo(ysw, ysh); yctx.lineTo(0, ysh); yctx.fill();
+  }
+  if (inView) inView(ys, () => { ysVisible = true; sizeYs(); return () => { ysVisible = false; }; }); else { ysVisible = true; sizeYs(); }
+  addEventListener('resize', () => ysVisible && sizeYs());
+
+  /* ---------- 05 Words that fall asleep ---------- */
+  const sleepy = $('#sleepy'), words = $('#words');
+  const txt = sleepy.textContent; sleepy.textContent = '';
+  const chars = [];
+  for (const c of txt) { const s = document.createElement('span'); s.className = c === ' ' ? 'sp' : 'ch'; s.textContent = c === ' ' ? '' : c; sleepy.appendChild(s); if (c !== ' ') chars.push(s); }
+  let asleep = false, sleepTimer = 0, zTimer = 0, sleepAnims = [];
+  function fallAsleep() {
+    if (still || !animate) return;
+    asleep = true;
+    const n = chars.length;
+    sleepAnims = chars.map((ch, i) => {
+      const fromEnd = n - 1 - i;
+      const y = 4 + Math.random() * 14 + (i % 3) * 3, r = (Math.random() - 0.35) * 22 + (i > n / 2 ? 6 : -4);
+      return animate(ch, { y, rotate: r, opacity: 0.55 }, { duration: 2.2 + Math.random(), ease: [0.45, 0, 0.2, 1], delay: 0.4 + fromEnd * 0.09 });
+    });
+    clearInterval(zTimer); zTimer = setInterval(puffZ, 1300); setTimeout(puffZ, 2200);
+  }
+  function puffZ() {
+    if (!asleep || still || !animate || document.hidden) return;
+    const last = chars[chars.length - 2].getBoundingClientRect(), box = words.getBoundingClientRect();
+    const z = document.createElement('span'); z.className = 'zz'; z.textContent = 'z';
+    z.style.left = (last.right - box.left) + 'px'; z.style.top = (last.top - box.top - 4) + 'px';
+    words.appendChild(z);
+    const s = 0.7 + Math.random() * 0.9;
+    animate(z, { x: [0, 26 + Math.random() * 30], y: [0, -70 - Math.random() * 40], scale: [0.4, s], opacity: [0, 0.9, 0], rotate: [-10, 14] }, { duration: 3.2, ease: 'easeOut' }).then(() => z.remove());
+  }
+  function wake() {
+    clearTimeout(sleepTimer); clearInterval(zTimer);
+    sleepAnims.forEach((a) => a && a.stop && a.stop());
+    if (animate) {
+      animate(chars, { y: 0, rotate: 0, opacity: 1 }, { type: spring, stiffness: 320, damping: 14, delay: stagger ? stagger(0.025) : 0 });
+      animate(sleepy, { scaleY: [1, 1.08, 1], scaleX: [1, 0.98, 1] }, { duration: 0.7, ease: 'easeOut' });
+    }
+    asleep = false;
+    sleepTimer = setTimeout(fallAsleep, 3200);
+  }
+  words.addEventListener('pointerenter', wake); words.addEventListener('click', wake);
+  words.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wake(); } });
+  if (inView) inView(words, () => { sleepTimer = setTimeout(fallAsleep, 1200); return () => { clearTimeout(sleepTimer); }; }, { amount: 0.5 });
+
+  /* ---------- 06 Counting sheep ---------- */
+  const ideas = $$('[data-idea]'), pillSheep = $('#pillSheep'), bigSheep = $('#bigSheep'), pillFence = $('.sheep-pill .fence');
+  const bigIdle = () => Math.max(16, bigSheep.parentElement.clientWidth / 2 - 220);
+  const sheepCount = $('#sheepCount'), sheepWord = $('#sheepWord'), bigCount = $('#bigCount');
+  let passed = 0, bonus = 0, hopping = false, queue = 0;
+  let auto = false;
+  function showCount() { const n = bonus; sheepCount.textContent = String(n); sheepWord.textContent = auto ? 'sheep' : 'sheep \u00b7 tap'; }
+  function hopPill() {
+    if (still) return Promise.resolve();
+    const field = pillSheep.parentElement, fw = field.clientWidth, fx = pillFence.getBoundingClientRect().left - field.getBoundingClientRect().left + 9; // SVG elements have no offsetLeft
+    const set = (x, y, r) => { pillSheep.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(1)}deg)`; };
+    const run = (dur, fn) => new Promise((res) => { const t0 = performance.now(); (function step(now) { const k = Math.min(1, (now - t0) / (dur * 1000)); fn(k); k < 1 ? requestAnimationFrame(step) : res(); })(t0); });
+    const ease = (k) => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+    return run(0.45, (k) => set(8 + (fx - 36 - 8) * ease(k), -Math.abs(Math.sin(k * 9)) * 2, Math.sin(k * 9) * 3))
+      .then(() => run(0.5, (k) => set(fx - 36 + 42 * k, -Math.sin(Math.PI * k) * 19, -14 + 26 * k)))
+      .then(() => run(0.45, (k) => set(fx + 6 + (fw + 12 - fx - 6) * k * k, -Math.abs(Math.sin(k * 9)) * 2, 0)))
+      .then(() => run(0.55, (k) => set(-34 + 42 * (1 - Math.pow(1 - k, 3)), -Math.abs(Math.sin(k * 8)) * 2, Math.sin(k * 8) * 3)))
+      .then(() => set(8, 0, 0));
+  }
+  // Score game: only hand-carried sheep score. Quick carries build a combo; the best is kept on this device.
+  const bestEl = $('#bestScore'), toast = $('#sheepToast');
+  let score = 0, combo = 0, lastCarry = 0, toastTimer = 0, beatBest = false;
+  let best = 0; try { best = +localStorage.getItem('sm-sheep-best') || 0; } catch {}
+  bestEl.textContent = String(best);
+  const MILESTONES = { 10: '10 points. Eyes getting heavy', 25: '25 points. Nearly asleep', 50: '50 points. Sheep master', 100: '100 points. Sweet dreams' };
+  function say(text, ms = 1600) {
+    toast.textContent = text; toast.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+  }
+  function burst(x, y, n = 16) {
+    if (still) return;
+    for (let i = 0; i < n; i++) {
+      const st = document.createElement('i'); st.className = 'star';
+      const a = Math.random() * 6.283, d = 40 + Math.random() * 70;
+      st.style.left = x + 'px'; st.style.top = y + 'px';
+      st.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px'); st.style.setProperty('--dy', (Math.sin(a) * d - 20).toFixed(0) + 'px');
+      st.style.animationDelay = (Math.random() * 0.12).toFixed(2) + 's';
+      meadow.appendChild(st); setTimeout(() => st.remove(), 1300);
+    }
+  }
+  function scoreSheep(x, byItself) {
+    const now = performance.now();
+    // Sheep that jump on their own score 1 each; only hand-carried sheep build a combo
+    if (!byItself) { combo = now - lastCarry < 4500 ? combo + 1 : 1; lastCarry = now; }
+    const pts = byItself ? 1 : combo, before = score; score += pts;
+    bigCount.textContent = String(score);
+    bigCount.classList.remove('bump'); void bigCount.offsetWidth; bigCount.classList.add('bump');
+    const plus = document.createElement('span'); plus.className = 'plus'; plus.textContent = '+' + pts;
+    plus.style.left = x + 'px'; plus.style.bottom = '150px'; meadow.appendChild(plus); setTimeout(() => plus.remove(), 1200);
+    const mile = Object.keys(MILESTONES).map(Number).find((m) => before < m && score >= m);
+    if (score > best) {
+      best = score; bestEl.textContent = String(best);
+      try { localStorage.setItem('sm-sheep-best', String(best)); } catch {}
+      if (!beatBest && before > 0) { beatBest = true; say('New best!', 1800); const r = bigCount.getBoundingClientRect(), m = meadow.getBoundingClientRect(); burst(r.left - m.left + r.width / 2, r.top - m.top + r.height / 2, 22); return; }
+    }
+    if (mile) { say(MILESTONES[mile], 2000); burst(meadow.clientWidth / 2, 40, 18); }
+    else if (!byItself && combo > 1) say(`Combo \u00d7${combo}`, 900);
+  }
+
+  // The big sheep: one small physics loop handles the automatic hop and the press-and-hold drag
+  const meadow = bigSheep.parentElement, shadow = $('#sheepShadow'), grabHint = $('#grabHint');
+  const SW = 110, FENCE_H = 60;
+  const sh = { x: bigIdle(), y: 0, rot: 0, vx: 0, vy: 0, mode: 'idle', tx: 0, ty: 0, side: -1, busy: false };
+  function drawSheep() {
+    bigSheep.style.transform = `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px) rotate(${sh.rot.toFixed(2)}deg)`;
+    const lift = Math.min(1, -sh.y / 120);
+    shadow.style.transform = `translateX(${sh.x.toFixed(1)}px) scale(${(1 - 0.5 * lift).toFixed(3)})`; shadow.style.opacity = String(0.9 - 0.6 * lift);
+  }
+  const fenceL = () => meadow.clientWidth / 2 - 35, fenceR = () => meadow.clientWidth / 2 + 35;
+  const tween = (to, dur, ease = (k) => k) => new Promise((res) => {
+    const from = { x: sh.x, y: sh.y, rot: sh.rot }, t0 = performance.now();
+    (function step(now) {
+      if (sh.interrupt) return res();
+      const k = Math.min(1, (now - t0) / (dur * 1000)), e = ease(k);
+      for (const key in to) sh[key] = typeof to[key] === 'function' ? to[key](e, k) : from[key] + (to[key] - from[key]) * e;
+      drawSheep(); k < 1 ? requestAnimationFrame(step) : res();
+    })(t0);
+  });
+  const easeIO = (k) => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2, easeOut = (k) => 1 - Math.pow(1 - k, 3);
+  async function trotOffAndReturn() {
+    const fw = meadow.clientWidth;
+    await tween({ x: fw + 40, rot: (e, k) => Math.sin(k * 18) * 3, y: (e, k) => -Math.abs(Math.sin(k * 18)) * 4 }, 0.9, (k) => k * k);
+    if (sh.interrupt) return;
+    sh.x = -130; sh.side = -1;
+    await tween({ x: bigIdle(), rot: (e, k) => Math.sin(k * 16) * 3, y: (e, k) => -Math.abs(Math.sin(k * 16)) * 4 }, 1, easeOut);
+    sh.rot = 0; sh.y = 0; drawSheep();
+  }
+  async function hopBig() {
+    if (still || sh.busy || sh.mode === 'held') return;
+    sh.busy = true;
+    const mid = meadow.clientWidth / 2, start = sh.x;
+    // Left on the far side of the fence by hand: trot off instead of walking back through it
+    if (sh.x + SW / 2 > mid) { await trotOffAndReturn(); sh.busy = false; return; }
+    if (sh.interrupt) { sh.busy = false; return; }
+    await tween({ x: mid - 150, rot: (e, k) => Math.sin(k * 14) * 3, y: (e, k) => -Math.abs(Math.sin(k * 14)) * 4 }, Math.max(0.3, Math.abs(mid - 150 - start) / 420), easeIO);
+    if (sh.interrupt) { sh.busy = false; return; }
+    await tween({ x: mid + 40, y: (e) => -Math.sin(Math.PI * e) * 96, rot: (e) => -16 + 28 * e }, 0.62, (k) => k);
+    if (sh.interrupt) { sh.busy = false; return; }
+    await tween({ y: 0, rot: 0 }, 0.12, easeOut);
+    if (sh.interrupt) { sh.busy = false; return; }
+    scoreSheep(sh.x + SW / 2, true);
+    await trotOffAndReturn();
+    sh.busy = false;
+  }
+  // Press and hold: the sheep follows the finger or mouse, can't pass through the fence, drops with a bounce
+  let grab = null;
+  bigSheep.addEventListener('pointerdown', (e) => {
+    if (sh.x > meadow.clientWidth - 30 || sh.x < -60) return; // trotting off screen
+    sh.interrupt = true; sh.busy = false;
+    e.preventDefault(); bigSheep.setPointerCapture(e.pointerId);
+    const r = meadow.getBoundingClientRect();
+    grab = { ox: e.clientX - r.left - sh.x, oy: e.clientY - r.top - sh.y, startSide: sh.x + SW / 2 < meadow.clientWidth / 2 ? -1 : 1 };
+    sh.mode = 'held'; sh.tx = sh.x; sh.ty = -14; bigSheep.classList.add('held'); grabHint.style.opacity = '0';
+    loop();
+  });
+  bigSheep.addEventListener('pointermove', (e) => {
+    if (!grab) return;
+    const r = meadow.getBoundingClientRect();
+    sh.tx = clamp(e.clientX - r.left - grab.ox, -20, meadow.clientWidth - SW + 20);
+    sh.ty = clamp(e.clientY - r.top - grab.oy, -170, -14);
+  });
+  const release = () => { if (!grab) return; bigSheep.classList.remove('held'); sh.mode = 'fall'; sh.vy = 0; };
+  bigSheep.addEventListener('pointerup', release); bigSheep.addEventListener('pointercancel', release);
+  let looping = false, lastL = 0;
+  function loop() {
+    if (looping) return; looping = true; lastL = performance.now();
+    requestAnimationFrame(function tick(now) {
+      const dt = Math.min(0.033, (now - lastL) / 1000); lastL = now;
+      const fl = fenceL(), fr = fenceR(), low = sh.y > -FENCE_H;
+      if (sh.mode === 'held') {
+        const px = sh.x, k = Math.min(1, dt * 16);
+        let nx = sh.x + (sh.tx - sh.x) * k; const ny = sh.y + (sh.ty - sh.y) * k;
+        // Too low to clear the fence: the sheep stops against it with a little squash
+        if (ny > -FENCE_H) { if (sh.x + SW - 18 <= fl && nx + SW - 18 > fl) nx = fl - SW + 18; if (sh.x + 18 >= fr && nx + 18 < fr) nx = fr - 18; }
+        sh.vx = (nx - px) / Math.max(dt, 0.001); sh.x = nx; sh.y = ny;
+        sh.rot += (clamp(sh.vx * 0.03, -20, 20) + Math.sin(now / 90) * 2 - sh.rot) * Math.min(1, dt * 10);
+      } else if (sh.mode === 'fall') {
+        sh.vy += 2600 * dt; sh.y += sh.vy * dt; sh.rot += (0 - sh.rot) * Math.min(1, dt * 8);
+        // Dropped onto the fence: slide off to the nearer side
+        const over = sh.x + SW - 18 > fl && sh.x + 18 < fr;
+        if (over && sh.y > -FENCE_H) { const c = sh.x + SW / 2, mid = (fl + fr) / 2; sh.x += ((c < mid ? fl - SW + 18 : fr - 18) - sh.x) * Math.min(1, dt * 14); }
+        if (sh.y >= 0) {
+          sh.y = 0;
+          if (sh.vy > 260) sh.vy = -sh.vy * 0.32; // bounce
+          else {
+            sh.vy = 0; sh.mode = 'idle'; looping = false; drawSheep();
+            const side = sh.x + SW / 2 < meadow.clientWidth / 2 ? -1 : 1;
+            if (grab && grab.startSide === -1 && side === 1) {
+              grab = null; sh.interrupt = false; bonus++; showCount(); queue++; runQueue(); scoreSheep(sh.x + SW / 2, -sh.y);
+              sh.busy = true; trotOffAndReturn().then(() => { sh.busy = false; });
+            } else { grab = null; sh.interrupt = false; }
+            return;
+          }
+        }
+      }
+      drawSheep();
+      requestAnimationFrame(tick);
+    });
+  }
+  drawSheep();
+  async function runQueue() {
+    if (hopping) return; hopping = true;
+    while (queue > 0) { queue--; await hopPill(); }
+    hopping = false;
+  }
+  function checkSheep() {} // counting now follows the sheep, not the scroll
+  const countOne = () => { if (auto) setMode(false); bonus++; showCount(); hopBig(); queue++; runQueue(); };
+  $('#hopBtn').addEventListener('click', countOne); $('#pillHop').addEventListener('click', countOne);
+  const modeManual = $('#modeManual'), modeAuto = $('#modeAuto'), autoToggle = $('#autoToggle');
+  // Automatic: sheep after sheep, jumping on their own until paused
+  let autoRunning = false, autoLoopOn = false;
+  const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+  async function autoLoop() {
+    if (autoLoopOn) return; autoLoopOn = true;
+    while (auto && autoRunning) {
+      if (still || sh.busy || sh.mode !== 'idle') { await wait(400); continue; }
+      bonus++; showCount(); queue++; runQueue();
+      await hopBig(); await wait(350);
+    }
+    autoLoopOn = false;
+  }
+  function setRunning(on) {
+    autoRunning = on; autoToggle.textContent = on ? 'Pause' : 'Start';
+    autoToggle.setAttribute('aria-pressed', String(!on));
+    if (on) autoLoop();
+  }
+  function setMode(a) {
+    auto = a; modeAuto.setAttribute('aria-pressed', String(a)); modeManual.setAttribute('aria-pressed', String(!a));
+    autoToggle.hidden = !a; $('#hopBtn').hidden = a;
+    setRunning(a); showCount();
+  }
+  autoToggle.addEventListener('click', () => setRunning(!autoRunning));
+  modeManual.addEventListener('click', () => setMode(false)); modeAuto.addEventListener('click', () => setMode(true));
+
+  /* ---------- 07 Build your scene ---------- */
+  const scene = $('#scene'), svg = $('#sceneSvg'), layer = $('#placedLayer'), hint = $('#sceneHint');
+  const NS = 'http://www.w3.org/2000/svg';
+  const starG = $('#sceneStars');
+  for (let i = 0; i < 70; i++) { const c = document.createElementNS(NS, 'circle'); c.setAttribute('cx', (Math.random() * 1000).toFixed(1)); c.setAttribute('cy', (Math.random() * 220).toFixed(1)); c.setAttribute('r', (0.6 + Math.random() * 1.2).toFixed(2)); if (i % 3 === 0) { c.setAttribute('class', 'twinkle'); c.style.animationDelay = (-Math.random() * 4) + 's'; } c.setAttribute('opacity', '.7'); starG.appendChild(c); }
+  const DEFAULT = { fire: [300, 350], rain: [540, 110], stream: [500, 406], night: [760, 300], wind: [500, 200] };
+  const placed = {};
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function build(kind, x, y) {
+    const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'placed'); g.dataset.kind = kind;
+    let h = '';
+    if (kind === 'fire') {
+      y = clamp(y, 318, 372);
+      h = `<circle class="fireglow" cx="0" cy="-20" r="110" fill="url(#fg)"/>
+        <path d="M-26 4 L24 -6 M-24 -6 L26 4" stroke="#5a3d24" stroke-width="9" stroke-linecap="round"/>
+        <path class="flame" d="M0 -2 C -20 -10 -18 -34 -6 -52 C -4 -38 6 -40 4 -56 C 18 -40 22 -14 0 -2Z" fill="#ff8a3c"/>
+        <path class="flame f2" d="M0 -3 C -12 -10 -10 -26 -2 -38 C 0 -28 8 -28 6 -38 C 14 -24 12 -10 0 -3Z" fill="#ffc15c"/>
+        <path class="flame f3" d="M0 -4 C -6 -8 -5 -16 0 -22 C 5 -16 6 -8 0 -4Z" fill="#fff2c2"/>
+        <rect x="-40" y="-70" width="80" height="80" fill="transparent"/>`;
+    } else if (kind === 'rain') {
+      y = clamp(y, 70, 170);
+      let drops = ''; for (let i = 0; i < 26; i++) { const dx = rnd(-78, 78), dy = rnd(8, 30); drops += `<line class="drop" x1="${dx.toFixed(0)}" y1="${dy.toFixed(0)}" x2="${(dx - 4).toFixed(0)}" y2="${(dy + 16).toFixed(0)}" stroke="#a9bfe6" stroke-width="1.6" stroke-linecap="round" style="animation-delay:${(-Math.random()).toFixed(2)}s;animation-duration:${rnd(0.7, 1.1).toFixed(2)}s"/>`; }
+      h = `<g>${drops}</g><g class="cloud"><ellipse cx="0" cy="0" rx="92" ry="26" fill="#3a4466"/><circle cx="-38" cy="-14" r="30" fill="#434e72"/><circle cx="14" cy="-26" r="38" fill="#4a557a"/><circle cx="54" cy="-8" r="26" fill="#3f4a6e"/></g>
+        <rect x="-100" y="-70" width="200" height="120" fill="transparent"/>`;
+    } else if (kind === 'stream') {
+      y = clamp(y, 396, 416); x = 500;
+      h = `<path d="M-520 0 C -380 -22 -260 18 -120 0 S 140 -20 260 2 S 440 18 520 -4" stroke="url(#wat)" stroke-width="26" fill="none" stroke-linecap="round"/>
+        <path class="water" d="M-520 -2 C -380 -24 -260 16 -120 -2 S 140 -22 260 0 S 440 16 520 -6" stroke="#9fc0ef" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".7"/>
+        <path class="water" style="animation-duration:3.4s" d="M-520 6 C -380 -16 -260 24 -120 6 S 140 -14 260 8 S 440 24 520 2" stroke="#c9dbf6" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".45"/>
+        <rect x="-520" y="-24" width="1040" height="48" fill="transparent"/>`;
+    } else if (kind === 'night') {
+      y = clamp(y, 240, 380);
+      for (let i = 0; i < 12; i++) { const fx = rnd(-110, 110), fy = rnd(-60, 40); h += `<g class="fly" style="animation-delay:${(-Math.random() * 5).toFixed(2)}s, ${(-Math.random() * 2.6).toFixed(2)}s"><circle cx="${fx.toFixed(0)}" cy="${fy.toFixed(0)}" r="9" fill="url(#ffg)"/><circle cx="${fx.toFixed(0)}" cy="${fy.toFixed(0)}" r="1.8" fill="#fffbd0"/></g>`; }
+      h += `<rect x="-120" y="-80" width="240" height="140" fill="transparent"/>`;
+    } else if (kind === 'wind') {
+      y = clamp(y, 140, 270); x = 500;
+      const paths = ['M-520 0 C -300 -30 -100 30 120 0 S 400 -20 520 -10', 'M-520 40 C -320 10 -140 60 80 36 S 380 10 520 30', 'M-520 -40 C -260 -60 -60 -14 160 -40 S 420 -50 520 -44'];
+      paths.forEach((d, i) => { h += `<path class="gust" d="${d}" stroke="#d9d2c4" stroke-width="2" fill="none" stroke-linecap="round" style="animation-delay:${(-i * 1.3).toFixed(1)}s"/>`; });
+      h += `<rect x="-520" y="-60" width="1040" height="120" fill="transparent"/>`;
+    }
+    g.innerHTML = `<g class="pop">${h}</g>`;
+    g.setAttribute('transform', `translate(${x.toFixed(0)} ${y.toFixed(0)})`);
+    return g;
+  }
+  function place(kind, x, y) {
+    if (placed[kind]) { placed[kind].remove(); }
+    const g = build(kind, x, y);
+    if (kind === 'stream' || kind === 'wind') layer.insertBefore(g, layer.firstChild); else layer.appendChild(g);
+    placed[kind] = g;
+    const pop = g.querySelector('.pop');
+    if (animate && !still) animate(pop, { opacity: [0, 1], scale: [0.6, 1] }, { type: spring, stiffness: 220, damping: 16 });
+    g.addEventListener('click', () => remove(kind));
+    $(`.tok[data-tok="${kind}"]`).setAttribute('aria-pressed', 'true');
+    sound.start('scene:' + kind, kind, kind === 'wind' ? 0.5 : 0.7, 'scene');
+    sound.fadeGroup('scene', true);
+    hint.style.opacity = '0';
+  }
+  function remove(kind) {
+    const g = placed[kind]; if (!g) return; delete placed[kind];
+    const done = () => g.remove();
+    if (animate && !still) animate(g.querySelector('.pop'), { opacity: 0, scale: 0.8 }, { duration: 0.5 }).then(done); else done();
+    $(`.tok[data-tok="${kind}"]`).setAttribute('aria-pressed', 'false');
+    sound.stop('scene:' + kind);
+    if (!Object.keys(placed).length) hint.style.opacity = '1';
+  }
+  function toSvg(cx, cy) { const pt = svg.createSVGPoint(); pt.x = cx; pt.y = cy; const m = svg.getScreenCTM(); return m ? pt.matrixTransform(m.inverse()) : { x: 500, y: 300 }; }
+  $$('.tok').forEach((tok) => {
+    const kind = tok.dataset.tok; let start = null, ghost = null, moved = false;
+    tok.addEventListener('pointerdown', (e) => {
+      start = { x: e.clientX, y: e.clientY }; moved = false; tok.setPointerCapture(e.pointerId);
+    });
+    tok.addEventListener('pointermove', (e) => {
+      if (!start) return;
+      if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) {
+        moved = true; ghost = tok.querySelector('.ico').cloneNode(true); ghost.classList.add('ghost'); ghost.style.width = '56px'; ghost.style.height = '56px'; ghost.style.background = 'rgba(213,162,79,.25)'; ghost.style.boxShadow = '0 0 30px rgba(213,162,79,.5)'; document.body.appendChild(ghost);
+      }
+      if (ghost) {
+        ghost.style.left = e.clientX + 'px'; ghost.style.top = e.clientY + 'px';
+        const r = scene.getBoundingClientRect(); scene.classList.toggle('over', e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom);
+      }
+    });
+    const end = (e, cancel) => {
+      if (!start) return;
+      if (moved && ghost) {
+        const r = scene.getBoundingClientRect();
+        if (!cancel && e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom) { const p = toSvg(e.clientX, e.clientY); place(kind, p.x, p.y); }
+        ghost.remove(); ghost = null; scene.classList.remove('over');
+      } else if (!cancel) {
+        placed[kind] ? remove(kind) : place(kind, ...DEFAULT[kind]);
+      }
+      start = null;
+    };
+    tok.addEventListener('pointerup', (e) => end(e, false));
+    tok.addEventListener('pointercancel', (e) => end(e, true));
+    tok.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); placed[kind] ? remove(kind) : place(kind, ...DEFAULT[kind]); } });
+  });
+  $('#clearScene').addEventListener('click', () => Object.keys(placed).forEach(remove));
+  if (inView) inView(scene, () => { sound.fadeGroup('scene', true); return () => sound.fadeGroup('scene', false); }, { amount: 0.15 });
+
+  /* ---------- 08 Dream-like changes ---------- */
+  const morph = $('#morph'), dream = $('#dream'), dTitle = $('#dreamTitle'), dSub = $('#dreamSub'), stepDots = $$('.steps i');
+  const L = { sky: $('#mSky'), hill: $('#mHill'), panes: $('#mPanes'), moon: $('#mMoon'), shadow: $('#mShadow'), play: $('#mPlay') };
+  const STATES = [
+    { box: { width: 260, height: 190, borderRadius: 16, borderWidth: 8, borderColor: '#4a3b2c' }, show: { sky: 1, hill: 1, panes: 1, moon: 0, shadow: 0, play: 0 }, glow: '0 30px 80px -20px rgba(0,0,0,.8)', title: 'The cabin window', sub: 'becomes…' },
+    { box: { width: 160, height: 160, borderRadius: 80, borderWidth: 0, borderColor: 'rgba(74,59,44,0)' }, show: { sky: 0, hill: 0, panes: 0, moon: 1, shadow: 1, play: 0 }, glow: '0 0 70px 14px rgba(243,234,219,.28)', title: 'the moon', sub: 'which becomes…' },
+    { box: { width: 124, height: 124, borderRadius: 62, borderWidth: 0, borderColor: 'rgba(74,59,44,0)' }, show: { sky: 0, hill: 0, panes: 0, moon: 0, shadow: 0, play: 1 }, glow: '0 0 60px 10px rgba(213,162,79,.4)', title: 'the play button', sub: 'Tap to drift on' }
+  ];
+  let dStep = 0, dAuto = true, dTimer = 0, dBusy = false;
+  async function dreamTo(i) {
+    if (dBusy) return; dBusy = true; dStep = i; const s = STATES[i];
+    stepDots.forEach((d, k) => d.classList.toggle('on', k === i));
+    const dur = still || !animate ? 0 : 1.6;
+    if (!animate || still) {
+      Object.assign(morph.style, { width: s.box.width + 'px', height: s.box.height + 'px', borderRadius: s.box.borderRadius + 'px', borderWidth: s.box.borderWidth + 'px', borderColor: s.box.borderColor, boxShadow: s.glow });
+      for (const k in L) L[k].style.opacity = s.show[k];
+      dTitle.textContent = s.title; dSub.textContent = s.sub; dBusy = false; return;
+    }
+    const cap = animate([dTitle, dSub], { opacity: [1, 0], filter: ['blur(0px)', 'blur(6px)'], y: [0, -6] }, { duration: 0.5 });
+    animate(morph, { filter: ['blur(0px)', 'blur(7px)', 'blur(0px)'], scale: [1, 1.06, 1] }, { duration: dur, ease: 'easeInOut' });
+    const box = animate(morph, { width: s.box.width + 'px', height: s.box.height + 'px', borderRadius: s.box.borderRadius + 'px', borderWidth: s.box.borderWidth + 'px', borderColor: s.box.borderColor, boxShadow: s.glow }, { duration: dur, ease: [0.65, 0, 0.35, 1] });
+    for (const k in L) animate(L[k], { opacity: s.show[k] }, { duration: dur * 0.7, delay: s.show[k] ? dur * 0.3 : 0, ease: 'easeInOut' });
+    await cap;
+    dTitle.textContent = s.title; dSub.textContent = s.sub;
+    animate([dTitle, dSub], { opacity: [0, 1], filter: ['blur(6px)', 'blur(0px)'], y: [6, 0] }, { duration: 0.7, delay: 0.3 });
+    await box; dBusy = false;
+  }
+  function scheduleDream() { clearTimeout(dTimer); if (dAuto) dTimer = setTimeout(() => { dreamTo((dStep + 1) % 3).then(scheduleDream); }, 2600); }
+  dream.addEventListener('click', () => { dreamTo((dStep + 1) % 3).then(scheduleDream); });
+  dream.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dreamTo((dStep + 1) % 3).then(scheduleDream); } });
+  const dAutoBtn = $('#dreamAuto');
+  dAutoBtn.addEventListener('click', () => { dAuto = !dAuto; dAutoBtn.setAttribute('aria-pressed', String(dAuto)); scheduleDream(); });
+  if (inView) inView(dream, () => { scheduleDream(); return () => clearTimeout(dTimer); }, { amount: 0.4 });
+
+  /* ---------- 09 Sleep graph ---------- */
+  const X0 = 90, X1 = 990, HOURS = 8; const hx = (h) => X0 + (X1 - X0) * h / HOURS;
+  const ROW = { awake: 40, rem: 110, light: 180, deep: 260 };
+  const NIGHT = [[0, 'awake'], [0.23, 'light'], [0.62, 'deep'], [1.45, 'light'], [1.7, 'rem'], [2.0, 'light'], [2.25, 'deep'], [2.95, 'light'], [3.25, 'rem'], [3.8, 'light'], [4.1, 'deep'], [4.5, 'light'], [5.0, 'rem'], [5.6, 'light'], [5.9, 'deep'], [6.15, 'light'], [6.6, 'rem'], [7.3, 'light'], [7.8, 'awake'], [8, 'awake']];
+  let d = '';
+  NIGHT.forEach(([h, st], i) => {
+    const x = hx(h), y = ROW[st];
+    if (i === 0) d += `M${x} ${y}`;
+    else { const py = ROW[NIGHT[i - 1][1]]; d += ` L${x - 6} ${py} Q${x} ${py} ${x} ${py + Math.sign(y - py) * 6} L${x} ${y - Math.sign(y - py) * 6} Q${x} ${y} ${x + 6} ${y}`; }
+  });
+  d += ` L${hx(8)} ${ROW.awake}`;
+  const hLine = $('#hLine'), hArea = $('#hArea'), hTip = $('#hTip'), hTipGlow = $('#hTipGlow'), hClip = $('#hclipRect');
+  hLine.setAttribute('d', d); hArea.setAttribute('d', d + ` L${hx(8)} 300 L${X0} 300 Z`);
+  const totalLen = hLine.getTotalLength(); hLine.style.strokeDasharray = totalLen; hLine.style.strokeDashoffset = totalLen;
+  const times = $('#hTimes'); ['11 pm', '12 am', '1 am', '2 am', '3 am', '4 am', '5 am', '6 am', '7 am'].forEach((t, i) => { const e = document.createElementNS(NS, 'text'); e.setAttribute('x', hx(i)); e.setAttribute('y', 300); e.textContent = t; times.appendChild(e); });
+  const MOMENTS = [[0.23, 'light'], [0.62, 'deep'], [3.25, 'rem'], [7.8, 'awake']];
+  const marks = $('#hMarks'), momentEls = $$('.moment');
+  MOMENTS.forEach(([h, st], i) => { const g = document.createElementNS(NS, 'g'); g.innerHTML = `<circle cx="${hx(h)}" cy="${ROW[st]}" r="11" fill="#0b0e15" stroke="#d5a24f" stroke-width="2"/><text x="${hx(h)}" y="${ROW[st] + 4}" text-anchor="middle" font-family="Nunito, sans-serif" font-size="11" font-weight="800" fill="#d5a24f">${i + 1}</text>`; g.style.opacity = '0'; g.style.transition = 'opacity .6s'; marks.appendChild(g); });
+  // Precompute x along the path so the graph progress maps to time
+  const samples = []; for (let i = 0; i <= 400; i++) { const p = hLine.getPointAtLength(totalLen * i / 400); samples.push(p.x); }
+  const track = $('#graphTrack');
+  function readGraph() {
+    const r = track.getBoundingClientRect();
+    const p = clamp((-r.top + innerHeight * 0.1) / (r.height - innerHeight * 0.95));
+    hLine.style.strokeDashoffset = String(totalLen * (1 - p));
+    const pt = hLine.getPointAtLength(totalLen * p);
+    hTip.setAttribute('cx', pt.x); hTip.setAttribute('cy', pt.y); hTipGlow.setAttribute('cx', pt.x); hTipGlow.setAttribute('cy', pt.y);
+    hTip.setAttribute('opacity', p > 0.002 && p < 0.998 ? '1' : '0'); hTipGlow.setAttribute('opacity', p > 0.002 && p < 0.998 ? '.6' : '0');
+    hClip.setAttribute('width', String(pt.x));
+    MOMENTS.forEach(([h], i) => { const on = pt.x >= hx(h) - 1; momentEls[i].classList.toggle('on', on); marks.children[i].style.opacity = on ? '1' : '0'; });
+  }
+  addEventListener('scroll', readGraph, { passive: true }); addEventListener('resize', readGraph);
+
+  /* ---------- 10 Lights out ---------- */
+  const cord = $('#cordGrab'), cordBtn = $('#cordBtn'), cordHint = $('#cordHint'), lightsBtn = $('#lightsBtn');
+  function setLights(out) {
+    root.classList.toggle('out', out); root.classList.toggle('light', !out);
+    cordBtn.setAttribute('aria-pressed', String(out)); lightsBtn.setAttribute('aria-pressed', String(out));
+    lightsBtn.textContent = out ? 'Lamp on (light mode)' : 'Lights out (dark mode)';
+    cordBtn.setAttribute('aria-label', out ? 'Pull the cord to turn the lights on' : 'Pull the cord to turn the lights out');
+    cordHint.textContent = 'Pull me!';
+  }
+  const toggleLights = () => setLights(!root.classList.contains('out'));
+  setLights(false);
+  setTimeout(() => cordHint.classList.add('show'), 5000); // the note pops in once the page has settled
+  function tug() {
+    if (!animate || still) return toggleLights();
+    animate(cord, { y: [0, 46, 0] }, { duration: 0.7, times: [0, 0.35, 1], ease: 'easeOut' });
+    setTimeout(toggleLights, 240);
+  }
+  let pull = null;
+  cordBtn.addEventListener('pointerdown', (e) => { pull = { y: e.clientY, d: 0 }; cordBtn.setPointerCapture(e.pointerId); });
+  cordBtn.addEventListener('pointermove', (e) => { if (!pull) return; pull.d = clamp(e.clientY - pull.y, 0, 70); cord.style.transform = `translateY(${pull.d}px)`; });
+  cordBtn.addEventListener('pointerup', () => {
+    if (!pull) return; const dist = pull.d; pull = null;
+    if (dist < 6) { cord.style.transform = ''; tug(); return; }
+    if (animate) animate(cord, { y: [dist, 0] }, { type: spring, stiffness: 420, damping: 9 }); else cord.style.transform = '';
+    if (dist > 28) toggleLights();
+  });
+  cordBtn.addEventListener('pointercancel', () => { pull = null; cord.style.transform = ''; });
+  cordBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tug(); } });
+  lightsBtn.addEventListener('click', tug);
+
+  /* ---------- One frame loop ---------- */
+  let t0 = performance.now(), frozenT = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - t0) / 1000); t0 = now;
+    if (!still) frozenT += dt;
+    const t = frozenT;
+    drawStars(t); drawBreath(t); drawCabin(t, dt); drawYourSky(t);
+    requestAnimationFrame(frame);
+  }
+  readScroll(); readGraph(); checkSheep(); showCount();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

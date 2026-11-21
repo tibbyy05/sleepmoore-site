@@ -130,11 +130,11 @@ picture > source { display: none; } /* with display: contents the sources would 
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 120px var(--gutter) 110px; text-align: center; overflow: hidden;
 }
-.hero-art { position: absolute; inset: 0; z-index: 0; }
+/* The whole picture drifts as one, so the fire, rain and fireflies stay on the photo. */
+.hero-art { position: absolute; inset: 0; z-index: 0; transform: scale(1.02); animation: drift 40s var(--ease) infinite alternate; }
 .hero-art img, .hero-video {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 40%;
 }
-.hero-art img { transform: scale(1.02); animation: drift 40s var(--ease) infinite alternate; }
 .hero-video { opacity: 0; transition: opacity 1.6s ease; }
 .hero-video.is-live { opacity: 1; }
 .hero-art::after {
@@ -190,6 +190,24 @@ picture > source { display: none; } /* with display: contents the sources would 
 .meter { display: inline-flex; align-items: flex-end; gap: 3px; height: 16px; width: 22px; flex: none; opacity: 0; transition: opacity 0.4s; }
 .player.is-playing .meter { opacity: 1; }
 .meter i { display: block; width: 2px; height: 100%; border-radius: 1px; background: var(--gold); transform-origin: bottom; transform: scaleY(0.12); transition: transform 0.12s linear; }
+/* Hero mix: four slim faders where the progress line used to be */
+.hero-mix { flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 22px; padding: 10px 6px; }
+.hm { display: flex; flex-direction: column; gap: 4px; min-width: 0; cursor: pointer; }
+.hm-name { display: flex; align-items: center; gap: 6px; font: 700 10px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #d9d2c4; white-space: nowrap; }
+.hm-name .icon { width: 13px; height: 13px; color: var(--gold); }
+.hm input { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; }
+.hm input::-webkit-slider-runnable-track { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--gold) var(--p, 50%), rgba(243, 234, 219, 0.22) var(--p, 50%)); }
+.hm input::-moz-range-track { height: 3px; border-radius: 3px; background: rgba(243, 234, 219, 0.22); }
+.hm input::-moz-range-progress { height: 3px; border-radius: 3px; background: var(--gold); }
+.hm input::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%; background: #f3eadb; border: 0; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.5); transition: transform 0.15s; }
+.hm input::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #f3eadb; border: 0; }
+.hm input:active::-webkit-slider-thumb { transform: scale(1.2); }
+.hm input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+/* The stove's real fire, framed by the door in the photo */
+.stove { position: absolute; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 0.8s ease; clip-path: inset(7.5% 8% 7% 8% round 48% 48% 3% 3% / 15% 15% 2% 2%); }
+.stove.is-live { opacity: 1; }
+.stove video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
+.stove video + video { opacity: 0; }
 .player-bar { position: relative; flex: 1; height: 2px; background: rgba(243, 234, 219, 0.22); border-radius: 1px; }
 .player-fill { position: absolute; inset: 0 auto 0 0; width: 100%; background: var(--text); border-radius: 1px; transition: width 1s linear; }
 .player-knob { position: absolute; top: 50%; left: 100%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--text); transition: left 1s linear; }
@@ -488,10 +506,13 @@ footer a:hover { color: var(--gold); }
   .menu a.pill { align-self: flex-start; margin-top: 24px; font: 700 17px/1 var(--sans); color: var(--gold-ink); border: 0; min-height: 54px; padding: 0 28px; }
   .brand { font-size: 23px; }
   .hero { padding: 100px var(--gutter) 120px; min-height: 100svh; }
-  .hero-art img { object-position: 62% 40%; }
+  .hero-art img { object-position: 30% 40%; }
+  .hero { padding-bottom: 190px; }
   .lede br { display: none; }
-  .player { gap: 12px; bottom: 18px; padding-right: 6px; }
-  .player-name { display: none; }
+  .player { gap: 10px; bottom: 18px; padding: 6px 6px 6px 8px; border-radius: 26px; align-items: center; }
+  .player-name, .player .meter, .player-time { display: none; }
+  .hero-note { display: none; } /* it would sit over the stove's fire */
+  .hero-mix { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; padding: 6px 2px; }
   .feature-card { aspect-ratio: 4 / 5; border-radius: 20px; }
   .feature-text { left: 20px; bottom: 20px; }
   .feature-card .play-ring { right: 16px; bottom: 16px; }
@@ -521,7 +542,7 @@ footer a:hover { color: var(--gold); }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .hero-art img { animation: none; }
+  .hero-art { animation: none; }
   .hero-video { display: none; }
   .reveal { animation: none; }
   .feature-card img, .preset img, .scene-strip img, .stage-scenes img { transition: none; }

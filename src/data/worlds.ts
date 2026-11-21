@@ -52,7 +52,9 @@ export type Effect =
   | { kind: 'leaves'; sound: SoundId }
   | { kind: 'spray'; sound: SoundId; band: [number, number] }
   | { kind: 'lightning'; sound: SoundId }
-  | { kind: 'glow'; sound: SoundId; at: [number, number]; radius: number; color: string };
+  | { kind: 'glow'; sound: SoundId; at: [number, number]; radius: number; color: string }
+  /** Low cloud drifting across the valley; wind pushes it along. */
+  | { kind: 'mist'; sound: SoundId; band: [number, number] };
 
 export type World = {
   id: string;
@@ -79,7 +81,7 @@ export const WORLDS: World[] = [
     cap: 'Forest retreat',
     line: 'Rain on the roof, a fire in the grate.',
     intro: 'A cabin on a pine island in a mountain lake, every window lit. Rain drums on the roof, a fire settles in the grate, and the wind stays out on the water.',
-    layers: [['rain', 75], ['fire', 70], ['wind', 30]],
+    layers: [['rain', 75], ['fire', 70], ['night', 30], ['wind', 30]],
     inApp: true,
     focus: '45% 55%',
     effects: [{ kind: 'rain', sound: 'rain' }, { kind: 'glow', sound: 'fire', at: [0.44, 0.58], radius: 0.16, color: '255,170,90' }],
@@ -166,14 +168,46 @@ export const WORLDS: World[] = [
 export const WORLDS_BY_ID: Record<string, World> = Object.fromEntries(WORLDS.map((w) => [w.id, w]));
 
 /** The home hero (the cabin window): drops on the glass, firelight from the stove and the lamp. */
-export const HERO_EFFECTS: { desktop: Effect[]; mobile: Effect[]; window: { desktop: [number, number, number, number]; mobile: [number, number, number, number] } } = {
-  desktop: [
-    { kind: 'glow', sound: 'fire', at: [0.075, 0.68], radius: 0.12, color: '255,150,70' },
-    { kind: 'glow', sound: 'fire', at: [0.955, 0.52], radius: 0.07, color: '255,200,140' },
-  ],
-  mobile: [],
-  /** The window's glass as x0, y0, x1, y1 fractions of each source image; rain drops stay inside it. */
-  window: { desktop: [0.175, 0.06, 0.885, 0.71], mobile: [0, 0.06, 1, 0.71] },
+/**
+ * The home hero is the Rainy Cabin bedroom, and it listens: rain on the glass, fireflies in the
+ * pines (crickets), mist across the valley (wind), and a real fire in the stove whose size follows
+ * the Fire fader. All positions are fractions of the source image, so they follow any crop.
+ * Phones use a tall crop of the same photo that keeps the stove in view.
+ */
+export type HeroLayout = {
+  natural: [number, number];
+  position: [number, number];
+  /** Window glass x0, y0, x1, y1: rain, fireflies and mist stay inside it. */
+  glass: [number, number, number, number];
+  /** The area the fire videos cover; the stove door frames it. */
+  stove: [number, number, number, number];
+  effects: Effect[];
+};
+const HERO_SHARED: Effect[] = [
+  { kind: 'fireflies', sound: 'night', band: [0.46, 0.68] },
+  { kind: 'mist', sound: 'wind', band: [0.5, 0.66] },
+];
+export const HERO_SCENE: { desktop: HeroLayout; mobile: HeroLayout } = {
+  desktop: {
+    natural: [2560, 1434], position: [0.5, 0.4],
+    glass: [0.175, 0.06, 0.885, 0.71],
+    stove: [0.05759, 0.56762, 0.13051, 0.70538],
+    effects: [
+      ...HERO_SHARED,
+      { kind: 'glow', sound: 'fire', at: [0.094, 0.66], radius: 0.16, color: '255,150,70' },
+      { kind: 'glow', sound: 'fire', at: [0.955, 0.52], radius: 0.07, color: '255,200,140' },
+    ],
+  },
+  mobile: {
+    // public/img/hero-cabin-stove-mobile*.webp: x 60 to 860 of the 2560 picture, full height
+    natural: [800, 1434], position: [0.3, 0.4],
+    glass: [0.485, 0.06, 1, 0.71],
+    stove: [0.10925, 0.56762, 0.34263, 0.70538],
+    effects: [
+      ...HERO_SHARED,
+      { kind: 'glow', sound: 'fire', at: [0.226, 0.66], radius: 0.5, color: '255,150,70' },
+    ],
+  },
 };
 
 /**

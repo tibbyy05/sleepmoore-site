@@ -162,6 +162,12 @@ export function setLevel(worldId: string, id: string, level: number) {
   l.gain.gain.setTargetAtTime(Math.max(gainFor(level), 0.0001), t, 0.05);
 }
 
+/** A fader's position, 0-1, playing or not: the hero's fire follows it before any sound starts. */
+export function faderLevel(worldId: string, id: string) {
+  const l = levelsFor(worldId).find(([s]) => s === id);
+  return l ? l[1] / 100 : 0;
+}
+
 /** A sound's share of what is audible now, 0-1, for the ambient visuals. */
 export function soundLevel(worldId: string, id: string) {
   if (!state.playing || worldId !== state.current || !live[id]) return 0;
