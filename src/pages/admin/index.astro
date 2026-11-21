@@ -35,15 +35,42 @@ const NAV = [
 <AdminSprite />
 
 <div class="login" id="login" hidden>
-  <form class="login-card" id="login-form" novalidate>
+  <div class="login-card">
     <div class="brand"><svg class="i" aria-hidden="true"><use href="#a-moon-stars" /></svg><span>Sleep Moore</span><span class="brand-tag">Admin</span></div>
-    <h2>Sign in</h2>
-    <p class="login-sub">Visitor analytics for sleepmoore.app.</p>
-    <label class="field"><span>Email</span><input id="login-email" type="email" autocomplete="username" required></label>
-    <label class="field"><span>Password</span><input id="login-password" type="password" autocomplete="current-password" required></label>
-    <p class="form-error" id="login-error" role="alert"></p>
-    <button class="btn btn-primary btn-block" type="submit" id="login-submit">Sign in</button>
-  </form>
+
+    <form id="login-form" data-pane="login" novalidate>
+      <h2>Sign in</h2>
+      <p class="login-sub">Visitor analytics for sleepmoore.app.</p>
+      <label class="field"><span>Email</span><input id="login-email" type="email" autocomplete="username" required></label>
+      <div class="field">
+        <div class="field-top"><label for="login-password">Password</label><button class="link-btn" type="button" data-show-pane="forgot">Forgot password?</button></div>
+        <div class="pw"><input id="login-password" type="password" autocomplete="current-password" required><button class="pw-eye" type="button" data-reveal aria-label="Show password" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#a-eye" /></svg></button></div>
+      </div>
+      <p class="form-error" id="login-error" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit" id="login-submit">Sign in</button>
+    </form>
+
+    <form id="forgot-form" data-pane="forgot" novalidate hidden>
+      <h2>Reset your password</h2>
+      <p class="login-sub">Enter your email and we will send you a link to choose a new password.</p>
+      <label class="field"><span>Email</span><input id="forgot-email" type="email" autocomplete="username" required></label>
+      <p class="form-error" id="forgot-msg" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit" id="forgot-submit">Send reset link</button>
+      <p class="login-alt"><button class="link-btn" type="button" data-show-pane="login"><svg class="i" aria-hidden="true"><use href="#a-caret-left" /></svg>Back to sign in</button></p>
+    </form>
+
+    <form id="reset-form" data-pane="reset" novalidate hidden>
+      <h2>Choose a new password</h2>
+      <p class="login-sub">Use at least 10 characters. You will be signed in straight after.</p>
+      <input id="reset-username" type="email" autocomplete="username" hidden>
+      <div class="field"><label for="reset-pw1">New password</label>
+        <div class="pw"><input id="reset-pw1" type="password" autocomplete="new-password" minlength="10" required><button class="pw-eye" type="button" data-reveal aria-label="Show password" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#a-eye" /></svg></button></div></div>
+      <div class="field"><label for="reset-pw2">Repeat it</label>
+        <div class="pw"><input id="reset-pw2" type="password" autocomplete="new-password" minlength="10" required><button class="pw-eye" type="button" data-reveal aria-label="Show password" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#a-eye" /></svg></button></div></div>
+      <p class="form-error" id="reset-msg" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit" id="reset-submit">Save and sign in</button>
+    </form>
+  </div>
 </div>
 
 <div class="shell" id="app" hidden>

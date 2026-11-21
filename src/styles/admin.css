@@ -397,3 +397,18 @@ code { font-size: 12px; padding: 1px 5px; border-radius: 5px; background: var(--
   td .k .s { display: none; }
   th:first-child, td:first-child { min-width: 140px; }
 }
+
+/* Password boxes with a show/hide eye; forgot and reset panes */
+.field > label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.field-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.field-top label { font-size: 12px; font-weight: 700; color: var(--muted); }
+.field-top .link-btn { padding: 2px 0; }
+.pw { position: relative; display: flex; }
+.pw input { flex: 1; min-width: 0; min-height: 44px; padding: 0 48px 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); outline: none; }
+.pw input:focus { border-color: var(--gold); }
+.pw-eye { position: absolute; right: 3px; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 40px; height: 38px; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.pw-eye:hover { color: var(--text); background: var(--hover); }
+.pw-eye[aria-pressed="true"] { color: var(--gold); }
+.login-alt { display: flex; justify-content: center; margin: 16px 0 0; }
+.login-alt .link-btn { font-size: 13px; }
+.form-ok { color: var(--good); }

@@ -10,7 +10,14 @@ import {
 
 const SUPABASE_URL = 'https://texlatkkshmbyojkjbnc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Fd-GSdk9lCWpm24x7vJTwg_DYceEbPa';
-const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: 'sm-admin-auth' } });
+// Implicit flow: a password reset link works even when opened on another device than the one that asked for it.
+const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, storageKey: 'sm-admin-auth', flowType: 'implicit' } });
+
+// Read before the client tidies the address bar: arriving from a reset email, or from an expired one.
+const arrival = new URLSearchParams(location.hash.slice(1));
+let recovering = arrival.get('type') === 'recovery';
+const linkError = arrival.get('error_code') ? (arrival.get('error_code') === 'otp_expired' ? 'That reset link has expired or was already used. Ask for a new one below.' : arrival.get('error_description') || 'That link did not work. Ask for a new one below.') : '';
+if (linkError) history.replaceState(null, '', location.pathname);
 
 const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s)!;
 const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => Array.from(r.querySelectorAll<T>(s));
@@ -690,6 +697,8 @@ async function renderVisits(host: HTMLElement) {
 }
 
 // ---------- Settings ----------
+const pwBox = (id: string) =>
+  `<div class="pw"><input type="password" id="${id}" autocomplete="new-password" minlength="10" required><button class="pw-eye" type="button" data-reveal aria-label="Show password" aria-pressed="false">${icon('eye')}</button></div>`;
 const noTrack = () => { try { return localStorage.getItem('sm-no-track') === '1'; } catch { return false; } };
 function renderSettings(host: HTMLElement) {
   const email = S.session?.user.email ?? '';
@@ -701,8 +710,8 @@ function renderSettings(host: HTMLElement) {
     </div>
     <div class="card"><div class="card-head"><h2>Change password</h2></div>
       <form class="pw-form" id="pw-form" novalidate>
-        <label class="field"><span>New password</span><input type="password" id="pw1" autocomplete="new-password" minlength="10" required></label>
-        <label class="field"><span>Repeat it</span><input type="password" id="pw2" autocomplete="new-password" minlength="10" required></label>
+        <div class="field"><label for="pw1">New password</label>${pwBox('pw1')}</div>
+        <div class="field"><label for="pw2">Repeat it</label>${pwBox('pw2')}</div>
         <p class="form-error" id="pw-msg" role="status"></p>
         <button class="btn btn-primary" type="submit">Update password</button>
       </form>
@@ -846,14 +855,87 @@ function bindShell() {
 }
 
 // ---------- Sign-in ----------
-function showLogin(message = '') {
+type Pane = 'login' | 'forgot' | 'reset';
+const PANE_TITLE: Record<Pane, string> = { login: 'Sign in', forgot: 'Reset password', reset: 'New password' };
+function showPane(pane: Pane) {
+  $$('[data-pane]').forEach((f) => (f.hidden = f.dataset.pane !== pane));
+  document.title = `${PANE_TITLE[pane]} · Sleep Moore Admin`;
+  const first = { login: '#login-email', forgot: '#forgot-email', reset: '#reset-pw1' }[pane];
+  setTimeout(() => $<HTMLInputElement>(first).focus(), 50);
+}
+function showLogin(message = '', pane: Pane = 'login') {
   document.body.classList.remove('is-booting');
   $('#app').hidden = true;
   $('#login').hidden = false;
-  $('#login-error').textContent = message;
-  document.title = 'Sign in · Sleep Moore Admin';
-  setTimeout(() => $<HTMLInputElement>('#login-email').focus(), 50);
+  $('#login-error').textContent = pane === 'login' ? message : '';
+  $('#forgot-msg').textContent = pane === 'forgot' ? message : '';
+  $('#forgot-msg').classList.remove('form-ok');
+  showPane(pane);
 }
+
+// Show / hide any password box.
+document.addEventListener('click', (e) => {
+  const eye = (e.target as Element).closest<HTMLButtonElement>('[data-reveal]');
+  if (!eye) return;
+  const input = eye.parentElement!.querySelector('input')!;
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  eye.setAttribute('aria-pressed', String(show));
+  eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  eye.querySelector('use')!.setAttribute('href', show ? '#a-eye-slash' : '#a-eye');
+  input.focus();
+});
+
+$('#login').addEventListener('click', (e) => {
+  const b = (e.target as Element).closest<HTMLElement>('[data-show-pane]');
+  if (!b) return;
+  const pane = b.dataset.showPane as Pane;
+  if (pane === 'forgot') $<HTMLInputElement>('#forgot-email').value = $<HTMLInputElement>('#login-email').value.trim();
+  $('#forgot-msg').textContent = '';
+  $('#login-error').textContent = '';
+  showPane(pane);
+});
+
+$('#forgot-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $<HTMLInputElement>('#forgot-email').value.trim();
+  const msg = $('#forgot-msg');
+  msg.classList.remove('form-ok');
+  if (!/^\S+@\S+\.\S+$/.test(email)) { msg.textContent = 'Enter the email you sign in with.'; return; }
+  const btn = $<HTMLButtonElement>('#forgot-submit');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/admin/' });
+  btn.disabled = false;
+  btn.textContent = 'Send reset link';
+  if (error && /rate|seconds|too many/i.test(error.message)) { msg.textContent = 'Too many requests. Wait a few minutes, then try again.'; return; }
+  // Same answer whether or not the address has an account, so the form cannot be used to find admins.
+  msg.textContent = 'If that email has an admin account, a reset link is on its way. Check your inbox and spam folder.';
+  msg.classList.add('form-ok');
+});
+
+$('#reset-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const a = $<HTMLInputElement>('#reset-pw1').value, b = $<HTMLInputElement>('#reset-pw2').value;
+  const msg = $('#reset-msg');
+  if (a.length < 10) { msg.textContent = 'Use at least 10 characters.'; return; }
+  if (a !== b) { msg.textContent = 'The two passwords do not match.'; return; }
+  const btn = $<HTMLButtonElement>('#reset-submit');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  const { data, error } = await db.auth.updateUser({ password: a });
+  btn.disabled = false;
+  btn.textContent = 'Save and sign in';
+  if (error) {
+    msg.textContent = /session|jwt|expired/i.test(error.message) ? 'This reset link has expired. Ask for a new one.' : error.message;
+    return;
+  }
+  recovering = false;
+  (e.target as HTMLFormElement).reset();
+  const { data: s } = await db.auth.getSession();
+  if (s.session && data.user) { showApp(s.session); toast('Password saved. You are signed in.'); }
+  else showLogin('Password saved. Sign in with it now.');
+});
 let shellBound = false;
 function showApp(session: Session) {
   S.session = session;
@@ -886,5 +968,13 @@ $('#login-form').addEventListener('submit', async (e) => {
   showApp(data.session);
 });
 
-db.auth.getSession().then(({ data }) => (data.session ? showApp(data.session) : showLogin()));
-db.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT') showLogin(); });
+db.auth.getSession().then(({ data }) => {
+  if (linkError) return showLogin(linkError, 'forgot');
+  if (recovering && data.session) { $<HTMLInputElement>('#reset-username').value = data.session.user.email ?? ''; return showLogin('', 'reset'); }
+  if (data.session) return showApp(data.session);
+  showLogin();
+});
+db.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') showLogin();
+  if (event === 'PASSWORD_RECOVERY') { recovering = true; showLogin('', 'reset'); }
+});
