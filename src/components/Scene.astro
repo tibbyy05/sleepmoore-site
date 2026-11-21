@@ -2,7 +2,7 @@
 // A scene picture: AVIF and WebP at the widths asked for, with the scene's own colour behind it
 // while it loads, so nothing flashes white or grey.
 import { Picture } from 'astro:assets';
-import { SCENE_COLORS, SCENES } from '../data/scenes';
+import { SCENE_ALT, SCENE_COLORS, SCENES } from '../data/scenes';
 
 interface Props {
   id: string;
@@ -12,9 +12,11 @@ interface Props {
   loading?: 'lazy' | 'eager';
   fetchpriority?: 'high' | 'low' | 'auto';
   style?: string;
+  /** Describe the picture (from SCENE_ALT). Leave off where it only decorates a labelled link. */
+  described?: boolean;
   [key: `data-${string}`]: string | number | undefined;
 }
-const { id, widths, sizes, class: cls, loading = 'lazy', fetchpriority, style = '', ...rest } = Astro.props;
+const { id, widths, sizes, class: cls, loading = 'lazy', fetchpriority, style = '', described = false, ...rest } = Astro.props;
 const src = SCENES[id];
 if (!src) throw new Error(`No scene picture for "${id}" in src/assets/scenes/`);
 ---
@@ -23,7 +25,7 @@ if (!src) throw new Error(`No scene picture for "${id}" in src/assets/scenes/`);
   formats={['avif', 'webp']}
   widths={widths}
   sizes={sizes}
-  alt=""
+  alt={described ? (SCENE_ALT[id] ?? '') : ''}
   class={cls}
   loading={loading}
   decoding="async"

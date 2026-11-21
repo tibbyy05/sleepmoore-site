@@ -1,5 +1,6 @@
 // Content shared across pages. Edit here, not in the page markup.
 
+export const SITE = 'https://sleepmoore.app';
 export const EMAIL = 'hello@sleepmoore.app';
 
 export type Link = { href: string; label: string };
@@ -66,7 +67,7 @@ export const FAQ = [
   { q: 'Do I need an account?', a: 'No. There is nothing to sign up for. Your saved mixes, timer and settings live on your phone, not on our servers.' },
   { q: 'Is the sound on this website the real app sound?', a: 'Yes. The worlds on this page are the same recordings the app plays, mixed live in your browser. The app adds the full library of forty sounds, saved mixes, night journeys, breathing and the gentle wake.' },
   { q: 'Will it keep playing with the screen locked?', a: 'Yes. Sound keeps playing with the screen off, with play, pause and skip on the lock screen, and the sleep timer fades it out when you choose.' },
-  { q: 'Where do the sounds come from?', a: 'Real recordings, either our own or released into the public domain, remastered into seamless loops so there is no click or gap to wake you. Nothing is synthesised.' },
+  { q: 'Where do the sounds come from?', a: 'Real recordings, either our own or released into the public domain, remastered into seamless loops so there is no click or gap to wake you. None of the nature sounds are synthesised.' },
   { q: 'Which phones does it work on?', a: `iPhone and Android, both coming soon. Write to <a href="mailto:${EMAIL}">${EMAIL}</a> and we will tell you the day it lands.` },
 ];
 

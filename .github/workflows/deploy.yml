@@ -34,3 +34,20 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # Tells Bing (and through it ChatGPT search and Copilot), Yandex and others that the pages
+  # changed, so they recrawl within minutes instead of days. The key file is public/<key>.txt.
+  indexnow:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping IndexNow with every URL in the sitemap
+        env:
+          KEY: c9f1ab3f83d6a7fc994dff31e7422689
+        run: |
+          sleep 30
+          urls=$(curl -fsS https://sleepmoore.app/sitemap-0.xml | grep -oE '<loc>[^<]+</loc>' | sed -E 's#</?loc>##g' | jq -R . | jq -sc .)
+          body=$(jq -nc --arg key "$KEY" --argjson urls "$urls" '{host: "sleepmoore.app", key: $key, keyLocation: ("https://sleepmoore.app/" + $key + ".txt"), urlList: $urls}')
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://api.indexnow.org/indexnow -H 'Content-Type: application/json; charset=utf-8' -d "$body")
+          echo "IndexNow answered $code"
+          case "$code" in 200|202) ;; *) echo "::warning::IndexNow answered $code" ;; esac

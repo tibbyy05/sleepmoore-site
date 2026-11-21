@@ -8,9 +8,10 @@ import Icon from '../../components/Icon.astro';
 import Mixer from '../../components/Mixer.astro';
 import PlayIcons from '../../components/PlayIcons.astro';
 import Scene from '../../components/Scene.astro';
-import { SCENES } from '../../data/scenes';
+import { SCENE_ALT, SCENES } from '../../data/scenes';
 import { SOUNDS, WORLDS, type World } from '../../data/worlds';
 import Base from '../../layouts/Base.astro';
+import { SITE } from '../../data/site';
 
 export function getStaticPaths() {
   return WORLDS.map((world, i) => ({
@@ -21,17 +22,40 @@ export function getStaticPaths() {
 type Props = { world: World; prev: World; next: World };
 const { world, prev, next } = Astro.props;
 
-const site = 'https://sleepmoore.app';
+const site = SITE;
 const og = await getImage({ src: SCENES[world.id], width: 1200, height: 630, fit: 'cover', format: 'jpg' });
 const soundNames = world.layers.map(([id]) => SOUNDS[id].label.toLowerCase());
-const description = `${world.name}: ${world.line} A free sleep sound world from Sleep Moore, mixed from real recordings of ${soundNames.slice(0, -1).join(', ')} and ${soundNames.at(-1)}. Play it here, then fall asleep to it in the app.`;
-const crumbs = {
+const soundList = `${soundNames.slice(0, -1).join(', ')} and ${soundNames.at(-1)}`;
+const description = `${world.name}: ${world.line} A free sleep sound world from Sleep Moore, mixed from real recordings of ${soundList}. Play it in your browser.`;
+/** Lead with what people search for; drop the brand when the name is long, Google cuts near 60. */
+const longTitle = `${world.name}: ${soundList} sleep sounds | Sleep Moore`;
+const title = longTitle.length <= 62 ? longTitle : `${world.name}: ${soundList} sleep sounds`;
+const url = `${site}/worlds/${world.id}/`;
+const ogUrl = new URL(og.src, site).href;
+const graph = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Sleep Moore', item: `${site}/` },
-    { '@type': 'ListItem', position: 2, name: 'Worlds', item: `${site}/#worlds` },
-    { '@type': 'ListItem', position: 3, name: world.name, item: `${site}/worlds/${world.id}/` },
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': url,
+      url,
+      name: title,
+      description,
+      inLanguage: 'en',
+      isPartOf: { '@id': `${site}/#website` },
+      about: { '@id': `${site}/#app` },
+      primaryImageOfPage: { '@type': 'ImageObject', url: ogUrl, width: 1200, height: 630, caption: SCENE_ALT[world.id] },
+      breadcrumb: { '@id': `${url}#crumbs` },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${url}#crumbs`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Sleep Moore', item: `${site}/` },
+        { '@type': 'ListItem', position: 2, name: 'Worlds', item: `${site}/#worlds` },
+        { '@type': 'ListItem', position: 3, name: world.name, item: url },
+      ],
+    },
   ],
 };
 const ADDS = world.inApp
@@ -48,13 +72,13 @@ const ADDS = world.inApp
       { icon: 'moon', title: 'Wakes you gently', text: 'Set the time you need to be up, and the morning arrives slowly instead of all at once.' },
     ];
 ---
-<Base title={`${world.name}: ${world.line.replace(/\.$/, '')} | Sleep Moore`} description={description} fullBleed image={new URL(og.src, site).href}>
-  <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(crumbs)} />
+<Base title={title} description={description} fullBleed image={ogUrl} imageAlt={SCENE_ALT[world.id]}>
+  <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(graph)} />
 
   <div data-world-page={world.id}>
     <section class="world-hero" aria-labelledby="world-title">
       <div class="world-art" aria-hidden="true">
-        <Scene id={world.id} widths={[828, 1280, 1920, 2560]} sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" loading="eager" fetchpriority="high" style={`view-transition-name:world-scene;object-position:${world.focus}`} />
+        <Scene id={world.id} described widths={[828, 1280, 1920, 2560]} sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" loading="eager" fetchpriority="high" style={`view-transition-name:world-scene;object-position:${world.focus}`} />
         <canvas class="ambience" data-ambience={world.id}></canvas>
       </div>
       <div class="wrap world-copy">
