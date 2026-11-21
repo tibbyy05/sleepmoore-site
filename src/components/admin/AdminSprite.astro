@@ -1,0 +1,19 @@
+---
+// Phosphor icons (regular weight) for the admin page, referenced as <use href="#a-name">.
+const names = [
+  'chart-line', 'broadcast', 'footprints', 'file-text', 'share-network', 'globe', 'cursor-click', 'music-notes', 'gauge', 'gear',
+  'sign-out', 'arrow-up-right', 'arrow-up', 'arrow-down', 'envelope', 'download-simple', 'play', 'eye', 'x', 'arrows-clockwise',
+  'export', 'list', 'caret-down', 'caret-left', 'caret-right', 'funnel', 'calendar-blank', 'users', 'clock', 'check', 'warning',
+  'lightning', 'device-mobile', 'desktop', 'device-tablet', 'moon-stars', 'info', 'eye-slash', 'lock-simple', 'cursor',
+];
+const svgs = import.meta.glob<string>('/node_modules/@phosphor-icons/core/assets/regular/*.svg', { query: '?raw', import: 'default', eager: true });
+const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+const symbols = names
+  .map((n) => {
+    const svg = svgs[`/node_modules/@phosphor-icons/core/assets/regular/${n}.svg`];
+    if (!svg) throw new Error(`Missing Phosphor icon: ${n}`);
+    return `<symbol id="a-${n}" viewBox="0 0 256 256">${inner(svg)}</symbol>`;
+  })
+  .join('');
+---
+<svg class="sprite" aria-hidden="true" focusable="false" set:html={symbols} />

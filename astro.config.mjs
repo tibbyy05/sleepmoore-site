@@ -9,7 +9,7 @@ export default defineConfig({
   // Astro 7 defaults to JSX whitespace rules, which glue inline text to links
   // ("Write to<a>"). Keep HTML rules so the pages render as written.
   compressHTML: true,
-  integrations: [sitemap()],
+  integrations: [sitemap({ filter: (page) => !page.includes('/admin/') })],
   // Self-hosted fonts: downloaded at build time, served from our own domain with
   // metric-matched fallbacks, so the first paint already has the right shapes.
   fonts: [

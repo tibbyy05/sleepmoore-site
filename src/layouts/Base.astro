@@ -82,6 +82,10 @@ function splitLetters(el){if(!el||el.querySelector('.ch'))return;var full=el.tex
 <Dock />
 <script>
   import '../scripts/app';
+  // Visitor analytics load once the page is idle, so they never compete with the first paint.
+  const loadPulse = () => import('../scripts/pulse');
+  const idle = () => ('requestIdleCallback' in window ? requestIdleCallback(loadPulse, { timeout: 3000 }) : setTimeout(loadPulse, 1500));
+  if (document.readyState === 'complete') idle(); else addEventListener('load', idle, { once: true });
 </script>
 </body>
 </html>

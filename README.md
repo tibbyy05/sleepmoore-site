@@ -46,3 +46,13 @@ Pushing to `main` runs `.github/workflows/deploy.yml`: it installs, runs `npm te
 Astro 7 needs Node 22.23.4 or newer (this PC has 22.23.5; CI uses Node 24). `compressHTML: true` in `astro.config.mjs` keeps HTML whitespace rules; Astro 7's default would glue inline text to links.
 
 Lighthouse (local, 18 Nov 2026, after the move to Astro): desktop and mobile both 100 / 100 / 100 / 100.
+
+## Admin and visitor analytics
+
+`https://sleepmoore.app/admin/` is a private dashboard (not linked, `noindex`, left out of the sitemap): overview with trend chart and period comparison, live visitors, individual visits with their page-by-page journey, pages, sources and campaigns, audience, clicks and goals, sounds played, and real-visitor speed (Core Web Vitals). Every row filters the whole dashboard; tables export to CSV.
+
+- **Tracker**: `src/scripts/pulse.ts`, loaded when the page is idle. Cookieless; nothing is stored on the visitor's device. Off on localhost (add `?track=1`), in automated browsers, and in any browser where the admin's "Don't count my visits" is on.
+- **Collector**: Supabase edge function `supabase/functions/pulse` (project `SleepMoore`, ref `texlatkkshmbyojkjbnc`). Filters bots, groups referrers into channels, maps the time zone to a country (`tz.json` from IANA `zone.tab`), and hands the batch to `public.pulse_ingest`, which hashes IP + browser with a salt that is deleted every day. No IP is stored.
+- **Data**: private `analytics` schema (`sessions`, `events`); `supabase/migrations/`. The admin page reads only through `public.admin_report`, `admin_live` and `admin_visits`, which check `analytics.admins`.
+- **Sign-in**: Supabase email + password; public sign-ups are off (`supabase/config.toml`). To add another admin, create the user in the Supabase dashboard (Authentication > Users) and run `insert into analytics.admins (user_id) select id from auth.users where email = '...';`.
+- **Deploy changes**: `supabase functions deploy pulse --no-verify-jwt`, `supabase db push` for new migrations, `supabase config push` for auth settings. Careful: in `config.toml`, `[auth.email] enable_signup = false` switches off password sign-in entirely; sign-ups are controlled by `[auth] enable_signup`.
