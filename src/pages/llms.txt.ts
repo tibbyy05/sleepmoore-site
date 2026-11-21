@@ -3,6 +3,7 @@
 // Format: https://llmstxt.org
 import type { APIRoute } from 'astro';
 import { EMAIL, FAQ, SITE, stripTags } from '../data/site';
+import { COMPARISONS } from '../data/compare';
 import { GUIDES } from '../data/guides';
 import { SOUND_PAGES } from '../data/library';
 import { MEDITATIONS, SOUNDS, STORIES, WORLDS } from '../data/worlds';
@@ -48,10 +49,15 @@ export const GET: APIRoute = () => {
     '## Questions',
     '',
     ...FAQ.flatMap((f) => [`### ${f.q}`, '', stripTags(f.a), '']),
+    '## Comparisons (written by us, with sources)',
+    '',
+    ...COMPARISONS.map((c) => `- [${c.h1}](${SITE}/compare/${c.slug}/): ${stripTags(c.answer)}`),
+    '',
     '## Pages',
     '',
     `- [Home](${SITE}/): overview, live sound mixer, stories, meditations and questions`,
     `- [About](${SITE}/about/): who makes Sleep Moore and how the sounds are made`,
+    `- [Press kit](${SITE}/press/): key facts, descriptions, icon and screenshots`,
     `- [Support](${SITE}/support/): help and contact`,
     `- [Privacy policy](${SITE}/privacy/): what the app stores and why`,
     '',

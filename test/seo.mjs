@@ -14,6 +14,7 @@ const walk = (dir) => readdirSync(join(root, dir), { withFileTypes: true }).flat
 const pages = walk('').filter((p) => !p.startsWith('lab/') && !p.startsWith('admin/'));
 const { SOUND_MIXES } = await import('../src/data/worlds.ts');
 const { GUIDES } = await import('../src/data/guides.ts');
+const { COMPARISONS } = await import('../src/data/compare.ts');
 const failures = [];
 const fail = (m) => failures.push(m);
 const meta = (html, key) => html.match(new RegExp(`<meta (?:property|name)="${key}" content="([^"]*)"`))?.[1];
@@ -71,6 +72,7 @@ const library = [
   ...STORIES.map((x) => `stories/${x.id}/index.html`),
   ...MEDITATIONS.map((x) => `meditations/${x.id}/index.html`),
   ...GUIDES.map((g) => `guides/${g.slug}/index.html`),
+  ...COMPARISONS.map((c) => `compare/${c.slug}/index.html`),
 ];
 for (const page of library) {
   if (!existsSync(join(root, page))) { fail(`${page} was not built`); continue; }
@@ -80,7 +82,7 @@ for (const page of library) {
   const words = text(html.replace(/<(script|style|svg)[\s\S]*?<\/\1>/g, '')).split(' ').length;
   if (words < 450) fail(`${page}: only ${words} words, thin for a page meant to rank`);
 }
-for (const hub of ['sounds/index.html', 'stories/index.html', 'meditations/index.html', 'guides/index.html', 'about/index.html']) {
+for (const hub of ['sounds/index.html', 'stories/index.html', 'meditations/index.html', 'guides/index.html', 'about/index.html', 'compare/index.html', 'press/index.html']) {
   if (!existsSync(join(root, hub))) fail(`${hub} was not built`);
 }
 

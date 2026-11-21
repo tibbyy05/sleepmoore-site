@@ -1,0 +1,96 @@
+---
+// A fair comparison with another sleep app: the short answer, a side-by-side table, where the
+// other app is the better pick, and the sources with the date they were checked.
+import Faq from '../../components/Faq.astro';
+import GetApp from '../../components/GetApp.astro';
+import Icon from '../../components/Icon.astro';
+import { COMPARISONS, type Comparison } from '../../data/compare';
+import { breadcrumbs, faqPage, graph, pageUrl, webPage } from '../../data/schema';
+import { SITE, stripTags } from '../../data/site';
+import Base from '../../layouts/Base.astro';
+
+export function getStaticPaths() {
+  return COMPARISONS.map((c) => ({ params: { slug: c.slug }, props: { c } }));
+}
+type Props = { c: Comparison };
+const { c } = Astro.props;
+const path = `/compare/${c.slug}/`;
+const url = pageUrl(path);
+const article = {
+  '@type': 'Article',
+  '@id': `${url}#article`,
+  headline: c.h1,
+  description: c.description,
+  abstract: stripTags(c.answer),
+  inLanguage: 'en',
+  datePublished: c.checked,
+  dateModified: c.checked,
+  author: { '@id': `${SITE}/#org` },
+  publisher: { '@id': `${SITE}/#org` },
+  mainEntityOfPage: { '@id': url },
+};
+const ld = graph(webPage(url, c.h1, c.description), article, breadcrumbs(url, [['Compare', '/compare/'], [c.short, path]]), faqPage(url, c.faq));
+const checked = new Date(c.checked + 'T12:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const others = COMPARISONS.filter((o) => o.slug !== c.slug);
+---
+<Base title={c.title} description={c.description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={ld} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <a class="back-link" href="/compare/"><Icon name="arrow-left" /> All comparisons</a>
+      <h1>{c.h1}</h1>
+      <p class="guide-meta">By the Sleep Moore team, so read it knowing who wrote it · Facts checked <time datetime={c.checked}>{checked}</time></p>
+    </div>
+  </section>
+  <div class="wrap">
+    <article class="prose guide compare">
+      <div class="guide-answer">
+        <p class="cap">The short answer</p>
+        <p set:html={c.answer} />
+      </div>
+
+      <h2>Side by side</h2>
+      <div class="compare-table-wrap" tabindex="0" role="region" aria-label={`${c.columns.join(' and ')} compared`}>
+        <table class="compare-table">
+          <thead><tr><th scope="col"><span class="sr-only">Feature</span></th>{c.columns.map((col) => <th scope="col">{col}</th>)}</tr></thead>
+          <tbody>
+            {c.rows.map(([label, ...cells]) => (
+              <tr><th scope="row">{label}</th>{cells.map((cell) => <td set:html={cell} />)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {c.sections.map((s) => (
+        <>
+          <h2>{s.h}</h2>
+          {s.p.map((p) => <p set:html={p} />)}
+          {s.list && <ul>{s.list.map((li) => <li set:html={li} />)}</ul>}
+        </>
+      ))}
+
+      <h2>Sources</h2>
+      <p class="compare-note">Prices and features change. These were checked on {checked}; if something here is out of date, tell us at <a href="mailto:hello@sleepmoore.app">hello@sleepmoore.app</a> and we will fix it. {c.brands} {c.brands.includes(' and ') ? 'are trademarks' : 'is a trademark'} of {c.owners}. Sleep Moore is not affiliated with them.</p>
+      <ul class="compare-sources">
+        {c.sources.map(([label, href]) => <li><a href={href} rel="nofollow noopener" target="_blank">{label}</a></li>)}
+      </ul>
+
+      <nav class="guide-next" aria-label="Listen">
+        <a class="guide-chip" href="/sounds/">Hear every Sleep Moore sound <Icon name="arrow-right" /></a>
+        <a class="guide-chip" href="/">Try a sound world <Icon name="arrow-right" /></a>
+      </nav>
+    </article>
+  </div>
+  <Faq faq={c.faq} title="More questions." />
+  {others.length > 0 && (
+    <section class="lib-related" aria-labelledby="more-compare">
+      <div class="wrap">
+        <header class="sec-head"><h2 id="more-compare">More comparisons.</h2></header>
+        <ul class="guide-list" role="list">
+          {others.map((o) => <li><a href={`/compare/${o.slug}/`}><span>{o.h1}</span><Icon name="arrow-right" /></a></li>)}
+        </ul>
+      </div>
+    </section>
+  )}
+  <GetApp />
+</Base>

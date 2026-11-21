@@ -1,0 +1,89 @@
+---
+// Press kit: the facts, ready-to-use descriptions, the icon and screenshots, in one place for
+// writers, list makers and AI assistants. Files live in public/press/.
+import GetApp from '../components/GetApp.astro';
+import { GUIDES } from '../data/guides';
+import { SOUND_PAGES } from '../data/library';
+import { breadcrumbs, graph, pageUrl, webPage } from '../data/schema';
+import { EMAIL } from '../data/site';
+import { MEDITATIONS, STORIES } from '../data/worlds';
+import Base from '../layouts/Base.astro';
+
+const url = pageUrl('/press/');
+const title = 'Sleep Moore press kit: facts, icon and screenshots | Sleep Moore';
+const description = 'Press kit for Sleep Moore, the free sleep sounds app with no account, no ads and no tracking: key facts, short and long descriptions, the app icon and App Store screenshots to download.';
+const SHOTS = [
+  ['01-cabin', 'Fall asleep somewhere else: Rainy Cabin with its three faders'],
+  ['02-journey', 'A story for a busy mind: The Midnight Express night journey'],
+  ['03-meditate', 'Let one calm voice talk you down: a guided meditation playing'],
+  ['04-picker', 'Mix the sound your way: choosing a sound to swap in'],
+  ['05-breathe', 'Breathe first, then sleep: the guided breathing circle'],
+  ['06-bed', 'The screen goes dark, the sound plays on: bed mode'],
+  ['07-home', 'One tap to sleep: the home screen'],
+  ['08-welcome', 'Free, no account: the welcome screen'],
+];
+const FACTS: [string, string][] = [
+  ['Name', 'Sleep Moore'],
+  ['What it is', 'A sleep sounds app: sound worlds, sleep stories, guided meditations, a sleep timer and a gentle wake alarm'],
+  ['Platforms', 'iPhone and Android (coming soon to the App Store and Google Play; iPhone beta on TestFlight)'],
+  ['Price', 'Free. Everything at launch stays free. An optional Sleep Moore+ will later add new content only.'],
+  ['Account', 'None. Nothing to sign up for.'],
+  ['Ads and tracking', 'No ads, no advertising or tracking code. Crash diagnostics only, not linked to a person.'],
+  ['Content', `Ten sound worlds, about forty sounds, ${STORIES.length} sleep stories, ${MEDITATIONS.length} guided meditations including Yoga Nidra`],
+  ['Sound', 'Real recordings (our own or public domain), remastered into seamless lossless loops'],
+  ['Website', 'sleepmoore.app, where every world and sound can be played in the browser'],
+  ['Contact', EMAIL],
+];
+const SHORT = 'Sleep Moore is a free sleep sounds app with no account, no ads and no tracking. Pick a place, rain on a cabin roof, surf below a cottage, a fire in a snowed-in lodge, mix its three real recordings, and let a timer fade it out as you fall asleep.';
+const LONG = [
+  'Sleep Moore is a sleep sounds app built around one idea: open it, press play, and the room changes. Instead of a feed of courses and a paywall, it offers ten "sound worlds", places like a rainy cabin, a moonlit cove or a desert camp, each mixed from three real recordings on a small set of faders. Any layer can be swapped for one of about forty sounds, from heavy rain and a night train to brown noise, and saved.',
+  `It also has ${STORIES.length} slow sleep stories read over the sounds of the place, ${MEDITATIONS.length} guided meditations from a two-minute body relaxation to a 19-minute Yoga Nidra, guided breathing, a sleep timer that fades the sharper sounds first, lock-screen playback and a gentle wake alarm.`,
+  'Sleep Moore has no account, no ads and no tracking. Everything at launch is free and stays free. The website, sleepmoore.app, plays the same recordings in the browser, so people can hear it before they download.',
+];
+const about = { '@type': 'WebPage', '@id': `${url}#press`, name: 'Sleep Moore press kit', about: { '@id': 'https://sleepmoore.app/#org' } };
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={graph(webPage(url, 'Press kit', description), about, breadcrumbs(url, [['Press', '/press/']]))} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <p class="eyebrow">Press</p>
+      <h1>Press kit.</h1>
+      <p>Everything you need to write about Sleep Moore. Use any of it freely. Questions, review access or an interview: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>.</p>
+    </div>
+  </section>
+  <div class="wrap">
+    <article class="prose guide press">
+      <h2>Key facts</h2>
+      <dl class="press-facts">
+        {FACTS.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
+
+      <h2>In one paragraph</h2>
+      <blockquote class="press-copy"><p>{SHORT}</p></blockquote>
+
+      <h2>In three paragraphs</h2>
+      <blockquote class="press-copy">{LONG.map((p) => <p>{p}</p>)}</blockquote>
+
+      <h2>Icon and screenshots</h2>
+      <p><a class="guide-chip" href="/press/sleep-moore-press-kit.zip" download>Download everything (.zip)</a> <a class="guide-chip" href="/press/sleep-moore-icon-1024.png" download>App icon, 1024 px</a></p>
+    </article>
+    <ul class="press-shots" role="list">
+      {SHOTS.map(([id, alt]) => (
+        <li>
+          <a href={`/press/sleep-moore-${id}.jpg`} download>
+            <img src={`/press/sleep-moore-${id}-440.webp`} alt={`Sleep Moore app screenshot. ${alt}`} width="440" height="956" loading="lazy" decoding="async">
+          </a>
+        </li>
+      ))}
+    </ul>
+    <article class="prose guide press">
+      <h2>Good places to start</h2>
+      <ul>
+        <li><a href="/sounds/">Every sleep sound</a>, each playable on its own page ({SOUND_PAGES.length} so far).</li>
+        <li><a href="/about/">How the sounds are made</a>, and what the app will never do.</li>
+        {GUIDES.slice(0, 2).map((g) => <li><a href={`/guides/${g.slug}/`}>{g.h1}</a></li>)}
+      </ul>
+    </article>
+  </div>
+  <GetApp />
+</Base>

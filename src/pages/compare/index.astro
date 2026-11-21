@@ -1,0 +1,39 @@
+---
+import GetApp from '../../components/GetApp.astro';
+import { COMPARISONS } from '../../data/compare';
+import { breadcrumbs, graph, pageUrl, webPage } from '../../data/schema';
+import { stripTags } from '../../data/site';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+
+const url = pageUrl('/compare/');
+const title = 'Sleep app comparisons: Sleep Moore vs others | Sleep Moore';
+const description = 'Fair comparisons of Sleep Moore with BetterSleep, Calm and free sleep sound apps: price, account, ads, sounds, stories and privacy, with sources and the date checked.';
+const list = { '@type': 'ItemList', '@id': `${url}#list`, itemListElement: COMPARISONS.map((c, i) => ({ '@type': 'ListItem', position: i + 1, url: pageUrl(`/compare/${c.slug}/`), name: c.h1 })) };
+---
+<Base title={title} description={description}>
+  <script is:inline slot="head" type="application/ld+json" set:html={graph(webPage(url, 'Comparisons', description), breadcrumbs(url, [['Compare', '/compare/']]), list)} />
+  <section class="page-head lib-head">
+    <div class="wrap">
+      <p class="eyebrow">Compare</p>
+      <h1>How Sleep Moore compares.</h1>
+      <p>We make Sleep Moore, so we are not neutral. We have tried to be fair anyway: every comparison says where the other app is the better choice, and lists its sources and the date we checked them.</p>
+    </div>
+  </section>
+  <section class="lib-group lib-group-last">
+    <div class="wrap">
+      <ul class="guide-cards" role="list">
+        {COMPARISONS.map((c) => (
+          <li>
+            <a class="guide-card" href={`/compare/${c.slug}/`}>
+              <span class="guide-card-title">{c.h1}</span>
+              <span class="guide-card-answer">{stripTags(c.answer).split('. ')[0]}.</span>
+              <span class="guide-card-go">Read the comparison <Icon name="arrow-right" /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  <GetApp />
+</Base>

@@ -8,7 +8,7 @@ import { join } from 'node:path';
 const out = process.argv[2] || 'test/screens';
 mkdirSync(out, { recursive: true });
 const base = process.env.SITE_URL || 'http://localhost:8080';
-const PAGES = ['/sounds/', '/sounds/brown-noise/', '/sounds/rain/', '/stories/', '/stories/lighthouse-keeper/', '/meditations/yoga-nidra/', '/guides/', '/guides/brown-pink-white-green-noise/', '/about/'];
+const PAGES = ['/sounds/', '/sounds/brown-noise/', '/sounds/rain/', '/stories/', '/stories/lighthouse-keeper/', '/meditations/yoga-nidra/', '/guides/', '/guides/brown-pink-white-green-noise/', '/about/', '/compare/sleep-moore-vs-bettersleep/', '/compare/free-sleep-sound-apps/', '/press/'];
 const SIZES = [
   { name: 'desktop', viewport: { width: 1440, height: 900, deviceScaleFactor: 1 } },
   { name: 'phone', viewport: { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },

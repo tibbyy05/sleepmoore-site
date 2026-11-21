@@ -39,7 +39,9 @@ export const FOOTER: Link[] = [
   { href: '/stories/', label: 'Stories' },
   { href: '/meditations/', label: 'Meditations' },
   { href: '/guides/', label: 'Guides' },
+  { href: '/compare/', label: 'Compare' },
   { href: '/about/', label: 'About' },
+  { href: '/press/', label: 'Press' },
   { href: '/support/', label: 'Support' },
   { href: '/privacy/', label: 'Privacy' },
 ];
