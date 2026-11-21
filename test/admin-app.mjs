@@ -119,6 +119,28 @@ for (const size of [{ name: 'desktop', vp: { width: 1440, height: 1000 } }, { na
   if (errors.length) problems.push(`${size.name}: console errors: ${errors.join(' | ').slice(0, 400)}`);
   await page.close();
 }
+// Before the migration is applied the database answers PGRST202: the tab must explain, not error.
+{
+  const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.setRequestInterception(true);
+  page.on('request', (req) => {
+    const url = req.url();
+    if (!url.startsWith(SUPA)) return req.continue();
+    const cors = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
+    if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: cors });
+    if (url.includes('/rpc/admin_appstore')) return req.respond({ status: 404, contentType: 'application/json', headers: cors, body: JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.admin_appstore(p_from, p_to, p_tz) in the schema cache' }) });
+    return req.respond({ status: 200, contentType: 'application/json', headers: cors, body: JSON.stringify(url.includes('/rpc/admin_live') ? { now: 0, pages: [], minutes: [], feed: [] } : {}) });
+  });
+  await page.evaluateOnNewDocument((s) => { localStorage.setItem('sm-admin-auth', JSON.stringify(s)); localStorage.setItem('sm-no-track', '1'); }, session);
+  await page.goto(`${base}/admin/#appstore`, { waitUntil: 'networkidle0' });
+  const text = await page.$eval('#appstore', (v) => v.textContent ?? '');
+  if (!text.includes('not set up yet')) problems.push('not-installed: the App tab did not explain the missing setup');
+  if (await page.$('#login:not([hidden])')) problems.push('not-installed: the admin was signed out');
+  if (errors.length) problems.push(`not-installed: page errors: ${errors.join(' | ').slice(0, 300)}`);
+  await page.close();
+}
 await browser.close();
 if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
 console.log('admin App section: desktop and phone rendered from fixtures, metric switch and Sync now work');

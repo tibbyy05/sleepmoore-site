@@ -104,7 +104,17 @@ export async function renderApp(host: HTMLElement, ctx: AppCtx, force = false) {
   if (!host.innerHTML) host.innerHTML = `<div class="card"><div class="card-body"><span class="skel" style="width:40%"></span><span class="skel" style="width:70%;margin-top:12px"></span></div></div>`;
   else host.classList.add('loading-veil');
   let d: Data;
-  try { d = await load(ctx, force); } catch (e) { return ctx.handleError(e, host); }
+  try { d = await load(ctx, force); } catch (e) {
+    // Before the appstore migration is applied the function does not exist yet (PostgREST PGRST202):
+    // show what is missing instead of a generic error.
+    const err = e as { code?: string; message?: string };
+    if (err?.code === 'PGRST202' || /could not find the function/i.test(err?.message ?? '')) {
+      host.classList.remove('loading-veil');
+      host.innerHTML = ctx.card('App data is not set up yet', ctx.emptyBox('The App Store Connect tables and sync are not installed on the database yet. Once they are, TestFlight numbers appear here.', 'apple-logo'));
+      return;
+    }
+    return ctx.handleError(e, host);
+  }
   if (!ctx.isCurrent()) return;
   host.classList.remove('loading-veil');
   draw(host, ctx, d);
