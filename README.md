@@ -25,6 +25,10 @@ Media notes:
 - `public/video/`: a 5 s seamless hero loop (Kling image-to-video from the hero still, tail crossfaded into the head with ffmpeg xfade); loaded only on desktop without reduced motion or data saver.
 - `public/audio/`: made from the app's loops with `scripts/make-loop.py --length 30 --out ...` in the app repo, then `ffmpeg -c:a libopus -b:a 56k`. Every world in `site.js` needs its sounds in Opus, FLAC and AAC (`.m4a`).
 
+## Admin: App section (App Store Connect)
+
+`/admin/#appstore` shows TestFlight data: beta review status, the public link, website click to install, daily usage, builds with expiry, tester counts (never names) and feedback with screenshots. The `asc-sync` edge function (`supabase/functions/asc-sync/`) signs in to Apple with an App Store Connect API key, reads the TestFlight endpoints and stores the result through `public.appstore_save` into the private `appstore` schema (migration `*_appstore_testflight.sql`); screenshots go to the private `appstore-feedback` bucket because Apple's links expire. pg_cron runs it every three hours (job `asc-sync`, secret in Vault as `asc_sync_secret`); admins can also press Sync now. Key setup: create a Team Key in App Store Connect (Users and Access > Integrations), then `npx supabase secrets set ASC_KEY_ID=... ASC_ISSUER_ID=...` and `npx supabase secrets set ASC_PRIVATE_KEY="$(cat AuthKey_XXXX.p8)"`. Deploy with `npx supabase functions deploy asc-sync --no-verify-jwt` (the function checks callers itself). `node test/admin-app.mjs` (with a server on dist/) renders the section from fixtures at both sizes and checks Sync now.
+
 ## Commands
 
 ```bash

@@ -2,6 +2,7 @@
    public.admin_report / admin_live / admin_visits in the SleepMoore Supabase project. State lives in
    the URL (section in the hash, range and filters in the query) so any view can be bookmarked. */
 import { createClient, type Session } from '@supabase/supabase-js';
+import { renderApp, type AppCtx } from './app-store';
 import { bindTips, lineChart, type Point } from './chart';
 import {
   ago, countryName, DEVICE_ICON, dur, esc, fmtDate, fmtTime, icon, int, KIND_ICON, KIND_LABEL, langName, ms, num, pageName, pct,
@@ -33,11 +34,11 @@ type Report = {
   first_seen: string | null;
 } & Record<string, any>;
 
-const VIEWS = ['overview', 'live', 'visits', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance', 'settings'] as const;
+const VIEWS = ['overview', 'live', 'visits', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance', 'appstore', 'settings'] as const;
 type View = (typeof VIEWS)[number];
 const TITLES: Record<View, string> = {
   overview: 'Overview', live: 'Live', visits: 'Visits', pages: 'Pages', sources: 'Sources', audience: 'Audience',
-  clicks: 'Clicks & goals', sounds: 'Sounds', performance: 'Speed', settings: 'Settings',
+  clicks: 'Clicks & goals', sounds: 'Sounds', performance: 'Speed', appstore: 'App', settings: 'Settings',
 };
 const USES_REPORT = new Set<View>(['overview', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance']);
 
@@ -288,6 +289,7 @@ async function refresh(force = false) {
   if (S.view === 'settings') return renderSettings(host);
   if (S.view === 'live') return renderLive(host, true);
   if (S.view === 'visits') return renderVisits(host);
+  if (S.view === 'appstore') return renderApp(host, appCtx(seq), force).then(() => bindTips(host));
   if (!host.innerHTML) host.innerHTML = skeleton();
   else host.classList.add('loading-veil');
   try {
@@ -298,6 +300,15 @@ async function refresh(force = false) {
     render(host, r);
     bindTips(host);
   } catch (e) { handleError(e, host); }
+}
+
+/** The App section (app-store.ts) borrows the client, period and building blocks from here. */
+function appCtx(seq: number): AppCtx {
+  return {
+    db, tz, period, card, table, exportBtn, emptyBox, toast, handleError,
+    onCleanup: (fn) => cleanup.push(fn),
+    isCurrent: () => seq === loadSeq && S.view === 'appstore',
+  };
 }
 
 function handleError(e: unknown, host?: HTMLElement) {
