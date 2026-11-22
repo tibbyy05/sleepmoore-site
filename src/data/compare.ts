@@ -33,7 +33,7 @@ export const COMPARISONS: Comparison[] = [
     h1: 'Sleep Moore vs BetterSleep: which sleep sounds app is right for you?',
     title: 'Sleep Moore vs BetterSleep: a fair comparison | Sleep Moore',
     description: 'Sleep Moore vs BetterSleep compared fairly: price, account, privacy, sounds, stories, sleep tracking and platforms. Where each one is the better choice, with sources.',
-    answer: 'BetterSleep is the bigger app: hundreds of sounds, a sleep tracker with snore detection, and apps for watch, TV and web, mostly behind a subscription and an account. Sleep Moore is smaller and simpler: everything free, no account, no tracking, built around ten recorded sound worlds. Pick BetterSleep if you want tracking and the largest library; pick Sleep Moore if you want to press play and nothing else.',
+    answer: 'BetterSleep is the bigger app: hundreds of sounds, a sleep tracker with snore detection, and apps for watch, TV and web, mostly behind a subscription and an account. Sleep Moore is smaller and simpler: everything free, no ads, no cookies and no account, built around ten recorded sound worlds. Pick BetterSleep if you want tracking and the largest library; pick Sleep Moore if you want to press play and nothing else.',
     columns: ['Sleep Moore', 'BetterSleep'],
     rows: [
       ['Price', SM_PRICE, 'Free preview; full library needs a subscription, roughly $60 to $70 a year in the US, with a monthly and a lifetime option'],
@@ -63,7 +63,7 @@ export const COMPARISONS: Comparison[] = [
         h: 'Where Sleep Moore is different',
         p: [],
         list: [
-          '<b>No account and no tracking.</b> Nothing to sign up for. The App Store label lists only crash diagnostics, not linked to you.',
+          '<b>No account, no ads.</b> Nothing to sign up for. The App Store label lists only crash diagnostics, not linked to you.',
           '<b>Free, not a preview.</b> Everything in the app at launch stays free. There is no trial clock and no paywall in front of the sounds.',
           '<b>Places, not lists.</b> Each sound world is a scene with three real recordings already balanced, so a good mix takes one tap. You can still swap any layer.',
           '<b>Hear it first.</b> Every world and <a href="/sounds/">every sound</a> plays on this website, in your browser, before you install anything.',
@@ -78,7 +78,7 @@ export const COMPARISONS: Comparison[] = [
     ],
     faq: [
       { q: 'Is BetterSleep free?', a: 'Partly. Its own help pages say an active subscription is needed for the full library, with a free trial for new subscribers. Sleep Moore is free without a trial or subscription.' },
-      { q: 'Is there a free alternative to BetterSleep?', a: 'Yes. Sleep Moore is free with no account, no ads and no tracking. It has fewer sounds and no sleep tracker, but every sound world, story and meditation at launch is free. <a href="/compare/free-sleep-sound-apps/">Other free sleep sound apps compared</a>.' },
+      { q: 'Is there a free alternative to BetterSleep?', a: 'Yes. Sleep Moore is free with no ads, no cookies and no account. It has fewer sounds and no sleep tracker, but every sound world, story and meditation at launch is free. <a href="/compare/free-sleep-sound-apps/">Other free sleep sound apps compared</a>.' },
       { q: 'Does Sleep Moore track sleep like BetterSleep?', a: 'No. Sleep Moore does not record you or use the microphone. It keeps a simple note of what you played and how you said you slept, on your phone only.' },
     ],
     sources: [
@@ -97,7 +97,7 @@ export const COMPARISONS: Comparison[] = [
     h1: 'Sleep Moore vs Calm for sleep: a fair comparison',
     title: 'Sleep Moore vs Calm for sleep: compared fairly | Sleep Moore',
     description: 'Sleep Moore vs Calm for sleep, compared fairly: price, account, privacy, sleep sounds, Sleep Stories and meditations. Where Calm is the better choice, with sources.',
-    answer: 'Calm is a full meditation and wellbeing app with a huge library of Sleep Stories, many read by famous voices, mostly behind a subscription and an account. Sleep Moore does one thing: sleep sounds you can mix, with a few stories and meditations, free, with no account and no tracking. Choose Calm for stories and meditation courses; choose Sleep Moore for free, private sleep sounds.',
+    answer: 'Calm is a full meditation and wellbeing app with a huge library of Sleep Stories, many read by famous voices, mostly behind a subscription and an account. Sleep Moore does one thing: sleep sounds you can mix, with a few stories and meditations, free, with no ads, no cookies and no account. Choose Calm for stories and meditation courses; choose Sleep Moore for free, private sleep sounds.',
     columns: ['Sleep Moore', 'Calm'],
     rows: [
       ['Price', SM_PRICE, 'Subscription, roughly $70 to $80 a year in the US, with monthly, family and lifetime options'],
@@ -124,7 +124,7 @@ export const COMPARISONS: Comparison[] = [
         h: 'Where Sleep Moore is different',
         p: [],
         list: [
-          '<b>Free and private.</b> No subscription, no account, nothing that tracks you.',
+          '<b>Free and private.</b> No subscription, no ads, no cookies, no account.',
           '<b>Built around sound.</b> Ten recorded places, each three sounds already balanced, and about forty more to swap in. <a href="/sounds/">Hear them all here</a>.',
           '<b>Made for the moment in bed.</b> One tap to play, a timer that fades the sharper sounds first, and a dark screen.',
         ],
@@ -138,7 +138,7 @@ export const COMPARISONS: Comparison[] = [
     ],
     faq: [
       { q: 'Is Calm free?', a: 'Partly. Calm says a free account gets some meditations, a few sleep sessions and the first day of each programme; the rest needs a subscription after a 7-day trial. Sleep Moore is free without an account.' },
-      { q: 'What is a free alternative to Calm for sleep?', a: 'For sleep sounds, Sleep Moore is free with no account and no tracking. For sleep stories at Calm’s scale there is no direct free equivalent. <a href="/compare/free-sleep-sound-apps/">Free sleep sound apps compared</a>.' },
+      { q: 'What is a free alternative to Calm for sleep?', a: 'For sleep sounds, Sleep Moore is free with no ads, no cookies and no account. For sleep stories at Calm’s scale there is no direct free equivalent. <a href="/compare/free-sleep-sound-apps/">Free sleep sound apps compared</a>.' },
     ],
     sources: [
       ['Calm on the App Store (US): features, prices, privacy label', 'https://apps.apple.com/us/app/calm-sleep-meditation/id571800810'],
@@ -154,7 +154,7 @@ export const COMPARISONS: Comparison[] = [
     h1: 'Free sleep sound apps compared: what is actually free?',
     title: 'Best free sleep sound apps: what is really free? | Sleep Moore',
     description: 'Free sleep sound apps compared honestly: Sleep Moore, myNoise, White Noise Lite and Rain Rain. What each one gives you free, ads, account, tracking, and who each one suits.',
-    answer: 'Many "free" sleep apps are free trials or carry ads. Of the ones we looked at, myNoise is the deepest free option in a browser, Rain Rain and White Noise Lite are free with ads, and Sleep Moore is free with no ads, no account and no tracking, built around recorded sound worlds.',
+    answer: 'Many "free" sleep apps are free trials or carry ads. Of the ones we looked at, myNoise is the deepest free option in a browser, Rain Rain and White Noise Lite are free with ads, and Sleep Moore is free with no ads, no cookies and no account, built around recorded sound worlds.',
     columns: ['Sleep Moore', 'myNoise', 'White Noise Lite', 'Rain Rain'],
     rows: [
       ['What is free', 'Everything at launch', 'Everything in the browser; a dozen soundscapes in the apps', 'Free app with 50+ sounds', '50+ sounds, unlimited playback'],

@@ -11,7 +11,7 @@ import Base from '../layouts/Base.astro';
 
 const url = pageUrl('/press/');
 const title = 'Sleep Moore press kit: facts, icon and screenshots | Sleep Moore';
-const description = 'Press kit for Sleep Moore, the free sleep sounds app with no account, no ads and no tracking: key facts, short and long descriptions, the app icon and App Store screenshots to download.';
+const description = 'Press kit for Sleep Moore, the free sleep sounds app with no ads, no cookies and no account: key facts, short and long descriptions, the app icon and App Store screenshots to download.';
 const SHOTS = [
   ['01-cabin', 'Fall asleep somewhere else: Rainy Cabin with its three faders'],
   ['02-journey', 'A story for a busy mind: The Midnight Express night journey'],
@@ -28,17 +28,17 @@ const FACTS: [string, string][] = [
   ['Platforms', 'iPhone and Android (coming soon to the App Store and Google Play; iPhone beta on TestFlight)'],
   ['Price', 'Free. Everything at launch stays free. An optional Sleep Moore+ will later add new content only.'],
   ['Account', 'None. Nothing to sign up for.'],
-  ['Ads and tracking', 'No ads, no advertising or tracking code. Crash diagnostics only, not linked to a person.'],
+  ['Ads and privacy', 'No ads and no advertising code. The app sends crash diagnostics only, not linked to a person; the website counts visits without cookies.'],
   ['Content', `Ten sound worlds, about forty sounds, ${STORIES.length} sleep stories, ${MEDITATIONS.length} guided meditations including Yoga Nidra`],
   ['Sound', 'Real recordings (our own or public domain), remastered into seamless lossless loops'],
   ['Website', 'sleepmoore.app, where every world and sound can be played in the browser'],
   ['Contact', EMAIL],
 ];
-const SHORT = 'Sleep Moore is a free sleep sounds app with no account, no ads and no tracking. Pick a place, rain on a cabin roof, surf below a cottage, a fire in a snowed-in lodge, mix its three real recordings, and let a timer fade it out as you fall asleep.';
+const SHORT = 'Sleep Moore is a free sleep sounds app with no ads, no cookies and no account. Pick a place, rain on a cabin roof, surf below a cottage, a fire in a snowed-in lodge, mix its three real recordings, and let a timer fade it out as you fall asleep.';
 const LONG = [
   'Sleep Moore is a sleep sounds app built around one idea: open it, press play, and the room changes. Instead of a feed of courses and a paywall, it offers ten "sound worlds", places like a rainy cabin, a moonlit cove or a desert camp, each mixed from three real recordings on a small set of faders. Any layer can be swapped for one of about forty sounds, from heavy rain and a night train to brown noise, and saved.',
   `It also has ${STORIES.length} slow sleep stories read over the sounds of the place, ${MEDITATIONS.length} guided meditations from a two-minute body relaxation to a 19-minute Yoga Nidra, guided breathing, a sleep timer that fades the sharper sounds first, lock-screen playback and a gentle wake alarm.`,
-  'Sleep Moore has no account, no ads and no tracking. Everything at launch is free and stays free. The website, sleepmoore.app, plays the same recordings in the browser, so people can hear it before they download.',
+  'Sleep Moore has no ads, no cookies and no account. Everything at launch is free and stays free. The website, sleepmoore.app, plays the same recordings in the browser, so people can hear it before they download.',
 ];
 const about = { '@type': 'WebPage', '@id': `${url}#press`, name: 'Sleep Moore press kit', about: { '@id': 'https://sleepmoore.app/#org' } };
 ---
