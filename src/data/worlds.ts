@@ -74,6 +74,11 @@ export type World = {
   /** Where the picture's subject sits (CSS object-position), so crops keep it. */
   focus: string;
   effects: Effect[];
+  /**
+   * A seamless video loop of the picture (public/video/worlds/<id>.webm and .mp4), shown over the still once it plays.
+   * `from` is where the movement starts across the picture (0 to 1): screens whose crop ends before it keep the still.
+   */
+  video?: { from: number };
 };
 
 export const WORLDS: World[] = [
@@ -130,7 +135,9 @@ export const WORLDS: World[] = [
     layers: [['ocean', 80], ['wind', 45], ['palms', 40]],
     inApp: true,
     focus: '35% 50%',
-    effects: [{ kind: 'spray', sound: 'ocean', band: [0.68, 1] }, { kind: 'glow', sound: 'palms', at: [0.14, 0.6], radius: 0.14, color: '255,190,120' }],
+    // The waves are in the video loop; the canvas only adds the lantern light.
+    effects: [{ kind: 'glow', sound: 'palms', at: [0.14, 0.6], radius: 0.14, color: '255,190,120' }],
+    video: { from: 0.6 },
   },
   {
     id: 'temple-garden',

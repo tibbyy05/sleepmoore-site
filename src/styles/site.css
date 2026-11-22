@@ -624,6 +624,9 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
 }
 .world-art { position: absolute; inset: 0; z-index: -1; }
 .world-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* A world's video loop fades in over its still once it is playing, so the still stays the first paint. */
+.world-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 2s ease; pointer-events: none; }
+.world-video.is-live { opacity: 1; }
 .world-art::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background:
@@ -730,7 +733,7 @@ body:has(.dock.is-shown) footer { padding-bottom: 120px; }
   .dock-toggle { width: 46px; height: 46px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ambience { display: none; }
+  .ambience, .world-video { display: none; }
   .dock { transition: opacity 0.2s; }
   .more-card img { transition: none; }
 }

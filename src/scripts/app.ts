@@ -252,6 +252,9 @@ document.addEventListener('astro:page-load', () => {
     }) as unknown as () => void);
   }
 
+  const wv = $<HTMLVideoElement>('video.world-video');
+  if (wv) teardown.push(bindWorldVideo(wv));
+
   if (!reduced.matches) {
     import('./motion').then(({ mountMotion }) => { teardown.push(mountMotion()); }).catch(() => {});
     const canvases = $$<HTMLCanvasElement>('canvas[data-ambience]');
@@ -443,6 +446,33 @@ function bindHeroVideo() {
     if (p && p.then) p.then(() => v.classList.add('is-live')).catch(() => {}); else v.classList.add('is-live');
   }, { once: true });
   v.load();
+}
+
+// ---------- World video: a seamless loop over the still, after the page has loaded ----------
+// Skipped for reduced motion and data saver. Paused while off screen.
+function bindWorldVideo(v: HTMLVideoElement): () => void {
+  const saveData = !!((navigator as any).connection && (navigator as any).connection.saveData);
+  // Where the crop of the 16:9 picture ends on the right, given the screen's shape and the focus point.
+  const fx = parseFloat(getComputedStyle(v).objectPosition) / 100;
+  const shown = Math.min(1, (v.clientWidth / Math.max(1, v.clientHeight)) / (16 / 9));
+  const rightEdge = (1 - shown) * (isNaN(fx) ? 0.5 : fx) + shown;
+  const offFrame = rightEdge < Number(v.dataset.from || 0) + 0.05;
+  if (reduced.matches || saveData || offFrame || !v.canPlayType) { v.remove(); return () => {}; }
+  let io: IntersectionObserver | null = null, timer = 0, alive = true;
+  const start = () => {
+    if (!alive) return;
+    const add = (src: string, type: string) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); };
+    if (v.canPlayType('video/webm; codecs=vp9')) add(v.dataset.webm!, 'video/webm');
+    add(v.dataset.mp4!, 'video/mp4');
+    v.addEventListener('playing', () => v.classList.add('is-live'), { once: true });
+    io = new IntersectionObserver(([en]) => { if (en.isIntersecting) v.play().catch(() => {}); else v.pause(); });
+    io.observe(v);
+    v.load();
+  };
+  // After the still has painted and the page is idle, so the video never competes with it.
+  const later = () => { timer = window.setTimeout(start, 600); };
+  if (document.readyState === 'complete') later(); else window.addEventListener('load', later, { once: true });
+  return () => { alive = false; clearTimeout(timer); window.removeEventListener('load', later); io?.disconnect(); v.pause(); };
 }
 
 // Diagnostics for devices we cannot attach to: open any page with ?debug=1 and press play.
