@@ -277,14 +277,13 @@ section { padding: clamp(80px, 10vw, 128px) 0; }
 .proof-list b { font: 600 15px/1.3 var(--sans); color: var(--text); }
 .proof-list small { font: 400 13px/1.4 var(--sans); color: var(--muted); }
 
-/* Desktop: a roomier strip, icon in a soft gold ring above two lines of type. */
+/* Desktop: one slim row, a small gold-ringed icon beside two short lines, spread across the width. */
 @media (min-width: 1025px) {
-  .proof-list li { flex-direction: column; align-items: center; text-align: center; gap: 18px; padding: 56px 20px; }
+  .proof-list li { justify-content: center; gap: 14px; padding: 16px 20px; }
   .proof-list li:first-child { padding-left: 20px; }
-  .proof-list .icon { width: 64px; height: 64px; padding: 17px; box-sizing: border-box; border-radius: 50%; background: rgba(213, 162, 79, 0.1); box-shadow: inset 0 0 0 1px rgba(213, 162, 79, 0.28); }
-  .proof-list span { align-items: center; gap: 6px; }
-  .proof-list b { font-size: 21px; font-weight: 700; letter-spacing: -0.01em; }
-  .proof-list small { font-size: 16px; max-width: 30ch; text-wrap: balance; }
+  .proof-list .icon { width: 40px; height: 40px; padding: 10px; box-sizing: border-box; border-radius: 50%; background: rgba(213, 162, 79, 0.1); box-shadow: inset 0 0 0 1px rgba(213, 162, 79, 0.28); }
+  .proof-list b { font-size: 16px; font-weight: 700; }
+  .proof-list small { font-size: 13.5px; }
 }
 
 /* Questions */
@@ -517,9 +516,10 @@ footer a:hover { color: var(--gold); }
   .find-grid, .make-grid, .free-grid { grid-template-columns: 1fr; }
   .free-copy { grid-template-columns: 1fr; gap: 16px; }
   .scene-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .proof-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .proof-list li { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
-  .proof-list li:nth-child(-n+2) { border-top: 0; }
+  .proof-list li { padding: 14px 12px; gap: 10px; }
+  .proof-list .icon { width: 22px; height: 22px; }
+  .proof-list b { font-size: 14px; }
+  .proof-list small { font-size: 12px; }
   .night-grid { grid-template-columns: 1fr; gap: 0; }
   .night-stage { position: sticky; top: 72px; height: 52vh; height: 52svh; z-index: 2; align-items: stretch; padding: 0 0 12px; background: var(--bg-deep); box-shadow: 0 24px 24px -24px rgba(0, 0, 0, 0.8); }
   .stage-card { aspect-ratio: auto; height: auto; max-height: none; border-radius: 22px; }
@@ -568,10 +568,13 @@ footer a:hover { color: var(--gold); }
   .dest img { width: 84px; height: 64px; border-radius: 10px; }
   .dest-line { font-size: 15px; }
   .scene-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-  .proof-list { grid-template-columns: 1fr; }
-  .proof-list li { padding: 16px 0; border-top: 1px solid var(--line); }
-  .proof-list li:nth-child(-n+2) { border-top: 1px solid var(--line); }
-  .proof-list li:first-child { border-top: 0; }
+  .proof-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .proof-list li { padding: 12px 0 12px 12px; border-left: 1px solid var(--line); border-top: 1px solid var(--line); gap: 10px; }
+  .proof-list li:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .proof-list li:nth-child(-n+2) { border-top: 0; }
+  .proof-list .icon { width: 20px; height: 20px; }
+  .proof-list b { font-size: 13px; }
+  .proof-list small { font-size: 11.5px; }
   .faq-list summary { font-size: 20px; padding: 18px 0; }
   .scene-strip span, .scene-strip figcaption { font-size: 13px; }
   .night-stage { top: 64px; height: 48vh; height: 48svh; }
