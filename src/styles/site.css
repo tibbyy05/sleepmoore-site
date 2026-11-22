@@ -1057,3 +1057,68 @@ footer .foot-sounds { margin-top: 18px; padding-top: 18px; border-top: 1px solid
   .compare-table { font-size: 14px; }
   .compare-table th, .compare-table td { padding: 12px 14px; }
 }
+
+/* ---------- Light mode: the lamp is on ----------
+   The cord (Cord.astro) toggles html.light. Pages become cream paper with dark ink; anything that
+   sits on a night picture (the hero, photo cards, the player, the dock, the phone mock-ups, the
+   mobile menu) keeps the night tokens, so it reads the same in both modes. */
+html.light {
+  color-scheme: light;
+  --bg: #f3ecdf; --bg-2: #ebe2d2; --bg-deep: #e3d8c4; --surface: #fbf7ef; --raised: #ffffff;
+  --line: rgba(40, 31, 22, 0.13); --line-strong: rgba(40, 31, 22, 0.3);
+  --text: #241d15; --text-2: #3d3328; --muted: #685b4c; --faint: #8a7d6b;
+  --gold: #94641a; --gold-ink: #fbf6ec; --dusk: #3d5c95; --sage: #4c6843;
+}
+html.light :is(.hero, .world-hero, .feature-card, .preset, .stage-card, .more-card, .story-cover, .sound-card, .cover-card,
+  .player, .dock, .moods, .orbs, .ios-hint, .menu, .phone, .night-stage, .lib-art),
+html.light body[data-overlay] .top:not(.is-stuck) {
+  color-scheme: dark;
+  --bg: #0b0e15; --bg-2: #0f131d; --bg-deep: #07090e; --surface: #171c27; --raised: #222838;
+  --line: rgba(243, 234, 219, 0.12); --line-strong: rgba(243, 234, 219, 0.28);
+  --text: #f3eadb; --text-2: #d9d2c4; --muted: #b8b3a7; --faint: #8e8778;
+  --gold: #d5a24f; --gold-ink: #0b0e15; --dusk: #86a9e3; --sage: #9ab88f;
+  color: var(--text);
+}
+/* Header: cream glass once it sticks */
+html.light .top.is-stuck { background: rgba(246, 240, 229, 0.86); box-shadow: 0 1px 0 var(--line); }
+html.light .nav a { text-shadow: none; }
+html.light body[data-overlay] .top:not(.is-stuck) .nav a { text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5); }
+html.light .nav a:hover { background: rgba(40, 31, 22, 0.07); }
+html.light body[data-overlay] .top:not(.is-stuck) .nav a:hover { background: rgba(243, 234, 219, 0.12); }
+html.light .nav a[aria-current] { background: rgba(148, 100, 26, 0.12); }
+html.light .pill { box-shadow: 0 6px 20px rgba(40, 31, 22, 0.18); }
+html.light .pill:hover { background: #3a2f23; }
+html.light body[data-overlay] .top:not(.is-stuck) .pill:hover, html.light .menu .pill:hover { background: #fff; }
+/* Panels and controls that drew cream lines on dark */
+html.light .mixer { border-color: var(--line); box-shadow: 0 20px 50px -30px rgba(40, 31, 22, 0.35); }
+html.light .timer-row { border-top-color: var(--line); }
+html.light .layer input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(90deg, var(--gold) var(--p), rgba(40, 31, 22, 0.14) var(--p)); }
+html.light .layer input[type="range"]::-moz-range-track { background: rgba(40, 31, 22, 0.14); }
+html.light .story-play { background: rgba(40, 31, 22, 0.03); }
+html.light .story-play:hover { background: rgba(40, 31, 22, 0.07); }
+html.light .compare-table thead th { background: rgba(40, 31, 22, 0.04); }
+html.light .press-shots a, html.light .sound-card, html.light .cover-card { box-shadow: 0 18px 40px -24px rgba(40, 31, 22, 0.45); }
+html.light .dest .go-ring { background: transparent; }
+html.light ::selection { background: rgba(148, 100, 26, 0.25); }
+/* Colour changes ease over when the cord is pulled (not on first paint) */
+html.theme-fade, html.theme-fade * { transition: background-color 0.9s var(--ease), color 0.9s var(--ease), border-color 0.9s var(--ease), box-shadow 0.9s var(--ease) !important; }
+
+/* ---------- The cord ---------- */
+.cord { position: fixed; top: 0; right: max(8px, calc(var(--gutter) / 2 - 22px)); z-index: 30; width: 44px; pointer-events: none; }
+.cord-grab { position: relative; display: flex; flex-direction: column; align-items: center; will-change: transform; }
+.cord-string { display: block; width: 1.5px; height: 104px; background: linear-gradient(180deg, rgba(176, 150, 112, 0.15), rgba(176, 150, 112, 0.85)); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12); }
+.cord-bead { pointer-events: auto; width: 44px; height: 44px; margin-top: -8px; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; display: grid; place-items: center; }
+.cord-bead::before { content: ""; width: 15px; height: 21px; border-radius: 8px 8px 9px 9px; background: linear-gradient(180deg, #e8c27a, #a8762f); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4); transition: transform 0.2s var(--ease); }
+.cord-bead:hover::before { transform: scale(1.08); }
+.cord-bead:active { cursor: grabbing; }
+.cord-bead:focus-visible { outline: 2px solid var(--gold); outline-offset: -6px; border-radius: 50%; }
+.cord-note { position: absolute; right: 42px; top: 108px; padding: 5px 9px; border-radius: 999px; background: #d5a24f; color: #241d15; font: 800 11px/1 var(--sans); white-space: nowrap; pointer-events: none; opacity: 0; scale: 0.4; transform-origin: 100% 50%; transition: scale 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); }
+.cord-note::after { content: ""; position: absolute; right: -5px; top: 50%; margin-top: -5px; border: 5px solid transparent; border-right: 0; border-left: 6px solid #d5a24f; }
+.cord-note.show { opacity: 1; scale: 1; }
+@media (prefers-reduced-motion: no-preference) { .cord-note.show { animation: cord-nudge 2.6s ease-in-out infinite; } }
+@keyframes cord-nudge { 0%, 100% { transform: rotate(-4deg) translateX(0); } 50% { transform: rotate(-2deg) translateX(-5px); } }
+@media (max-width: 760px) {
+  .cord { right: 58px; }
+  .cord-string { height: 74px; }
+  .cord-note { top: 78px; font-size: 10px; }
+}

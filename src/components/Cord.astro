@@ -1,0 +1,11 @@
+---
+// The lamp cord: pull it (drag it down or tap it) to switch the whole site between light mode
+// (lamp on, cream paper) and dark mode (the night). The choice is remembered on this device.
+---
+<div class="cord" id="cord" transition:persist>
+  <div class="cord-grab">
+    <span class="cord-string" aria-hidden="true"></span>
+    <button type="button" class="cord-bead" aria-pressed="false" aria-label="Pull the cord for dark mode"></button>
+    <span class="cord-note" aria-hidden="true">Pull me!</span>
+  </div>
+</div>

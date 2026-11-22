@@ -1,6 +1,7 @@
 ---
 import { Font } from 'astro:assets';
 import { ClientRouter } from 'astro:transitions';
+import Cord from '../components/Cord.astro';
 import Dock from '../components/Dock.astro';
 import IconSprite from '../components/IconSprite.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -38,7 +39,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content={fullBleed ? 'width=device-width, initial-scale=1, viewport-fit=cover' : 'width=device-width, initial-scale=1'}>
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0b0e15">
 <title>{title}</title>
 <meta name="description" content={description}>
@@ -68,10 +69,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 <script is:inline>
 function splitLetters(el){if(!el||el.querySelector('.ch'))return;var full=el.textContent.replace(/\s+/g,' ').trim(),i=0;Array.prototype.slice.call(el.childNodes).forEach(function(n){if(n.nodeType!==3)return;var f=document.createDocumentFragment();n.textContent.split(/(\s+)/).forEach(function(part){if(!part)return;if(/^\s+$/.test(part)){f.appendChild(document.createTextNode(' '));i++;return}var w=document.createElement('span');w.className='w';part.split('').forEach(function(c){var s=document.createElement('span');s.className='ch';s.setAttribute('aria-hidden','true');s.style.setProperty('--i',i);s.style.setProperty('--d',(2.4+(i%4)*0.4)+'s');var b=document.createElement('span');b.className='b';b.textContent=c;s.appendChild(b);w.appendChild(s);i++});f.appendChild(w)});el.replaceChild(f,n)});Array.prototype.slice.call(el.querySelectorAll('br')).forEach(function(b){b.setAttribute('aria-hidden','true')});var sr=document.createElement('span');sr.className='sr-only';sr.textContent=full;el.insertBefore(sr,el.firstChild)}
 </script>
+{/* Light mode (lamp on) unless this visitor pulled the cord for dark; set before first paint so nothing flashes. */}
+<script is:inline>
+(function(){function apply(){var d=null;try{d=localStorage.getItem('sm-theme')}catch(e){}var light=d!=='dark';document.documentElement.classList.toggle('light',light);var m=document.querySelector('meta[name=theme-color]');if(m)m.setAttribute('content',light?'#f3ecdf':'#0b0e15')}apply();document.addEventListener('astro:after-swap',apply)})();
+</script>
 <ClientRouter />
 <slot name="head" />
 </head>
-<body>
+<body data-overlay={fullBleed ? "" : undefined}>
 <IconSprite />
 <a class="skip" href="#main">Skip to content</a>
 <SiteHeader nav={nav} menu={menu} getHref={home ? '#get' : '/#get'} animateBrand={home} />
@@ -80,6 +85,7 @@ function splitLetters(el){if(!el||el.querySelector('.ch'))return;var full=el.tex
 </main>
 <SiteFooter />
 <Dock />
+<Cord />
 <script>
   import '../scripts/app';
   // Visitor analytics load once the page is idle, so they never compete with the first paint.

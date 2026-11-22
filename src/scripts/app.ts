@@ -192,6 +192,61 @@ document.addEventListener('astro:before-swap', (e) => {
   if (card) { card.style.viewTransitionName = 'world-scene'; card.dataset.vt = ''; }
 });
 
+// ---------- Lamp cord: light mode and dark mode ----------
+function bindCord() {
+  const cord = document.getElementById('cord');
+  if (!cord || cord.dataset.bound) return;
+  cord.dataset.bound = '1';
+  const grab = cord.querySelector<HTMLElement>('.cord-grab')!, bead = cord.querySelector<HTMLButtonElement>('.cord-bead')!, note = cord.querySelector<HTMLElement>('.cord-note')!;
+  const store = (k: string, v?: string) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch { /* private mode */ } return null; };
+  const label = () => {
+    const light = document.documentElement.classList.contains('light');
+    bead.setAttribute('aria-pressed', String(!light));
+    bead.setAttribute('aria-label', light ? 'Pull the cord for dark mode' : 'Pull the cord for light mode');
+  };
+  const toggle = () => {
+    const root = document.documentElement, light = !root.classList.contains('light');
+    root.classList.add('theme-fade');
+    root.classList.toggle('light', light);
+    store('sm-theme', light ? 'light' : 'dark');
+    store('sm-cord', '1');
+    note.classList.remove('show');
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', light ? '#f3ecdf' : '#0b0e15');
+    label();
+    setTimeout(() => root.classList.remove('theme-fade'), 1000);
+  };
+  // A pull: the string stretches, springs back, and the lamp clicks
+  const spring = (from: number) => {
+    if (reduced.matches) { grab.style.transform = ''; return; }
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const t = (now - t0) / 1000;
+      const y = from * Math.exp(-6 * t) * Math.cos(16 * t);
+      grab.style.transform = Math.abs(y) < 0.3 && t > 0.3 ? '' : `translateY(${y.toFixed(2)}px)`;
+      if (grab.style.transform) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  let pull: { y: number; d: number } | null = null;
+  bead.addEventListener('pointerdown', (e) => { pull = { y: e.clientY, d: 0 }; bead.setPointerCapture(e.pointerId); });
+  bead.addEventListener('pointermove', (e) => { if (!pull) return; pull.d = Math.max(0, Math.min(70, e.clientY - pull.y)); grab.style.transform = `translateY(${pull.d}px)`; });
+  const end = (cancel: boolean) => {
+    if (!pull) return;
+    const d = pull.d; pull = null;
+    if (cancel) { spring(d); return; }
+    if (d < 6) { spring(38); setTimeout(toggle, 160); return; } // a tap: a quick tug
+    spring(d);
+    if (d > 26) toggle();
+  };
+  bead.addEventListener('pointerup', () => end(false));
+  bead.addEventListener('pointercancel', () => end(true));
+  bead.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); spring(38); setTimeout(toggle, 160); } });
+  document.addEventListener('astro:after-swap', label);
+  label();
+  if (!store('sm-cord')) setTimeout(() => { if (!store('sm-cord')) note.classList.add('show'); }, 5000);
+}
+bindCord();
+
 // ---------- Per page ----------
 let teardown: (() => void)[] = [];
 
