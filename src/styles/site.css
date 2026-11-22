@@ -462,7 +462,7 @@ button:hover .play-ring, a:hover .play-ring { background: var(--text); color: va
 .free-grid { display: grid; grid-template-columns: 1fr; gap: 32px; }
 .free-copy { display: grid; grid-template-columns: auto 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
 .free h2 { font-size: clamp(28px, 2.7vw, 40px); line-height: 1.05; }
-@media (min-width: 1025px) { .free h2 br { display: none; } }
+@media (min-width: 761px) { .free h2 br { display: none; } }
 .free-lede { margin: 0; font: 400 17px/1.5 var(--sans); color: var(--muted); max-width: 36em; }
 .facts { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3vw, 48px); }
 .facts div { padding: 16px 0 0; border-top: 1px solid var(--line); }
@@ -515,10 +515,7 @@ footer a:hover { color: var(--gold); }
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .find-grid, .make-grid, .free-grid { grid-template-columns: 1fr; }
-  .free-copy { grid-template-columns: 1fr; gap: 24px; }
-  .facts { grid-template-columns: 1fr; gap: 0; }
-  .facts div { padding: 22px 0; }
-  .facts div:last-child { border-bottom: 1px solid var(--line); }
+  .free-copy { grid-template-columns: 1fr; gap: 16px; }
   .scene-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .proof-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .proof-list li { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
@@ -558,6 +555,9 @@ footer a:hover { color: var(--gold); }
   .player { gap: 10px; bottom: 18px; padding: 6px 6px 6px 8px; border-radius: 26px; align-items: center; }
   .player-name, .player .meter, .player-time { display: none; }
   .hero-note { display: none; } /* it would sit over the stove's fire */
+  .facts { grid-template-columns: 1fr; gap: 0; }
+  .facts div { padding: 16px 0; }
+  .facts div:last-child { border-bottom: 1px solid var(--line); }
   .hero-mix { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; padding: 6px 2px; }
   .moods { left: 0; right: 0; translate: none; max-width: none; bottom: 132px; padding: 0 var(--gutter); overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent); }
   .moods::-webkit-scrollbar { display: none; }
