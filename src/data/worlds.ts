@@ -54,7 +54,9 @@ export type Effect =
   | { kind: 'lightning'; sound: SoundId }
   | { kind: 'glow'; sound: SoundId; at: [number, number]; radius: number; color: string }
   /** Low cloud drifting across the valley; wind pushes it along. */
-  | { kind: 'mist'; sound: SoundId; band: [number, number] };
+  | { kind: 'mist'; sound: SoundId; band: [number, number] }
+  /** A long seamless strip of cloud scrolling across the sky; its speed follows the sound's fader. */
+  | { kind: 'clouds'; sound: SoundId; band: [number, number]; moon?: [number, number] };
 
 export type World = {
   id: string;
@@ -193,6 +195,7 @@ export const HERO_SCENE: { desktop: HeroLayout; mobile: HeroLayout } = {
     glass: [0.175, 0.06, 0.885, 0.71],
     stove: [0.05759, 0.56762, 0.13051, 0.70538],
     effects: [
+      { kind: 'clouds', sound: 'wind', band: [0.06, 0.44], moon: [0.808, 0.131] },
       ...HERO_SHARED,
       { kind: 'glow', sound: 'fire', at: [0.094, 0.66], radius: 0.16, color: '255,150,70' },
       { kind: 'glow', sound: 'fire', at: [0.955, 0.52], radius: 0.07, color: '255,200,140' },
@@ -204,6 +207,7 @@ export const HERO_SCENE: { desktop: HeroLayout; mobile: HeroLayout } = {
     glass: [0.485, 0.06, 1, 0.71],
     stove: [0.10925, 0.56762, 0.34263, 0.70538],
     effects: [
+      { kind: 'clouds', sound: 'wind', band: [0.06, 0.44] },
       ...HERO_SHARED,
       { kind: 'glow', sound: 'fire', at: [0.226, 0.66], radius: 0.5, color: '255,150,70' },
     ],

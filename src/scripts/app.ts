@@ -263,7 +263,8 @@ document.addEventListener('astro:page-load', () => {
             const L = window.matchMedia('(max-width: 760px)').matches ? HERO_SCENE.mobile : HERO_SCENE.desktop;
             teardown.push(mountAmbience(cv, {
               worldId: 'rainy-cabin',
-              effects: [{ kind: 'rain', sound: 'rain' }, ...L.effects],
+              // Clouds sit behind the rain; everything else draws over it
+              effects: [...L.effects.filter((e) => e.kind === 'clouds'), { kind: 'rain', sound: 'rain' }, ...L.effects.filter((e) => e.kind !== 'clouds')],
               natural: L.natural, position: L.position, glass: L.glass,
             }));
             import('./stove').then(({ mountStove }) => {

@@ -18,6 +18,13 @@ type Options = {
 type P = { x: number; y: number; vx: number; vy: number; r: number; a: number; life: number; age: number; seed: number };
 
 const IDLE = 0.22;
+
+// The cloud strip is shared by every scene that uses it.
+let cloudImg: HTMLImageElement | null = null;
+function clouds() {
+  if (!cloudImg) { cloudImg = new Image(); cloudImg.decoding = 'async'; cloudImg.src = '/img/clouds-band.webp'; }
+  return cloudImg.complete && cloudImg.naturalWidth ? cloudImg : null;
+}
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void {
@@ -45,6 +52,9 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
   const pools = o.effects.map(() => [] as P[]);
   const level = o.effects.map(() => IDLE);
   let flash = 0, nextFlash = performance.now() + rand(6000, 14000);
+  // Clouds: scroll offset in screen pixels, and a speed that eases toward the wind
+  let cloudX = Math.random() * 4000, cloudSpeed = 0;
+  const off = document.createElement('canvas'), offc = off.getContext('2d');
 
   // Playing: the fader and the live loudness. Paused: a quiet preview that still follows the fader.
   const playingHere = () => state.playing && state.current === o.worldId;
@@ -263,6 +273,47 @@ export function mountAmbience(canvas: HTMLCanvasElement, o: Options): () => void
             c.beginPath(); c.arc(x, y, rx, 0, 6.283); c.fill(); c.restore();
           }
           c.restore();
+          break;
+        }
+        case 'clouds': {
+          const img = clouds(), g0 = o.glass;
+          if (!img || !offc) break;
+          const x0 = g0 ? px(g0[0]) : 0, x1 = g0 ? px(g0[2]) : w;
+          const y0 = Math.max(0, py(e.band[0])), y1 = Math.min(h, py(e.band[1]));
+          const rw = Math.ceil(x1 - x0), rh = Math.ceil(y1 - y0);
+          if (rw < 2 || rh < 2) break;
+          if (off.width !== rw || off.height !== rh) { off.width = rw; off.height = rh; }
+          // Wind sets the pace: a slow drift when still, clouds racing by in a gale
+          const playing = state.playing && state.current === o.worldId;
+          const windNow = faderLevel(o.worldId, e.sound) * (playing ? 0.85 + 0.5 * energy : 1);
+          cloudSpeed += ((4 + 110 * windNow * windNow + 30 * windNow) - cloudSpeed) * Math.min(1, dt * 0.7);
+          cloudX += cloudSpeed * dt;
+          offc.clearRect(0, 0, rw, rh);
+          // Two layers for depth: high thin cloud, and lower cloud moving faster
+          const layers = [[1.0, 1.0, 0.45, 0], [1.45, 1.75, 0.68, 0.22]];
+          for (const [scale, pace, alpha, drop] of layers) {
+            const th = rh * scale, tw = img.naturalWidth * th / img.naturalHeight;
+            let x = -((cloudX * pace + (scale > 1 ? tw * 0.5 : 0)) % tw);
+            offc.globalAlpha = alpha;
+            for (; x < rw; x += tw) offc.drawImage(img, x, rh * drop - th * 0.12, tw, th);
+          }
+          offc.globalAlpha = 1;
+          // Moonlight catches the clouds that pass the moon
+          if (e.moon) {
+            const mx = px(e.moon[0]) - x0, my = py(e.moon[1]) - y0, mr = rh * 0.55;
+            offc.globalCompositeOperation = 'source-atop';
+            const mg = offc.createRadialGradient(mx, my, 0, mx, my, mr);
+            mg.addColorStop(0, 'rgba(255,248,230,0.55)'); mg.addColorStop(1, 'rgba(255,248,230,0)');
+            offc.fillStyle = mg; offc.fillRect(0, 0, rw, rh);
+          }
+          // Fade out at the top and above the mountains
+          offc.globalCompositeOperation = 'destination-in';
+          const fade = offc.createLinearGradient(0, 0, 0, rh);
+          fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(0.12, 'rgba(0,0,0,1)');
+          fade.addColorStop(0.62, 'rgba(0,0,0,0.9)'); fade.addColorStop(1, 'rgba(0,0,0,0)');
+          offc.fillStyle = fade; offc.fillRect(0, 0, rw, rh);
+          offc.globalCompositeOperation = 'source-over';
+          c.drawImage(off, x0, y0);
           break;
         }
         case 'lightning': {
