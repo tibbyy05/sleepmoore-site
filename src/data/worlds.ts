@@ -191,6 +191,8 @@ export type HeroLayout = {
   /** The area the fire videos cover; the stove door frames it. */
   stove: [number, number, number, number];
   effects: Effect[];
+  /** Where each sound's control sits in the picture, and how wide its spotlight is (share of image width). */
+  orbs: { id: SoundId; at: [number, number]; spot: number }[];
 };
 const HERO_SHARED: Effect[] = [
   { kind: 'fireflies', sound: 'night', band: [0.46, 0.68] },
@@ -201,6 +203,12 @@ export const HERO_SCENE: { desktop: HeroLayout; mobile: HeroLayout } = {
     natural: [2560, 1434], position: [0.5, 0.4],
     glass: [0.175, 0.06, 0.885, 0.71],
     stove: [0.05759, 0.56762, 0.13051, 0.70538],
+    orbs: [
+      { id: 'rain', at: [0.27, 0.24], spot: 0.2 },
+      { id: 'fire', at: [0.094, 0.62], spot: 0.075 },
+      { id: 'night', at: [0.74, 0.56], spot: 0.14 },
+      { id: 'wind', at: [0.62, 0.15], spot: 0.2 },
+    ],
     effects: [
       { kind: 'clouds', sound: 'wind', band: [0.06, 0.44], moon: [0.808, 0.131] },
       ...HERO_SHARED,
@@ -213,6 +221,12 @@ export const HERO_SCENE: { desktop: HeroLayout; mobile: HeroLayout } = {
     natural: [800, 1434], position: [0.3, 0.4],
     glass: [0.485, 0.06, 1, 0.71],
     stove: [0.10925, 0.56762, 0.34263, 0.70538],
+    orbs: [
+      { id: 'rain', at: [0.58, 0.13], spot: 0.45 },
+      { id: 'fire', at: [0.226, 0.66], spot: 0.28 },
+      { id: 'night', at: [0.75, 0.72], spot: 0.38 },
+      { id: 'wind', at: [0.75, 0.25], spot: 0.45 },
+    ],
     effects: [
       { kind: 'clouds', sound: 'wind', band: [0.06, 0.44] },
       ...HERO_SHARED,

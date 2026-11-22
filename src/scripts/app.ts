@@ -410,27 +410,53 @@ function bindCarousel(root: HTMLElement) {
 
 // ---------- Hero video: desktop, motion allowed, no data saver ----------
 // ---------- Hero mix: four small faders in the hero player; the picture follows them ----------
+/** Each hero sound's own colour: rain dusk blue, fire amber, crickets firefly green, wind silver. */
+const HERO_COLORS: Record<string, string> = { rain: '134,169,227', fire: '240,160,80', night: '200,225,110', wind: '214,221,234' };
+
 function bindHeroMix() {
   const box = $<HTMLElement>('[data-hero-mix]');
   if (!box) return;
   const worldId = box.dataset.heroMix!;
   box.innerHTML = '';
+  const bars: Record<string, (v: number) => void> = {};
+  let orbs: { sync: () => void } | null = null;
   engine.levelsFor(worldId).forEach(([id, level]) => {
     const s = SOUNDS[id as SoundId];
     const label = document.createElement('label');
     label.className = 'hm';
+    label.style.setProperty('--c', HERO_COLORS[id] || '213,162,79');
     label.innerHTML =
-      '<span class="hm-name"><svg class="icon" aria-hidden="true"><use href="#i-' + s.icon + '"></use></svg>' + s.label + '</span>' +
+      '<span class="hm-name"><svg class="icon" aria-hidden="true"><use href="#i-' + s.icon + '"></use></svg>' + s.label + '<b class="hm-val" aria-hidden="true">' + level + '%</b></span>' +
       '<input type="range" min="0" max="100" step="1" value="' + level + '" style="--p:' + level + '%" aria-valuetext="' + level + ' percent">';
     box.appendChild(label);
-    const input = $<HTMLInputElement>('input', label)!;
-    input.addEventListener('input', () => {
-      const v = Number(input.value);
+    const input = $<HTMLInputElement>('input', label)!, val = $('.hm-val', label)!;
+    bars[id] = (v: number) => {
+      input.value = String(v);
       input.style.setProperty('--p', v + '%');
       input.setAttribute('aria-valuetext', v + ' percent');
+      val.textContent = v + '%';
+    };
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      bars[id](v);
       engine.setLevel(worldId, id, v);
+      orbs?.sync();
     });
   });
+  // The same controls, placed on the things themselves in the picture
+  const hero = box.closest<HTMLElement>('.hero'), art = hero && $<HTMLElement>('.hero-art', hero);
+  if (!hero || !art) return;
+  const L = window.matchMedia('(max-width: 760px)').matches ? HERO_SCENE.mobile : HERO_SCENE.desktop;
+  import('./hero-orbs').then(({ mountOrbs }) => {
+    if (!hero.isConnected) return;
+    const m = mountOrbs(hero, art, {
+      worldId, natural: L.natural, position: L.position,
+      orbs: L.orbs.map((o) => ({ ...o, label: SOUNDS[o.id].label, icon: SOUNDS[o.id].icon, color: HERO_COLORS[o.id] })),
+      onChange: (id, v) => { engine.setLevel(worldId, id, v); bars[id]?.(v); },
+    });
+    orbs = m;
+    teardown.push(m.destroy);
+  }).catch(() => {});
 }
 
 function bindHeroVideo() {
