@@ -419,7 +419,10 @@ function bindHeroMix() {
   const worldId = box.dataset.heroMix!;
   box.innerHTML = '';
   const bars: Record<string, (v: number) => void> = {};
-  let orbs: { sync: () => void } | null = null;
+  let orbs: { sync: () => void; spot: (id: string | null) => void; mark: (id: string | null) => void } | null = null;
+  const tracks: { id: string; canvas: HTMLCanvasElement; color: string }[] = [];
+  const moods = $<HTMLElement>('[data-moods]');
+  const clearMood = () => moods && $$('button', moods).forEach((b) => b.setAttribute('aria-pressed', 'false'));
   engine.levelsFor(worldId).forEach(([id, level]) => {
     const s = SOUNDS[id as SoundId];
     const label = document.createElement('label');
@@ -427,9 +430,19 @@ function bindHeroMix() {
     label.style.setProperty('--c', HERO_COLORS[id] || '213,162,79');
     label.innerHTML =
       '<span class="hm-name"><svg class="icon" aria-hidden="true"><use href="#i-' + s.icon + '"></use></svg>' + s.label + '<b class="hm-val" aria-hidden="true">' + level + '%</b></span>' +
-      '<input type="range" min="0" max="100" step="1" value="' + level + '" style="--p:' + level + '%" aria-valuetext="' + level + ' percent">';
+      '<span class="hm-track"><canvas aria-hidden="true"></canvas>' +
+      '<input type="range" min="0" max="100" step="1" value="' + level + '" style="--p:' + level + '%" aria-valuetext="' + level + ' percent"></span>';
     box.appendChild(label);
     const input = $<HTMLInputElement>('input', label)!, val = $('.hm-val', label)!;
+    tracks.push({ id, canvas: $<HTMLCanvasElement>('canvas', label)!, color: HERO_COLORS[id] || '213,162,79' });
+    // The bar and the room are one control: hover shows the light's label, dragging lights up its part of the room
+    label.addEventListener('pointerenter', () => orbs?.mark(id));
+    label.addEventListener('pointerleave', () => orbs?.mark(null));
+    input.addEventListener('pointerdown', () => orbs?.spot(id));
+    input.addEventListener('pointerup', () => orbs?.spot(null));
+    input.addEventListener('pointercancel', () => orbs?.spot(null));
+    input.addEventListener('focus', () => { if (input.matches(':focus-visible')) orbs?.spot(id); });
+    input.addEventListener('blur', () => orbs?.spot(null));
     bars[id] = (v: number) => {
       input.value = String(v);
       input.style.setProperty('--p', v + '%');
@@ -441,8 +454,41 @@ function bindHeroMix() {
       bars[id](v);
       engine.setLevel(worldId, id, v);
       orbs?.sync();
+      clearMood();
     });
   });
+  import('./hero-tracks').then(({ mountTracks, MOODS }) => {
+    if (!box.isConnected) return;
+    teardown.push(mountTracks(worldId, tracks));
+    if (!moods) return;
+    // Mood presets: one tap sweeps every fader to a mix, and the room follows
+    moods.innerHTML = '';
+    let sweep = 0;
+    MOODS.forEach((m) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'mood'; b.textContent = m.name;
+      b.setAttribute('aria-pressed', 'false');
+      moods.appendChild(b);
+      b.addEventListener('click', () => {
+        cancelAnimationFrame(sweep);
+        $$('button', moods).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        const from = Object.fromEntries(engine.levelsFor(worldId)) as Record<string, number>;
+        const t0 = performance.now(), dur = reduced.matches ? 1 : 1100;
+        const step = (now: number) => {
+          const k = Math.min(1, (now - t0) / dur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+          for (const id in m.levels) {
+            if (!(id in from)) continue;
+            const v = Math.round(from[id] + (m.levels[id] - from[id]) * e);
+            engine.setLevel(worldId, id, v); bars[id]?.(v);
+          }
+          orbs?.sync();
+          if (k < 1) sweep = requestAnimationFrame(step);
+        };
+        sweep = requestAnimationFrame(step);
+      });
+    });
+    teardown.push(() => cancelAnimationFrame(sweep));
+  }).catch(() => {});
   // The same controls, placed on the things themselves in the picture
   const hero = box.closest<HTMLElement>('.hero'), art = hero && $<HTMLElement>('.hero-art', hero);
   if (!hero || !art) return;

@@ -127,6 +127,14 @@ export function mountOrbs(hero: HTMLElement, art: HTMLElement, o: Options) {
 
   return {
     sync,
+    /** The bar's slider for this sound is being dragged or focused: light it up in the room. */
+    spot(id: string | null) {
+      const e = els.find((x) => x.spec.id === id) || null;
+      light(e); layer.classList.toggle('is-busy', !!e);
+      els.forEach((x) => x.b.classList.toggle('is-held', x === e));
+    },
+    /** The pointer is over the bar's slider for this sound: show its light's label. */
+    mark(id: string | null) { els.forEach((x) => x.b.classList.toggle('is-linked', x.spec.id === id)); },
     destroy() { cancelAnimationFrame(raf); clearTimeout(t); ro.disconnect(); layer.remove(); spot.remove(); hero.classList.remove('orbs-intro'); },
   };
 }

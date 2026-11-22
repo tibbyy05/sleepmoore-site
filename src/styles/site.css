@@ -196,10 +196,13 @@ picture > source { display: none; } /* with display: contents the sources would 
 .hm-name { display: flex; align-items: center; gap: 6px; font: 700 10px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: #d9d2c4; white-space: nowrap; }
 .hm-name .icon { width: 13px; height: 13px; color: rgb(var(--c, 213, 162, 79)); filter: drop-shadow(0 0 4px rgba(var(--c, 213, 162, 79), 0.6)); }
 .hm-val { margin-left: auto; font-weight: 800; letter-spacing: 0.04em; color: rgb(var(--c, 213, 162, 79)); font-variant-numeric: tabular-nums; }
-.hm input { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer; }
-.hm input::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, rgba(var(--c), 0.45), rgb(var(--c)) var(--p, 50%), rgba(243, 234, 219, 0.16) var(--p, 50%)); box-shadow: 0 0 calc(4px + var(--level) * 10px) rgba(var(--c), 0.35); }
-.hm input::-moz-range-track { height: 4px; border-radius: 4px; background: rgba(243, 234, 219, 0.16); }
-.hm input::-moz-range-progress { height: 4px; border-radius: 4px; background: rgb(var(--c)); }
+/* Living tracks: the canvas draws the tube and what lives in it; the range input sits on top */
+.hm-track { position: relative; display: block; height: 24px; }
+.hm-track canvas { position: absolute; left: 0; top: 50%; width: 100%; height: 13px; translate: 0 -50%; pointer-events: none; }
+.hm input { position: relative; z-index: 1; -webkit-appearance: none; appearance: none; width: 100%; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+.hm input::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+.hm input::-moz-range-track { height: 4px; background: transparent; }
+.hm input::-moz-range-progress { background: transparent; }
 .hm input::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fff, #f3eadb 55%, rgb(var(--c)) 140%); border: 0; box-shadow: 0 0 0 3px rgba(var(--c), 0.3), 0 0 14px rgba(var(--c), 0.65), 0 2px 6px rgba(0, 0, 0, 0.5); transition: transform 0.15s; }
 .hm input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #f3eadb; border: 0; box-shadow: 0 0 0 3px rgba(var(--c), 0.3), 0 0 14px rgba(var(--c), 0.65); }
 .hm input:active::-webkit-slider-thumb { transform: scale(1.2); }
@@ -223,7 +226,14 @@ picture > source { display: none; } /* with display: contents the sources would 
   -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); pointer-events: none; opacity: 0; transform: translateX(-4px); transition: opacity 0.3s, transform 0.3s var(--ease); }
 .orb-tag b { color: rgb(var(--c)); font-variant-numeric: tabular-nums; }
 .orb.tag-left .orb-tag { left: auto; right: calc(100% + 4px); transform: translateX(4px); }
-.orb:hover .orb-tag, .orb:focus-visible .orb-tag, .orb.is-held .orb-tag, .orbs-intro .orb-tag { opacity: 1; transform: none; }
+.orb:hover .orb-tag, .orb:focus-visible .orb-tag, .orb.is-held .orb-tag, .orb.is-linked .orb-tag, .orbs-intro .orb-tag { opacity: 1; transform: none; }
+.orb.is-linked .orb-core { transform: scale(1.18); }
+/* Mood presets above the player */
+.moods { position: absolute; left: 50%; bottom: 100px; translate: -50% 0; z-index: 2; display: flex; gap: 8px; max-width: calc(100% - 2 * var(--gutter)); }
+.mood { flex: none; min-height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(243, 234, 219, 0.22); background: rgba(11, 14, 21, 0.5); color: #e6dfd2;
+  font: 700 12.5px/1 var(--sans); cursor: pointer; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: background 0.25s, border-color 0.25s, color 0.25s; }
+.mood:hover { border-color: rgba(243, 234, 219, 0.5); color: #fff; }
+.mood[aria-pressed="true"] { background: rgba(243, 234, 219, 0.92); color: #10131c; border-color: transparent; }
 .orbs.is-busy .orb:not(.is-held) { opacity: 0.35; transition: opacity 0.3s; }
 @media (prefers-reduced-motion: no-preference) {
   .orbs-intro .orb::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(var(--c), 0.75); animation: orb-ripple 1.8s ease-out 0.6s 3 backwards; pointer-events: none; }
@@ -543,6 +553,8 @@ footer a:hover { color: var(--gold); }
   .player-name, .player .meter, .player-time { display: none; }
   .hero-note { display: none; } /* it would sit over the stove's fire */
   .hero-mix { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; padding: 6px 2px; }
+  .moods { left: 0; right: 0; translate: none; max-width: none; bottom: 132px; padding: 0 var(--gutter); overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent); }
+  .moods::-webkit-scrollbar { display: none; }
   .feature-card { aspect-ratio: 4 / 5; border-radius: 20px; }
   .feature-text { left: 20px; bottom: 20px; }
   .feature-card .play-ring { right: 16px; bottom: 16px; }
