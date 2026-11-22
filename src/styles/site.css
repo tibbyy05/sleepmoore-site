@@ -1176,6 +1176,11 @@ html.light .story-play:hover { background: rgba(40, 31, 22, 0.07); }
 html.light .compare-table thead th { background: rgba(40, 31, 22, 0.04); }
 html.light .press-shots a, html.light .sound-card, html.light .cover-card { box-shadow: 0 18px 40px -24px rgba(40, 31, 22, 0.45); }
 html.light .dest .go-ring { background: transparent; }
+/* Sound, story and meditation pages sit on cream in light mode: ink buttons, soft tags */
+html.light .lib-hero .play-pill { background: var(--text); color: #fbf6ec; box-shadow: 0 10px 26px -10px rgba(40, 31, 22, 0.45); }
+html.light .lib-hero .play-pill:hover { background: #3a2f23; }
+html.light .lib-hero .back-link, html.light .lib-hero .world-sounds li { background: rgba(40, 31, 22, 0.05); color: var(--text-2); border-color: var(--line); -webkit-backdrop-filter: none; backdrop-filter: none; }
+html.light .lib-hero .back-link:hover { color: var(--text); border-color: var(--line-strong); }
 html.light ::selection { background: rgba(148, 100, 26, 0.25); }
 /* Colour changes ease over when the cord is pulled (not on first paint) */
 html.theme-fade, html.theme-fade * { transition: background-color 0.9s var(--ease), color 0.9s var(--ease), border-color 0.9s var(--ease), box-shadow 0.9s var(--ease) !important; }

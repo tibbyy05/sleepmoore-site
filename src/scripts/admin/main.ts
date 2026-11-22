@@ -548,6 +548,7 @@ function renderClicks(host: HTMLElement, r: Report) {
       ${tile('play', 'Played a sound', pct(k.play_rate), delta(k.play_rate, kp.play_rate, m('play_rate')) + ` <span class="faint">${int(k.plays)} plays</span>`, 'Share of visits that pressed play')}
       ${tile('download-simple', 'App interest', pct(k.conv_rate), delta(k.conv_rate, kp.conv_rate, m('conv_rate')) + ` <span class="faint">${int(k.goals)} taps</span>`, 'Store badge or email link taps, as a share of visits')}
       ${tile('download-simple', 'Store badge taps', int(sum('store')), '<span class="faint">App Store and Google Play</span>', 'The badges say Coming soon; each tap is someone who wanted the app')}
+      <div class="card tile" data-signups data-tip-title="Launch list" data-tip-rows="People who left an email for launch day (all time)|" tabindex="0"><span class="kpi-label">${icon('envelope')}Launch list</span><span class="kpi-value num">…</span><span class="kpi-prev faint">emails for launch day</span></div>
       ${tile('envelope', 'Email clicks', int(sum('mailto')), '<span class="faint">hello@sleepmoore.app</span>', 'Clicks on the email link')}
       ${tile('arrow-up-right', 'Outbound clicks', int(sum('outbound')), '<span class="faint">links to other sites</span>', 'Clicks that left sleepmoore.app')}
     </div>
@@ -559,6 +560,12 @@ function renderClicks(host: HTMLElement, r: Report) {
     </div>
     <div class="section-gap">${card('Every click', table('clicks:' + kindTab, rows, cols, { sort: 'clicks' }) + `<p class="note">${icon('info')} Click rate is the share of people who saw the page and clicked that element.</p>`,
       { end: tabs('clk', [{ id: 'all', label: 'All' }, { id: 'click', label: 'Buttons & links' }, { id: 'store', label: 'Store' }, { id: 'mailto', label: 'Email' }, { id: 'outbound', label: 'Outbound' }]) + exportBtn('clicks:' + kindTab, rows, cols) })}</div>`;
+  // Launch list sign-ups are all-time, not tied to the date range
+  db.rpc('admin_signups').then(({ data }) => {
+    const t = host.querySelector('[data-signups]'); if (!t || !data) return;
+    t.querySelector('.kpi-value')!.textContent = int(data.total);
+    t.querySelector('.kpi-prev')!.textContent = `${int(data.iphone)} iPhone · ${int(data.android)} Android · ${int(data.last7)} this week`;
+  });
 }
 
 // ---------- Sounds ----------

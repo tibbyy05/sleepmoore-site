@@ -13,6 +13,7 @@ for (const w of WORLDS) {
   const img = await getImage({ src: SCENES[w.id], width: 112, height: 112, fit: 'cover', format: 'webp' });
   thumbs[w.id] = img.src;
 }
+thumbs['my-scene'] = '/img/scene-thumb.svg'; // Build your scene on the home page
 for (const s of STORIES) {
   const img = await getImage({ src: STORY_COVERS[s.id], width: 112, height: 112, fit: 'cover', position: 'top', format: 'webp' });
   thumbs[s.id] = img.src;
