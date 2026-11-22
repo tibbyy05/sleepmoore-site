@@ -99,6 +99,8 @@ function renderLayers(mixer: HTMLElement, worldId: string) {
       input.setAttribute('aria-valuetext', v + ' percent');
       out.textContent = v + '%';
       engine.setLevel(worldId, id, v);
+      // A fader always does something you can hear: if this mix is not the one playing, start it
+      if (!(state.playing && state.current === worldId) && !state.busy) engine.play(worldId);
     });
   });
 }
