@@ -1058,6 +1058,57 @@ footer .foot-sounds { margin-top: 18px; padding-top: 18px; border-top: 1px solid
   .compare-table th, .compare-table td { padding: 12px 14px; }
 }
 
+/* ---------- Build your scene ---------- */
+.builder { display: grid; gap: 18px; }
+.scene-stage { position: relative; aspect-ratio: 1000 / 440; border-radius: 28px; overflow: hidden; touch-action: pan-y; background: #070b18;
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(243, 234, 219, 0.08); transition: box-shadow 0.3s; }
+.scene-stage.is-over { box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.8), inset 0 0 0 2px rgba(213, 162, 79, 0.7); }
+.scene-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scene-hint { position: absolute; left: 0; right: 0; top: 20px; margin: 0; text-align: center; color: #e6dfd2; font: 700 16px/1.2 var(--sans); text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7); pointer-events: none; transition: opacity 0.5s; }
+.scene-hint.is-hidden { opacity: 0; }
+.tokens { display: flex; flex-wrap: wrap; gap: 10px; }
+.tok { display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 18px 0 8px; border-radius: 999px; border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--text); font: 700 15px/1 var(--sans); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transition: border-color 0.25s, background 0.25s, transform 0.2s var(--ease); }
+.tok:hover { transform: translateY(-1px); }
+.tok:active { cursor: grabbing; }
+.tok[aria-pressed="true"] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 14%, var(--surface)); }
+.tok-ico { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #141a2a; }
+.tok-ico svg { width: 20px; height: 20px; }
+.tok-clear { padding: 0 20px; cursor: pointer; }
+.tok-ghost { position: fixed; z-index: 60; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; translate: -50% -50%; pointer-events: none;
+  background: #141a2a; box-shadow: 0 0 0 2px rgba(213, 162, 79, 0.7), 0 0 30px rgba(213, 162, 79, 0.5); }
+.tok-ghost svg { width: 26px; height: 26px; }
+.placed { cursor: pointer; }
+.pop { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 0.45s var(--ease), opacity 0.45s; }
+.placed.is-new .pop { animation: scene-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.placed.is-leaving .pop { opacity: 0; transform: scale(0.8); }
+@keyframes scene-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+.flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1.1s ease-in-out infinite alternate; }
+.flame.f2 { animation-duration: 0.8s; animation-delay: -0.3s; } .flame.f3 { animation-duration: 1.4s; animation-delay: -0.6s; }
+@keyframes flick { 0% { transform: scale(1, 1) skewX(0deg); } 35% { transform: scale(0.94, 1.08) skewX(-3deg); } 70% { transform: scale(1.04, 0.94) skewX(3deg); } 100% { transform: scale(0.98, 1.04) skewX(-1deg); } }
+.fireglow { animation: glowpulse 1.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+@keyframes glowpulse { from { opacity: 0.7; transform: scale(0.95); } to { opacity: 1; transform: scale(1.05); } }
+.drop { animation: fall 0.9s linear infinite; }
+@keyframes fall { from { transform: translateY(0); opacity: 0; } 15% { opacity: 0.9; } to { transform: translateY(150px); opacity: 0; } }
+.cloud { animation: drift-x 9s ease-in-out infinite alternate; }
+@keyframes drift-x { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+.water { stroke-dasharray: 18 26; animation: flow 2.4s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -88; } }
+.fly { transform-box: fill-box; animation: hover 5s ease-in-out infinite alternate, blink 2.6s ease-in-out infinite; }
+@keyframes hover { from { transform: translate(0, 0); } 50% { transform: translate(12px, -10px); } to { transform: translate(-8px, 6px); } }
+@keyframes blink { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
+.gust { stroke-dasharray: 160 900; animation: gust 4.2s var(--ease) infinite; }
+@keyframes gust { from { stroke-dashoffset: 160; opacity: 0; } 20% { opacity: 0.8; } to { stroke-dashoffset: -900; opacity: 0; } }
+.twinkle { animation: tw 4s ease-in-out infinite alternate; }
+@keyframes tw { from { opacity: 0.25; } to { opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) {
+  .flame, .fireglow, .drop, .cloud, .water, .fly, .gust, .twinkle, .placed.is-new .pop { animation: none; }
+}
+@media (max-width: 760px) {
+  .scene-stage { aspect-ratio: 1000 / 620; border-radius: 20px; }
+  .tok { min-height: 48px; padding-right: 14px; font-size: 14px; }
+}
+
 /* ---------- Light mode: the lamp is on ----------
    The cord (Cord.astro) toggles html.light. Pages become cream paper with dark ink; anything that
    sits on a night picture (the hero, photo cards, the player, the dock, the phone mock-ups, the
@@ -1069,7 +1120,7 @@ html.light {
   --text: #241d15; --text-2: #3d3328; --muted: #685b4c; --faint: #8a7d6b;
   --gold: #94641a; --gold-ink: #fbf6ec; --dusk: #3d5c95; --sage: #4c6843;
 }
-html.light :is(.hero, .world-hero, .feature-card, .preset, .stage-card, .more-card, .story-cover, .sound-card, .cover-card,
+html.light :is(.hero, .world-hero, .scene-stage, .tok-ghost, .feature-card, .preset, .stage-card, .more-card, .story-cover, .sound-card, .cover-card,
   .player, .dock, .moods, .orbs, .ios-hint, .menu, .phone, .night-stage, .lib-art),
 html.light body[data-overlay] .top:not(.is-stuck) {
   color-scheme: dark;

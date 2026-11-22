@@ -339,10 +339,12 @@ export const SOUND_MIXES_BY_ID: Record<string, SoundMix> = Object.fromEntries(SO
 
 /** Anything the player can play: a world, a sound, a story or a meditation. */
 export type Mix = { id: string; name: string; layers: [SoundId, number][] };
-export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...SOUND_MIXES_BY_ID, ...STORIES_BY_ID, ...MEDITATIONS_BY_ID };
+/** The home page's Build your scene: every sound starts silent; placing a thing turns its sound up. */
+export const SCENE_MIX: Mix = { id: 'my-scene', name: 'Your scene', layers: [['fire', 0], ['rain', 0], ['stream', 0], ['night', 0], ['wind', 0]] };
+export const MIXES_BY_ID: Record<string, Mix> = { ...WORLDS_BY_ID, ...SOUND_MIXES_BY_ID, ...STORIES_BY_ID, ...MEDITATIONS_BY_ID, [SCENE_MIX.id]: SCENE_MIX };
 /** The page that belongs to a mix: the dock links back to it. */
 export const mixHref = (id: string) =>
-  id in STORIES_BY_ID ? `/stories/${id}/` : id in MEDITATIONS_BY_ID ? `/meditations/${id}/` : id in SOUND_MIXES_BY_ID ? `/sounds/${SOUND_MIXES_BY_ID[id].slug}/` : `/worlds/${id}/`;
+  id === SCENE_MIX.id ? '/#mix' : id in STORIES_BY_ID ? `/stories/${id}/` : id in MEDITATIONS_BY_ID ? `/meditations/${id}/` : id in SOUND_MIXES_BY_ID ? `/sounds/${SOUND_MIXES_BY_ID[id].slug}/` : `/worlds/${id}/`;
 /** Stories and meditations are guided: a voice that plays once over a bed, then the mix ends. */
 export const guidedKind = (id: string): 'story' | 'meditation' | null => (id in STORIES_BY_ID ? 'story' : id in MEDITATIONS_BY_ID ? 'meditation' : null);
 export const isStory = (id: string) => guidedKind(id) !== null;

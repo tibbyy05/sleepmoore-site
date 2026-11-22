@@ -1,7 +1,7 @@
 ---
 import GetApp from '../components/GetApp.astro';
 import Icon from '../components/Icon.astro';
-import Mixer from '../components/Mixer.astro';
+import SceneBuilder from '../components/SceneBuilder.astro';
 import PlayIcons from '../components/PlayIcons.astro';
 import PlayRing from '../components/PlayRing.astro';
 import Scene from '../components/Scene.astro';
@@ -282,27 +282,11 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
   <section class="make" id="mix" aria-labelledby="make-title">
     <div class="wrap">
       <header class="sec-head reveal">
-        <h2 id="make-title">Make it yours.</h2>
-        <p class="sub sans">Blend the sounds, set the timer, and build your perfect rest. The faders below are live.</p>
+        <h2 id="make-title">Build your scene.</h2>
+        <p class="sub sans">Drag a sound into the night: a campfire, a rain cloud, a stream, crickets, the wind. Each one plays as it lands. Tap it to send it away.</p>
       </header>
-      <div class="make-grid">
-        <Mixer id="mixer" class="reveal" />
-
-        <div class="presets reveal">
-          <p class="cap center">Presets</p>
-          <div class="preset-grid">
-            {PRESETS.map((p) => (
-              <button type="button" class="preset" data-play-world={p.id} aria-pressed="false">
-                <Scene id={p.id} widths={[400, 700]} sizes="(max-width: 1024px) 33vw, 220px" />
-                <span class="preset-name">{p.name}</span>
-                <PlayRing small />
-                <span class="sr-only">Play {p.name}</span>
-              </button>
-            ))}
-          </div>
-          <p class="presets-note">In the app, swap any layer for one of forty recorded sounds, from brown noise to a night train, and save the mix. It is waiting tomorrow night.</p>
-        </div>
-      </div>
+      <SceneBuilder />
+      <p class="presets-note">In the app, swap any layer for one of forty recorded sounds, from brown noise to a night train, and save the mix. It is waiting tomorrow night.</p>
     </div>
   </section>
 

@@ -294,6 +294,8 @@ document.addEventListener('astro:page-load', () => {
 
   bindNightStory();
   bindHeroMix();
+  const builder = $<HTMLElement>('[data-builder]');
+  if (builder) import('./scene-builder').then(({ mountBuilder }) => { if (builder.isConnected) teardown.push(mountBuilder(builder)); }).catch(() => {});
   $$('[data-carousel]').forEach(bindCarousel);
   render();
 
