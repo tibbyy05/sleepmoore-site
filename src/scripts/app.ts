@@ -586,8 +586,8 @@ function bindWorldVideo(v: HTMLVideoElement): () => void {
   // Where the crop of the 16:9 picture ends on the right, given the screen's shape and the focus point.
   const fx = parseFloat(getComputedStyle(v).objectPosition) / 100;
   const shown = Math.min(1, (v.clientWidth / Math.max(1, v.clientHeight)) / (16 / 9));
-  const rightEdge = (1 - shown) * (isNaN(fx) ? 0.5 : fx) + shown;
-  const offFrame = rightEdge < Number(v.dataset.from || 0) + 0.05;
+  const leftEdge = (1 - shown) * (isNaN(fx) ? 0.5 : fx), rightEdge = leftEdge + shown;
+  const offFrame = rightEdge < Number(v.dataset.from || 0) + 0.05 || leftEdge > Number(v.dataset.to || 1) - 0.05;
   if (reduced.matches || saveData || offFrame || !v.canPlayType) { v.remove(); return () => {}; }
   let io: IntersectionObserver | null = null, timer = 0, alive = true;
   const start = () => {

@@ -79,7 +79,7 @@ const ADDS = world.inApp
     <section class="world-hero" aria-labelledby="world-title">
       <div class="world-art" aria-hidden="true">
         <Scene id={world.id} described widths={[828, 1280, 1920, 2560]} sizes="(max-aspect-ratio: 16/9) 178vh, 100vw" loading="eager" fetchpriority="high" style={`view-transition-name:world-scene;object-position:${world.focus}`} />
-        {world.video && <video class="world-video" muted loop playsinline disablepictureinpicture preload="none" tabindex="-1" style={`object-position:${world.focus}`} data-from={world.video.from} data-webm={`/video/worlds/${world.id}.webm`} data-mp4={`/video/worlds/${world.id}.mp4`}></video>}
+        {world.video && <video class="world-video" muted loop playsinline disablepictureinpicture preload="none" tabindex="-1" style={`object-position:${world.focus}`} data-from={world.video.from} data-to={world.video.to ?? 1} data-webm={`/video/worlds/${world.id}.webm`} data-mp4={`/video/worlds/${world.id}.mp4`}></video>}
         <canvas class="ambience" data-ambience={world.id}></canvas>
       </div>
       <div class="wrap world-copy">

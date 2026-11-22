@@ -76,9 +76,9 @@ export type World = {
   effects: Effect[];
   /**
    * A seamless video loop of the picture (public/video/worlds/<id>.webm and .mp4), shown over the still once it plays.
-   * `from` is where the movement starts across the picture (0 to 1): screens whose crop ends before it keep the still.
+   * `from`..`to` is where the movement is across the picture (0 to 1): screens whose crop misses it keep the still.
    */
-  video?: { from: number };
+  video?: { from: number; to?: number };
 };
 
 export const WORLDS: World[] = [
@@ -148,7 +148,9 @@ export const WORLDS: World[] = [
     layers: [['stream', 65], ['chimes', 35], ['wind', 30]],
     inApp: true,
     focus: '45% 50%',
-    effects: [{ kind: 'leaves', sound: 'wind' }, { kind: 'spray', sound: 'stream', band: [0.5, 0.8] }],
+    // The waterfall and pond move in the video loop; the canvas adds the maple leaves on the breeze.
+    effects: [{ kind: 'leaves', sound: 'wind' }],
+    video: { from: 0.2, to: 0.36 },
   },
   {
     id: 'desert-camp',
