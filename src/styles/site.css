@@ -457,13 +457,14 @@ button:hover .play-ring, a:hover .play-ring { background: var(--text); color: va
 .presets-note { font: 400 15px/1.6 var(--sans); color: var(--muted); text-align: center; margin: 4px auto 0; max-width: 42em; }
 
 /* Free */
-.free { background: var(--bg); }
-.free-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 80px); align-items: start; }
+.free { background: var(--bg); padding-block: clamp(64px, 7vw, 100px); }
+/* Desktop: headline and intro side by side, the three facts in one row beneath */
+.free-grid { display: grid; grid-template-columns: 1fr; gap: clamp(36px, 4vw, 56px); }
+.free-copy { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 80px); align-items: end; }
 .free h2 { font-size: clamp(34px, 3.8vw, 50px); line-height: 1.02; }
-.free-lede { margin: 24px 0 0; font: 400 clamp(20px, 1.8vw, 24px)/1.4 var(--sans); color: var(--muted); max-width: 30em; }
-.facts { margin: 0; display: flex; flex-direction: column; }
-.facts div { padding: 22px 0; border-top: 1px solid var(--line); }
-.facts div:last-child { border-bottom: 1px solid var(--line); }
+.free-lede { margin: 0; font: 400 clamp(20px, 1.8vw, 24px)/1.4 var(--sans); color: var(--muted); max-width: 30em; }
+.facts { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 3vw, 48px); }
+.facts div { padding: 24px 0 0; border-top: 1px solid var(--line); }
 .facts dt { font: 800 26px/1.15 var(--serif); margin-bottom: 6px; }
 .facts dd { margin: 0; color: var(--muted); font-size: 16px; }
 
@@ -513,6 +514,10 @@ footer a:hover { color: var(--gold); }
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .find-grid, .make-grid, .free-grid { grid-template-columns: 1fr; }
+  .free-copy { grid-template-columns: 1fr; gap: 24px; }
+  .facts { grid-template-columns: 1fr; gap: 0; }
+  .facts div { padding: 22px 0; }
+  .facts div:last-child { border-bottom: 1px solid var(--line); }
   .scene-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .proof-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .proof-list li { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
