@@ -107,7 +107,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
         <PlayIcons />
         <span data-label>Play this soundscape</span>
       </button>
-      <p class="hero-note">The real app sound. Move a fader and the room follows.</p>
+      <p class="hero-note">The real app sound. Move a fader and the room follows. <a class="nudge" href="#get">All night, screen off, in the app <span aria-hidden="true">&rarr;</span></a></p>
     </div>
 
     <p class="ios-hint" data-ios-hint>Hearing nothing on iPhone? Flip the side switch off silent and turn the volume up.</p>
@@ -199,7 +199,8 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
     eyebrow="Night journeys"
     title="Stories to fall asleep to."
     sub="Read slowly by one calm voice, with the sounds of the place underneath. Press play to hear how each one begins."
-    note={`In the app each journey runs ${storyRange} minutes: the story, then the sounds carry on and fade as you sleep. Add rain to any of them.`}
+    note={`In the app each journey runs ${storyRange} minutes: the story, then the sounds carry on and fade as you sleep.`}
+    nudge="Hear the whole story in the app"
     play="Hear the opening"
     label="Night journeys"
     items={storyItems}
@@ -211,6 +212,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
     title="Quiet the mind, soften the body."
     sub="Short sessions for the moments sleep won't come, read by the same calm voice over a soft pad. Press play for the first minutes."
     note="In the app the pad plays on after the voice ends, then fades, and the screen dims for the night."
+    nudge="Full sessions in the app"
     play="Try the first minutes"
     label="Guided meditations"
     items={meditationItems}
@@ -286,7 +288,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
         <p class="sub sans">Drag a sound into the night: a campfire, a rain cloud, a stream, crickets, the wind. Each one plays as it lands. Tap it to send it away.</p>
       </header>
       <SceneBuilder />
-      <p class="presets-note">In the app, swap any layer for one of forty recorded sounds, from brown noise to a night train, and save the mix. It is waiting tomorrow night.</p>
+      <p class="presets-note">In the app, swap any layer for one of forty recorded sounds and save the mix. It is waiting tomorrow night. <a class="nudge" href="#get">Save your scene in the app <span aria-hidden="true">&rarr;</span></a></p>
     </div>
   </section>
 

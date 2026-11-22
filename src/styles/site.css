@@ -455,6 +455,12 @@ button:hover .play-ring, a:hover .play-ring { background: var(--text); color: va
 .preset .play-ring { position: absolute; right: 14px; bottom: 14px; z-index: 1; width: 36px; height: 36px; }
 .preset .play-ring svg { width: 13px; height: 13px; }
 .presets-note { font: 400 15px/1.6 var(--sans); color: var(--muted); text-align: center; margin: 4px auto 0; max-width: 42em; }
+/* "In the app" nudges: one quiet gold link that points to the launch list */
+.nudge { white-space: nowrap; font-weight: 700; color: var(--gold); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); transition: border-color 0.2s; }
+.nudge:hover { border-bottom-color: var(--gold); }
+.nudge span { display: inline-block; transition: transform 0.25s var(--ease); }
+.nudge:hover span { transform: translateX(3px); }
+.hero-note .nudge { color: #e8c27a; border-bottom-color: rgba(232, 194, 122, 0.5); }
 
 /* Free */
 .free { background: var(--bg); padding-block: clamp(48px, 4.5vw, 64px); }

@@ -63,7 +63,7 @@ const hub = story ? { href: '/stories/', label: 'All sleep stories' } : { href: 
       </article>
       <aside class="lib-aside" aria-label="Player">
         <Mixer world={item.id} class="world-mixer" timer={false} />
-        <p class="lib-aside-note">{story ? 'The first minutes, as the app plays them: the voice over the sound of the place. Lower the voice or the bed to taste.' : 'The first minutes, as the app plays them: the voice over a soft pad.'}</p>
+        <p class="lib-aside-note">{story ? 'The first minutes, as the app plays them: the voice over the sound of the place. Lower the voice or the bed to taste.' : 'The first minutes, as the app plays them: the voice over a soft pad.'} <a class="nudge" href="/#get">{story ? 'Hear the whole story in the app' : 'The full session is in the app'} <span aria-hidden="true">&rarr;</span></a></p>
       </aside>
     </div>
   </section>

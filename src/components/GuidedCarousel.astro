@@ -22,6 +22,8 @@ export type CarouselItem = {
   badge?: string;
 };
 interface Props {
+  /** A short line pointing to the launch list, shown after the note. */
+  nudge?: string;
   sectionId: string;
   eyebrow: string;
   title: string;
@@ -35,7 +37,7 @@ interface Props {
   /** Alternate section background. */
   alt?: boolean;
 }
-const { sectionId, eyebrow, title, sub, note, play, label, items, alt = false } = Astro.props;
+const { sectionId, eyebrow, title, sub, note, play, label, items, alt = false, nudge } = Astro.props;
 const COPIES = 5;
 const middle = Math.floor(COPIES / 2);
 const cards = Array.from({ length: COPIES }, (_, copy) => items.map((item) => ({ item, copy }))).flat();
@@ -89,6 +91,6 @@ const titleId = `${sectionId}-title`;
   </div>
 
   <div class="wrap">
-    <p class="stories-note">{note}</p>
+    <p class="stories-note">{note}{nudge && <> <a class="nudge" href="/#get">{nudge} <span aria-hidden="true">&rarr;</span></a></>}</p>
   </div>
 </section>
