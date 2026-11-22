@@ -598,20 +598,6 @@ function bindHeroMix() {
   }).catch(() => {});
 }
 
-function bindHeroVideo() {
-  const v = $<HTMLVideoElement>('.hero-video');
-  if (!v || !v.canPlayType) return;
-  const wants = window.matchMedia('(min-width: 761px)').matches && !reduced.matches && !((navigator as any).connection && (navigator as any).connection.saveData);
-  if (!wants) { v.remove(); return; }
-  const add = (src: string, type: string) => { const s = document.createElement('source'); s.src = src; s.type = type; v.appendChild(s); };
-  if (v.canPlayType('video/webm; codecs=vp9')) add(v.dataset.webm!, 'video/webm');
-  add(v.dataset.mp4!, 'video/mp4');
-  v.addEventListener('canplay', () => {
-    const p = v.play();
-    if (p && p.then) p.then(() => v.classList.add('is-live')).catch(() => {}); else v.classList.add('is-live');
-  }, { once: true });
-  v.load();
-}
 
 // ---------- World video: a seamless loop over the still, after the page has loaded ----------
 // Skipped for reduced motion and data saver. Paused while off screen.
