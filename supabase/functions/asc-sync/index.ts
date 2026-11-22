@@ -3,6 +3,8 @@
 // "Sync now". Deploy with verify_jwt off: this function checks callers itself (the cron secret from
 // Vault, or a signed-in admin).
 //
+// Apple's metrics endpoints reject `limit` unless grouped or filtered, so they are called without it.
+//
 // Edge secrets (supabase secrets set ...):
 //   ASC_KEY_ID       the API key's ID (App Store Connect > Users and Access > Integrations)
 //   ASC_ISSUER_ID    the issuer ID shown on the same page
@@ -51,7 +53,7 @@ async function appleToken() {
   const der = Uint8Array.from(atob(pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')), (c) => c.charCodeAt(0));
   const key = await crypto.subtle.importKey('pkcs8', der, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
   const exp = now + 19 * 60;
-  const unsigned = `${b64urlText(JSON.stringify({ alg: 'ES256', kid: keyId, typ: 'JWT' }))}.${b64urlText(JSON.stringify({ iss: issuer, iat: now, exp, aud: 'appstore-connect-v1' }))}`;
+  const unsigned = `${b64urlText(JSON.stringify({ alg: 'ES256', kid: keyId, typ: 'JWT' }))}.${b64urlText(JSON.stringify({ iss: issuer, iat: now, exp, aud: 'appstoreconnect-v1' }))}`;
   // WebCrypto returns the raw r||s signature, which is exactly what JWS ES256 expects.
   const sig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, key, new TextEncoder().encode(unsigned)));
   cached = { token: `${unsigned}.${b64url(sig)}`, exp };
@@ -129,7 +131,7 @@ async function sync(known: Set<string>) {
       });
       if (a.publicLinkEnabled || !a.isInternalGroup) {
         await step(`link usage ${a.name}`, async () => {
-          points.push(...metricPoints('link', g.id, await apple(`/v1/betaGroups/${g.id}/metrics/publicLinkUsages?limit=200`)));
+          points.push(...metricPoints('link', g.id, await apple(`/v1/betaGroups/${g.id}/metrics/publicLinkUsages`)));
         });
       }
       return {
@@ -158,13 +160,22 @@ async function sync(known: Set<string>) {
     // Usage for builds testers can still open, plus the newest few.
     await Promise.all(list.filter((b: Json, i: number) => !b.expired || i < 3).map((b: Json) =>
       step(`build usage ${b.number}`, async () => {
-        points.push(...metricPoints('build', b.id, await apple(`/v1/builds/${b.id}/metrics/betaBuildUsages?limit=200`)));
+        points.push(...metricPoints('build', b.id, await apple(`/v1/builds/${b.id}/metrics/betaBuildUsages`)));
       })));
     return list;
   })) ?? undefined;
 
+  // Apple only returns this per tester (groupBy is required): add the testers up per day, so no
+  // individual's usage is stored.
   await step('tester usage', async () => {
-    points.push(...metricPoints('app', APP_ID, await apple(`/v1/apps/${APP_ID}/metrics/betaTesterUsages?period=P30D&limit=200`)));
+    const perTester = metricPoints('app', APP_ID, await apple(`/v1/apps/${APP_ID}/metrics/betaTesterUsages?period=P30D&groupBy=betaTesters&limit=200`));
+    const days = new Map<string, Json>();
+    for (const p of perTester) {
+      const sum = days.get(p.day) ?? {};
+      for (const [k, v] of Object.entries(p.v)) if (typeof v === 'number') sum[k] = (sum[k] ?? 0) + v;
+      days.set(p.day, sum);
+    }
+    days.forEach((v, d) => points.push({ kind: 'app', entity: APP_ID, day: d, v }));
   });
 
   const feedback: Json[] = [];
