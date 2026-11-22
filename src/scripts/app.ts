@@ -249,6 +249,39 @@ function bindCord() {
 }
 bindCord();
 
+// ---------- Launch list: an email for launch day (GetApp.astro, supabase/functions/signup) ----------
+const SIGNUP = 'https://texlatkkshmbyojkjbnc.supabase.co/functions/v1/signup';
+function bindLaunch() {
+  $$<HTMLFormElement>('form[data-launch]').forEach((form) => {
+    const msg = $('.launch-msg', form)!, email = $<HTMLInputElement>('input[type="email"]', form)!, go = $<HTMLButtonElement>('.launch-go', form)!;
+    const radios = $$<HTMLButtonElement>('[data-platform]', form);
+    let platform = 'iphone';
+    const done = (text: string) => { form.classList.add('is-done'); msg.classList.remove('is-bad'); msg.textContent = text; };
+    try { const joined = localStorage.getItem('sm-launch'); if (joined) done("You're on the list. We'll write once, on launch day."); } catch { /* private mode */ }
+    radios.forEach((r) => r.addEventListener('click', () => {
+      platform = r.dataset.platform!;
+      radios.forEach((x) => x.setAttribute('aria-checked', String(x === r)));
+    }));
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = email.value.trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)) { msg.classList.add('is-bad'); msg.textContent = 'That email looks incomplete. Check it and try again.'; email.focus(); return; }
+      go.disabled = true; msg.classList.remove('is-bad'); msg.textContent = 'Adding you to the list';
+      try {
+        const res = await fetch(SIGNUP, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: value, platform, source: location.pathname, website: (form.elements.namedItem('website') as HTMLInputElement | null)?.value || '' }) });
+        const out = await res.json().catch(() => ({}));
+        if (res.ok && out.result === 'ok') {
+          try { localStorage.setItem('sm-launch', platform); } catch { /* private mode */ }
+          done("You're on the list. We'll write once, on launch day.");
+        } else if (out.result === 'invalid') { msg.classList.add('is-bad'); msg.textContent = 'That email looks incomplete. Check it and try again.'; }
+        else throw new Error(String(out.result || res.status));
+      } catch {
+        msg.classList.add('is-bad'); msg.textContent = 'That did not go through. Check your connection and try again.';
+      } finally { go.disabled = false; }
+    });
+  });
+}
+
 // ---------- Per page ----------
 let teardown: (() => void)[] = [];
 
@@ -295,6 +328,7 @@ document.addEventListener('astro:page-load', () => {
   }
 
   bindNightStory();
+  bindLaunch();
   bindHeroMix();
   const builder = $<HTMLElement>('[data-builder]');
   if (builder) import('./scene-builder').then(({ mountBuilder }) => { if (builder.isConnected) teardown.push(mountBuilder(builder)); }).catch(() => {});
