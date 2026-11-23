@@ -488,6 +488,33 @@ button:hover .play-ring, a:hover .play-ring { background: var(--text); color: va
 .store b { display: block; font: 600 17px/1.25 var(--sans); }
 .get-note { margin: 0; color: var(--muted); font-size: 14px; }
 .get-lede { margin: 0; color: var(--text-2); font-size: clamp(17px, 1.5vw, 20px); }
+/* iPhone beta: a big button on phones, the QR code on computers (pointer + width) */
+.beta { display: flex; justify-content: center; width: 100%; }
+.beta-go {
+  display: inline-flex; align-items: center; gap: 14px; min-height: 64px; padding: 12px 30px 12px 24px;
+  border-radius: 18px; background: var(--text); color: var(--gold-ink); text-align: left; text-decoration: none;
+  box-shadow: 0 10px 30px -12px rgba(213, 162, 79, 0.55); transition: transform 0.2s var(--ease), box-shadow 0.2s;
+}
+.beta-go:hover { transform: translateY(-2px); box-shadow: 0 14px 34px -12px rgba(213, 162, 79, 0.7); }
+.beta-go svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
+.beta-go small { display: block; font: 700 11px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; }
+.beta-go b { display: block; font: 800 19px/1.25 var(--sans); }
+.beta-qr { display: none; margin: 0; }
+.beta-qr img { display: block; width: 168px; height: 168px; border-radius: 14px; }
+.beta-qr figcaption { display: grid; gap: 6px; max-width: 330px; text-align: left; }
+.beta-qr figcaption b { font: 800 21px/1.25 var(--sans); color: var(--text); }
+.beta-qr figcaption span { color: var(--muted); font-size: 15px; line-height: 1.5; }
+.beta-qr figcaption a { margin-top: 4px; color: var(--gold); font-weight: 700; font-size: 15px; text-underline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) and (min-width: 760px) {
+  .beta-go { display: none; }
+  .beta-qr {
+    display: flex; align-items: center; gap: 28px; padding: 18px 30px 18px 18px;
+    border: 1px solid var(--line-strong); border-radius: 26px; background: var(--surface);
+  }
+}
+.get-or { margin: 8px 0 0; color: var(--muted); font-size: 16px; max-width: 34em; text-wrap: balance; }
+.get .cap, .get-lede { text-wrap: balance; }
+@media (max-width: 560px) { .get .cap span { display: block; } .get .cap .cap-sep { display: none; } }
 /* Launch list form: pick your phone (the store badges), then your email */
 .launch { display: grid; gap: 14px; justify-items: center; width: min(560px, 100%); margin-top: 4px; }
 button.store { cursor: pointer; font: inherit; background: transparent; text-align: left; transition: border-color 0.25s, background 0.25s, color 0.25s, opacity 0.25s; }
