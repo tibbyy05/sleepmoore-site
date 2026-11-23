@@ -255,7 +255,7 @@ function bindLaunch() {
   $$<HTMLFormElement>('form[data-launch]').forEach((form) => {
     const msg = $('.launch-msg', form)!, email = $<HTMLInputElement>('input[type="email"]', form)!, go = $<HTMLButtonElement>('.launch-go', form)!;
     const radios = $$<HTMLButtonElement>('[data-platform]', form);
-    let platform = 'iphone';
+    let platform = radios.find((r) => r.getAttribute('aria-checked') === 'true')?.dataset.platform ?? 'iphone';
     const done = (text: string) => { form.classList.add('is-done'); msg.classList.remove('is-bad'); msg.textContent = text; };
     try { const joined = localStorage.getItem('sm-launch'); if (joined) done("You're on the list. We'll write once, on launch day."); } catch { /* private mode */ }
     radios.forEach((r) => r.addEventListener('click', () => {
