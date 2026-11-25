@@ -1,8 +1,8 @@
-"""Makes the QR code for the public iPhone beta (TestFlight link).
+"""Makes the QR code that opens Sleep Moore on the App Store.
 
-Writes public/img/beta-qr.svg for the site (Get the app section) and, with
+Writes public/img/app-qr.svg for the site (Get the app section) and, with
 --png <path>, a large PNG for print or sharing. The app icon sits in the middle;
-error correction H leaves room for it. Run: python scripts/beta-qr.py [--png out.png]
+error correction H leaves room for it. Run: python scripts/app-qr.py [--png out.png]
 """
 import argparse, base64, io
 from pathlib import Path
@@ -10,7 +10,7 @@ from pathlib import Path
 import qrcode
 from PIL import Image, ImageDraw
 
-URL = 'https://testflight.apple.com/join/cuHuf5fK'
+URL = 'https://apps.apple.com/app/id6837736590'
 INK, PAPER = '#0b0e15', '#f3eadb'
 ROOT = Path(__file__).resolve().parent.parent
 ICON = ROOT / 'public' / 'apple-touch-icon.png'
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     ap.add_argument('--png', help='also write a large PNG here')
     a = ap.parse_args()
     m = matrix()
-    (ROOT / 'public' / 'img' / 'beta-qr.svg').write_text(svg(m), encoding='utf-8')
+    (ROOT / 'public' / 'img' / 'app-qr.svg').write_text(svg(m), encoding='utf-8')
     if a.png:
         png(m, a.png)
     print(f'{len(m)} modules, {URL}')

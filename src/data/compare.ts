@@ -46,7 +46,7 @@ export const COMPARISONS: Comparison[] = [
       ['Sleep tracking', 'No. A simple morning “how did you sleep” note only, kept on your phone', 'Yes: sleep tracker, sleep recorder, snore and sleep-talk detection'],
       ['Smart alarm', 'Gentle wake that rises slowly', 'Yes'],
       ['Try it before installing', 'Yes, every world plays on <a href="/">sleepmoore.app</a>', 'No sounds play on its website (checked November 2026)'],
-      ['Platforms', 'iPhone and Android (coming soon; iPhone beta)', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android, web'],
+      ['Platforms', 'iPhone (App Store); Android coming soon', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android, web'],
     ],
     sections: [
       {
@@ -108,7 +108,7 @@ export const COMPARISONS: Comparison[] = [
       ['Sleep sounds', 'About 40 recorded sounds and ten sound worlds, mixed on three faders', 'Sleep sounds and soundscapes'],
       ['Sleep stories', '3 night journeys, one calm voice', '100+ Sleep Stories, many with well-known narrators'],
       ['Meditations', '5 sleep meditations, including Yoga Nidra', 'A very large library, with courses and daily sessions'],
-      ['Platforms', 'iPhone and Android (coming soon; iPhone beta)', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android'],
+      ['Platforms', 'iPhone (App Store); Android coming soon', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android'],
     ],
     sections: [
       {
