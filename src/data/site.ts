@@ -82,7 +82,7 @@ export const FAQ = [
   { q: 'Is the sound on this website the real app sound?', a: 'Yes. The worlds on this page are the same recordings the app plays, mixed live in your browser. The app adds the full library of forty sounds, saved mixes, night journeys, breathing and the gentle wake.' },
   { q: 'Will it keep playing with the screen locked?', a: 'Yes. Sound keeps playing with the screen off, with play, pause and skip on the lock screen, and the sleep timer fades it out when you choose.' },
   { q: 'Where do the sounds come from?', a: 'Real recordings, either our own or released into the public domain, remastered into seamless loops so there is no click or gap to wake you. None of the nature sounds are synthesised.' },
-  { q: 'Which phones does it work on?', a: `iPhone now: <a href="${APP_STORE_URL}">free on the App Store</a>. Android is coming soon to Google Play; leave your email in Get the app and we will tell you the day it lands.` },
+  { q: 'Which phones does it work on?', a: `iPhone and Android, both coming soon. Leave your email in Get the app, or write to <a href="mailto:${EMAIL}">${EMAIL}</a>, and we will tell you the day it lands.` },
 ];
 
 export const stripTags = (html: string) => html.replace(/<[^>]+>/g, '');

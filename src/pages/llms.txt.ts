@@ -18,7 +18,7 @@ export const GET: APIRoute = () => {
     'Key facts:',
     '',
     '- Price: free. Everything available at launch stays free. A later optional Sleep Moore+ subscription will only add new content.',
-    '- Platforms: iPhone and Android, free on the App Store for iPhone (https://apps.apple.com/app/id6837736590); Android is coming soon to Google Play.',
+    '- Platforms: iPhone and Android, coming soon to the App Store and Google Play.',
     '- Privacy: no sign-up, no ads, no cookies. Saved mixes and settings stay on the phone; the app sends only crash diagnostics not linked to a person, and the website counts visits without cookies.',
     '- Sound: nature sounds are real recordings (our own or public domain), remastered into seamless loops with no click or gap to wake you.',
     '- Library: about forty sounds, including several kinds of rain, thunder, ocean surf, fire, wind, crickets, streams, snow, a night train, fans, white, pink, brown and green noise, and brainwave tones (delta, theta, alpha).',

@@ -11,7 +11,7 @@ import { SOUND_PAGES, SOUND_PAGES_BY_SLUG } from '../data/library';
 import { MEDITATION_COLORS, MEDITATION_COVERS, STORY_COLORS, STORY_COVERS } from '../data/scenes';
 import { MEDITATIONS, STORIES } from '../data/worlds';
 import Base from '../layouts/Base.astro';
-import { APP_STORE_URL, DESTINATIONS, EMAIL, FAQ, MENU_HOME, NAV_HOME, PRESETS, SCENE_STRIP, SITE, stripTags } from '../data/site';
+import { DESTINATIONS, EMAIL, FAQ, MENU_HOME, NAV_HOME, PRESETS, SCENE_STRIP, SITE, stripTags } from '../data/site';
 
 const site = SITE;
 const org = { '@id': `${site}/#org` };
@@ -36,8 +36,6 @@ const graph = {
       operatingSystem: 'iOS, Android',
       applicationCategory: 'HealthApplication',
       applicationSubCategory: 'Sleep sounds',
-      installUrl: APP_STORE_URL,
-      downloadUrl: APP_STORE_URL,
       description: 'A free sleep sounds app. Ten sound worlds built from real recordings of rain, ocean, fire, wind and forest, three faders to mix them, a sleep timer that fades you out, sleep stories, guided sleep meditations and a gentle wake alarm. No ads, no cookies, no account.',
       featureList: [
         'Ten sleep sound worlds from real recordings',
@@ -135,7 +133,7 @@ const SCREENS = ['home', 'explore', 'routine', null, 'welcome'];
         <li><Icon name="sparkle" /><span><b>Free, for good</b><small>Everything at launch stays free</small></span></li>
         <li><Icon name="no-account" /><span><b>No account</b><small>Nothing to sign up for, ever</small></span></li>
         <li><Icon name="waveform" /><span><b>Plays in your browser</b><small>Real loops, mixed live on this page</small></span></li>
-        <li><Icon name="phone" /><span><b>iPhone and Android</b><small>iPhone now, Android soon</small></span></li>
+        <li><Icon name="phone" /><span><b>iPhone and Android</b><small>Coming soon to both stores</small></span></li>
       </ul>
     </div>
   </section>

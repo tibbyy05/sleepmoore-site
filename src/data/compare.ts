@@ -46,7 +46,7 @@ export const COMPARISONS: Comparison[] = [
       ['Sleep tracking', 'No. A simple morning “how did you sleep” note only, kept on your phone', 'Yes: sleep tracker, sleep recorder, snore and sleep-talk detection'],
       ['Smart alarm', 'Gentle wake that rises slowly', 'Yes'],
       ['Try it before installing', 'Yes, every world plays on <a href="/">sleepmoore.app</a>', 'No sounds play on its website (checked November 2026)'],
-      ['Platforms', 'iPhone (App Store); Android coming soon', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android, web'],
+      ['Platforms', 'iPhone and Android (coming soon)', 'iPhone, iPad, Mac, Apple Watch, Apple TV, Vision Pro, Android, web'],
     ],
     sections: [
       {
