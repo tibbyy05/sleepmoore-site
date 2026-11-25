@@ -55,7 +55,7 @@ export function soundName(id: string) {
 }
 export function soundKind(id: string) {
   const k = guidedKind(id);
-  return k === 'story' ? 'Story' : k === 'meditation' ? 'Meditation' : id in MIXES_BY_ID ? 'World' : 'Sound';
+  return k === 'story' ? 'Story' : k === 'meditation' ? 'Meditation' : id.startsWith('sound-') ? 'Sound' : id in MIXES_BY_ID ? 'World' : 'Sound';
 }
 
 export const KIND_LABEL: Record<string, string> = {

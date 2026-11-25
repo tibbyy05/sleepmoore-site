@@ -4,6 +4,7 @@
 import { createClient, type Session } from '@supabase/supabase-js';
 import { renderApp, type AppCtx } from './app-store';
 import { bindTips, lineChart, type Point } from './chart';
+import { globe } from './globe';
 import {
   ago, countryName, DEVICE_ICON, dur, esc, fmtDate, fmtTime, icon, int, KIND_ICON, KIND_LABEL, langName, ms, num, pageName, pct,
   soundKind, soundName, tzCity,
@@ -158,11 +159,40 @@ function delta(cur: number | null | undefined, prev: number | null | undefined, 
   if (cur == null || prev == null) return `<span class="delta flat">—</span>`;
   let change: number, text: string;
   if (m?.rate) { change = cur - prev; text = Math.abs(change).toFixed(1) + ' pts'; }
-  else if (prev === 0) { return cur > 0 ? `<span class="delta up">${icon('arrow-up')}new</span>` : `<span class="delta flat">0%</span>`; }
+  else if (prev === 0) { return cur > 0 ? `<span class="delta ${m?.lowerIsBetter ? 'down' : 'up'}">${icon('arrow-up')}new</span>` : `<span class="delta flat">0%</span>`; }
   else { change = ((cur - prev) / prev) * 100; text = Math.abs(change) >= 100 ? Math.round(Math.abs(change)) + '%' : Math.abs(change).toFixed(1) + '%'; }
   if (Math.abs(change) < 0.05) return `<span class="delta flat">0%</span>`;
   const good = m?.lowerIsBetter ? change < 0 : change > 0;
   return `<span class="delta ${good ? 'up' : 'down'}" title="${good ? 'Better' : 'Worse'} than the previous period">${icon(change > 0 ? 'arrow-up' : 'arrow-down')}${text}</span>`;
+}
+
+/** What the previous period is called in a sentence, for the summary strip. */
+function prevName() {
+  return ({ today: 'yesterday', yesterday: 'the day before', '7d': 'the week before', '30d': 'the 30 days before', '90d': 'the 90 days before', month: 'last month', lastmonth: 'the month before', '12mo': 'the year before' } as Record<string, string>)[S.range] ?? 'the period before';
+}
+
+type Brief = { title: string; tone: 'up' | 'down' | 'flat'; facts: string[]; alerts?: string[] };
+/** The one-line answer at the top of a section: a headline that says up or down, then the few numbers behind it. */
+function brief(b: Brief) {
+  const ico = b.tone === 'up' ? 'trend-up' : b.tone === 'down' ? 'trend-down' : 'minus';
+  return `<div class="card brief ${b.tone}" role="status">
+    <span class="brief-ico">${icon(ico)}</span>
+    <div class="brief-main">
+      <p class="brief-title">${esc(b.title)}</p>
+      <p class="brief-facts">${b.facts.map((f) => `<span>${f}</span>`).join('')}</p>
+    </div>
+    ${b.alerts?.length ? `<div class="brief-alerts">${b.alerts.map((a) => `<span class="pill warn">${icon('warning-circle')}${a}</span>`).join('')}</div>` : ''}
+  </div>`;
+}
+/** Headline for one number against the period before: "Visitors up 18% on the week before". */
+function trendTitle(noun: string, cur: number | null | undefined, prev: number | null | undefined): Pick<Brief, 'title' | 'tone'> {
+  const p = period();
+  if (!S.compare || cur == null || prev == null) return { title: `${p.label}: ${int(cur)} ${noun.toLowerCase()}`, tone: 'flat' };
+  if (prev === 0) return cur > 0 ? { title: `${noun} are new this period: ${int(cur)}, none ${prevName()}`, tone: 'up' } : { title: `No ${noun.toLowerCase()} yet, same as ${prevName()}`, tone: 'flat' };
+  const change = ((cur - prev) / prev) * 100;
+  if (Math.abs(change) < 5) return { title: `${noun} steady, about the same as ${prevName()}`, tone: 'flat' };
+  const by = Math.abs(change) >= 100 ? `${(cur / prev).toFixed(1).replace(/\.0$/, '')}×` : `${Math.round(Math.abs(change))}%`;
+  return change > 0 ? { title: `${noun} up ${by} on ${prevName()}`, tone: 'up' } : { title: `${noun} down ${by} on ${prevName()}`, tone: 'down' };
 }
 
 function emptyBox(text = 'No data for this period yet.', ico = 'chart-line') {
@@ -228,9 +258,9 @@ function table(id: string, rows: Row[], cols: Col[], o: { filter?: string; dim?:
   return `<div class="table-wrap"><table data-table="${esc(id)}">
     <thead><tr>${cols.map((c) => `<th scope="col" ${c.id === col.id ? `aria-sort="${desc ? 'descending' : 'ascending'}"` : ''}><button type="button" data-sort="${esc(c.id)}">${esc(c.label)}${c.id === col.id ? icon(desc ? 'arrow-down' : 'arrow-up') : ''}</button></th>`).join('')}</tr></thead>
     <tbody>${sorted.map((r) => `<tr ${o.filter ? `class="clickable" data-f="${esc(o.filter)}" data-v="${esc(r.key)}" tabindex="0"` : ''}>${cols.map((c) => {
-      if (c.html) return `<td>${c.html(r)}</td>`;
+      if (c.html) return `<td data-label="${esc(c.label)}">${c.html(r)}</td>`;
       const v = c.get(r);
-      return `<td>${esc(c.fmt ? c.fmt(v, r) : v ?? '—')}</td>`;
+      return `<td data-label="${esc(c.label)}">${esc(c.fmt ? c.fmt(v, r) : v ?? '—')}</td>`;
     }).join('')}</tr>`).join('')}</tbody></table></div>${total > cap ? `<div class="more"><button class="link-btn" type="button" data-showall="${esc(id)}">Show all ${int(total)} rows${icon('caret-down')}</button></div>` : ''}`;
 }
 
@@ -305,7 +335,9 @@ async function refresh(force = false) {
 /** The App section (app-store.ts) borrows the client, period and building blocks from here. */
 function appCtx(seq: number): AppCtx {
   return {
-    db, tz, period, card, table, exportBtn, emptyBox, toast, handleError,
+    db, tz, period, card, table, exportBtn, emptyBox, toast, handleError, brief, trendTitle,
+    compare: () => S.compare,
+    delta: (cur, prev, lowerIsBetter) => delta(cur, prev, lowerIsBetter ? ({ lowerIsBetter: true } as Metric) : undefined),
     onCleanup: (fn) => cleanup.push(fn),
     isCurrent: () => seq === loadSeq && S.view === 'appstore',
   };
@@ -339,7 +371,7 @@ function renderChrome() {
   $('#range-label').textContent = p.label;
   $('#tools').hidden = S.view === 'settings' || S.view === 'live';
   ($('#compare') as HTMLInputElement).checked = S.compare;
-  $('#compare').closest('label')!.hidden = !(USES_REPORT.has(S.view) && S.view !== 'performance');
+  $('#compare').closest('label')!.hidden = !((USES_REPORT.has(S.view) && S.view !== 'performance') || S.view === 'appstore');
   const chips = $('#chips');
   const entries = Object.entries(S.filters);
   chips.hidden = !entries.length || S.view === 'settings' || S.view === 'live';
@@ -397,7 +429,19 @@ function renderOverview(host: HTMLElement, r: Report) {
   });
   const clicks = [...byLabel.values()].sort((a, b) => b.clicks - a.clicks).slice(0, 7);
 
+  const top = (r.channel as Row[] | undefined)?.[0];
+  const summary = noData ? '' : brief({
+    ...trendTitle('Visitors', k.visitors, kp.visitors),
+    facts: [
+      `<b class="num">${esc(num(k.visitors))}</b> visitors ${delta(k.visitors, kp.visitors)}`,
+      `<b class="num">${esc(pct(k.play_rate))}</b> played a sound`,
+      `<b class="num">${esc(int(k.goals))}</b> app taps ${delta(k.goals, kp.goals)}`,
+      ...(top?.key ? [`<b>${esc(top.key)}</b> top source`] : []),
+    ],
+  });
+
   host.innerHTML = `
+    ${summary}
     ${noData ? `<div class="card" style="margin-bottom:16px"><div class="card-body" style="display:flex;gap:12px;align-items:center">${icon('info')}<div><b>Tracking is live.</b> <span class="muted">Numbers appear here as soon as people visit sleepmoore.app. Your own visits on this browser are not counted (see Settings).</span></div></div></div>` : ''}
     <div class="card">
       <div class="kpis">${METRICS.map((m) => `
@@ -455,22 +499,36 @@ function funnelHtml(f: Report['funnel']) {
     </div>`).join('')}</div>`;
 }
 
+/** "When people visit" as a night sky: one star per hour of the week, brighter and bigger with more
+    visitors. The five busiest hours are joined into a constellation. */
 function heatmapHtml(cells: Report['heatmap']) {
   if (!cells.length) return emptyBox('No visits yet.', 'clock');
   const grid = new Map(cells.map((c) => [c.d + ':' + c.h, c.visitors]));
   const max = Math.max(...cells.map((c) => c.visitors), 1);
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const hourLabel = (h: number) => (h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : h - 12 + 'p');
-  let html = '<div class="heat"><span></span>' + Array.from({ length: 24 }, (_, h) => `<span class="hx">${h % 3 === 0 ? hourLabel(h) : ''}</span>`).join('');
+  const busiest = cells.filter((c) => c.visitors > 0).sort((a, b) => b.visitors - a.visitors).slice(0, 5);
+  const bright = new Set(busiest.map((c) => c.d + ':' + c.h));
+  // The constellation: the busiest hours in time order through the week.
+  const path = [...busiest].sort((a, b) => a.d * 24 + a.h - (b.d * 24 + b.h)).map((c) => `${c.h + 0.5},${c.d - 0.5}`).join(' ');
+  let stars = '';
   days.forEach((d, di) => {
-    html += `<span class="hl">${d}</span>`;
     for (let h = 0; h < 24; h++) {
       const v = grid.get(di + 1 + ':' + h) ?? 0;
-      const a = v ? 0.12 + 0.88 * (v / max) : 0;
-      html += `<span class="hc" style="--a:${a.toFixed(3)}" data-tip-title="${esc(d)}, ${esc(hourLabel(h))}m" data-tip-rows="${esc(int(v) + '|visitors')}"></span>`;
+      const f = Math.sqrt(v / max); // square root: quiet hours still show as faint stars
+      stars += `<span class="star ${v ? '' : 'none'} ${bright.has(di + 1 + ':' + h) ? 'bright' : ''}" style="--f:${f.toFixed(3)};--tw:${((h * 7 + di * 13) % 10) / 10}" data-tip-title="${esc(d)}, ${esc(hourLabel(h))}m" data-tip-rows="${esc(int(v) + '|visitors')}"></span>`;
     }
   });
-  return html + `</div><div class="heat-scale">Fewer ${[0.12, 0.34, 0.56, 0.78, 1].map((a) => `<i style="--a:${a}"></i>`).join('')} More</div>`;
+  const peak = busiest[0];
+  return `<div class="sky">
+    <span></span><div class="sky-hours">${Array.from({ length: 24 }, (_, h) => `<span>${h % 3 === 0 ? hourLabel(h) : ''}</span>`).join('')}</div>
+    <div class="sky-days">${days.map((d) => `<span>${d}</span>`).join('')}</div>
+    <div class="sky-field">
+      ${busiest.length > 1 ? `<svg class="sky-lines" viewBox="0 0 24 7" preserveAspectRatio="none" aria-hidden="true"><polyline points="${path}" vector-effect="non-scaling-stroke"/></svg>` : ''}
+      ${stars}
+    </div>
+  </div>
+  <div class="heat-scale">${peak ? `<span class="sky-peak">Busiest: <b>${esc(days[peak.d - 1])} ${esc(hourLabel(peak.h))}m</b></span>` : ''}<span class="sky-key">Fewer <i style="--f:.15"></i><i style="--f:.45"></i><i style="--f:.75"></i><i style="--f:1"></i> More</span></div>`;
 }
 
 // ---------- Pages ----------
@@ -585,9 +643,44 @@ function renderSounds(host: HTMLElement, r: Report) {
       <div class="card tile"><span class="kpi-label">${icon('play')}Plays</span><span class="kpi-value num">${int(k.plays)}</span><span class="kpi-prev">${delta(k.plays, r.kpis_prev.plays)}</span></div>
       <div class="card tile"><span class="kpi-label">${icon('users')}Visits that played</span><span class="kpi-value num">${pct(k.play_rate)}</span><span class="kpi-prev">${delta(k.play_rate, r.kpis_prev.play_rate, METRICS[6])}</span></div>
       <div class="card tile"><span class="kpi-label">${icon('clock')}Total listening</span><span class="kpi-value num">${dur(total)}</span><span class="kpi-prev faint">across all sounds</span></div>
-      <div class="card tile"><span class="kpi-label">${icon('moon-stars')}Most played</span><span class="kpi-value" style="font-size:20px">${esc(rows[0] ? soundName(rows[0].id) : '—')}</span><span class="kpi-prev faint">${rows[0] ? int(rows[0].plays) + ' plays' : ''}</span></div>
     </div>
+    ${rows.length ? `<div class="section-gap">${soundChart(rows)}</div>` : ''}
     <div class="section-gap">${card('Worlds, stories and meditations', table('sounds', rows, cols, { sort: 'plays' }) + `<p class="note">${icon('info')} Listening time keeps counting with the screen locked, as long as the browser keeps the page alive.</p>`, { end: exportBtn('sounds', rows, cols) })}</div>`;
+}
+
+/** Built into the page by index.astro: each sound's square thumb, wide banner and average colour. */
+const ART: Record<string, { thumb: string; wide: string; color: string }> = (() => {
+  try { return JSON.parse(document.getElementById('sound-art')?.textContent || '{}'); } catch { return {}; }
+})();
+
+/** The most played sounds like a music chart: number one large on its own picture, the next seven beside it. */
+function soundChart(rows: Row[]) {
+  const ranked = [...rows].sort((a, b) => b.plays - a.plays).slice(0, 8);
+  const [top, ...rest] = ranked;
+  const max = Math.max(top.plays, 1);
+  const art = (id: string) => ART[id] ?? { thumb: '', wide: '', color: '#151a24' };
+  const a = art(top.id);
+  return `<div class="card sound-chart">
+    <div class="sound-hero" style="--tone:${esc(a.color)}">
+      ${a.wide ? `<img src="${esc(a.wide)}" alt="" loading="lazy" decoding="async">` : ''}
+      <div class="sound-hero-txt">
+        <span class="sound-rank-big">1</span>
+        <div><span class="sound-kind">${esc(soundKind(top.id))} · most played</span>
+          <h3>${esc(soundName(top.id))}</h3>
+          <p><b class="num">${int(top.plays)}</b> plays<span>·</span><b class="num">${int(top.visitors)}</b> people<span>·</span><b class="num">${esc(dur(top.listen_s))}</b> listened</p></div>
+      </div>
+    </div>
+    <ol class="sound-list" start="2">${rest.map((x, i) => {
+      const r = art(x.id);
+      return `<li style="--tone:${esc(r.color)};--w:${((x.plays / max) * 100).toFixed(1)}%">
+        <span class="sound-n">${i + 2}</span>
+        ${r.thumb ? `<img src="${esc(r.thumb)}" alt="" width="44" height="44" loading="lazy" decoding="async">` : `<span class="sound-ph">${icon('music-notes')}</span>`}
+        <span class="sound-name"><b>${esc(soundName(x.id))}</b><span>${esc(soundKind(x.id))} · ${esc(dur(x.listen_s))}</span></span>
+        <span class="sound-bar"><i></i></span>
+        <span class="sound-plays num">${int(x.plays)}</span>
+      </li>`;
+    }).join('') || `<li class="sound-solo faint">Only one sound played in this period.</li>`}</ol>
+  </div>`;
 }
 
 // ---------- Speed ----------
@@ -628,15 +721,26 @@ function renderSpeed(host: HTMLElement, r: Report) {
 
 // ---------- Live ----------
 let lastFeedTop = '';
+let liveGlobe: ReturnType<typeof globe> | null = null;
 async function renderLive(host: HTMLElement, first = false) {
   if (first) {
-    if (!host.innerHTML) host.innerHTML = skeleton();
     clearInterval(liveTimer);
     liveTimer = window.setInterval(() => { if (S.view === 'live' && document.visibilityState === 'visible') renderLive(host); }, 10000);
+    // The globe stays put between updates; only the numbers and lights around it change.
+    host.innerHTML = `
+      <div class="card live-top">
+        <div class="live-globe" id="live-globe"></div>
+        <div class="live-side" data-live-side><span class="skel" style="width:40%;height:56px"></span><span class="skel" style="width:70%;margin-top:14px"></span></div>
+      </div>
+      <div class="section-gap" data-live-pages></div>
+      <div class="section-gap"><div class="card"><div class="card-head"><h2>Activity</h2><span class="sub">updates every 10 seconds</span></div><div class="feed" data-live-feed></div></div></div>`;
+    liveGlobe?.stop();
+    liveGlobe = globe($('#live-globe', host));
+    cleanup.push(() => { liveGlobe?.stop(); liveGlobe = null; });
   }
   const { data, error } = await db.rpc('admin_live');
   if (error) return handleError(error, host);
-  if (S.view !== 'live') return;
+  if (S.view !== 'live' || !host.querySelector('[data-live-side]')) return;
   const d = data as { now: number; pages: Row[]; minutes: { t: string; pageviews: number }[]; feed: Record<string, any>[] };
   setOnline(d.now);
   const max = Math.max(...d.minutes.map((m) => m.pageviews), 1);
@@ -644,24 +748,37 @@ async function renderLive(host: HTMLElement, first = false) {
   const seen = lastFeedTop;
   lastFeedTop = topKey;
   let fresh = true;
-  host.innerHTML = `
-    <div class="grid g3">
-      <div class="card"><div class="live-hero"><div><div class="big num">${int(d.now)}</div><div class="lbl"><span class="dot-live"></span>${d.now === 1 ? 'visitor' : 'visitors'} in the last 5 minutes</div></div></div>
-        <div class="minibars">${d.minutes.map((m) => `<i class="${m.pageviews ? '' : 'zero'}" style="height:${m.pageviews ? Math.max(6, (m.pageviews / max) * 100) : 3}%" data-tip-title="${esc(fmtTime(new Date(m.t)))}" data-tip-rows="${esc(m.pageviews + '|page views')}"></i>`).join('')}</div>
-        <div class="minibars-axis"><span>30 min ago</span><span>now</span></div></div>
-      <div class="card span2">${'<div class="card-head"><h2>On the site right now</h2></div><div class="card-body">' + barList(d.pages, { dim: 'page', head: 'Page', empty: 'Nobody is on the site right now.', cols: [{ label: 'Visitors', get: (x) => num(x.visitors) }], share: (x) => x.visitors, link: (x) => 'https://sleepmoore.app' + x.key }) + '</div>'}</div>
-    </div>
-    <div class="section-gap"><div class="card"><div class="card-head"><h2>Activity</h2><span class="sub">updates every 10 seconds</span></div>
-      <div class="feed">${d.feed.length ? d.feed.map((e) => {
-        const key = e.ts + e.name;
-        if (key === seen) fresh = false;
-        const isNew = fresh && seen && !first;
-        const what = e.name === 'pageview' ? (pageName(e.path) || e.path) : e.name === 'play' ? soundName(e.label) : e.label || e.target || e.path;
-        return `<div class="feed-row ${isNew ? 'is-new' : ''}"><span class="feed-ico k-${esc(e.name)}">${icon(KIND_ICON[e.name] ?? 'cursor')}</span>
-          <div class="feed-main"><div class="t">${esc(KIND_LABEL[e.name] ?? e.name)} <b>${esc(what)}</b>${e.name === 'pageview' && pageName(e.path) ? ` <span class="faint">${esc(e.path)}</span>` : ''}</div>
-          <div class="s">${[e.country ? countryName(e.country) : '', e.device, e.browser, e.source].filter(Boolean).map(esc).join(' · ')} · visit ${esc(e.visit)}</div></div>
-          <span class="feed-time">${esc(ago(e.ts))}</span></div>`;
-      }).join('') : emptyBox('Nothing yet. Open sleepmoore.app in another browser to see it appear here.', 'broadcast')}</div></div></div>`;
+
+  // Where people are: visits per country in the feed, and whether any were here in the last five minutes.
+  const recentSince = Date.now() - 5 * 60000;
+  const byCountry = new Map<string, { visits: Set<string>; recent: boolean }>();
+  d.feed.forEach((e) => {
+    if (!e.country) return;
+    const c = byCountry.get(e.country) ?? { visits: new Set<string>(), recent: false };
+    c.visits.add(e.visit);
+    if (new Date(e.ts).getTime() >= recentSince) c.recent = true;
+    byCountry.set(e.country, c);
+  });
+  const places = [...byCountry].map(([cc, v]) => ({ cc, people: v.visits.size, recent: v.recent, label: countryName(cc) }))
+    .sort((a, b) => Number(b.recent) - Number(a.recent) || b.people - a.people);
+  liveGlobe?.update(places);
+
+  $('[data-live-side]', host).innerHTML = `
+    <div class="live-hero"><div><div class="big num">${int(d.now)}</div><div class="lbl"><span class="dot-live"></span>${d.now === 1 ? 'visitor' : 'visitors'} in the last 5 minutes</div></div></div>
+    <div class="live-places">${places.length ? places.slice(0, 5).map((pl) => `<div class="live-place ${pl.recent ? 'now' : ''}"><span class="cc">${esc(pl.cc)}</span><span class="t">${esc(pl.label)}</span><span class="v">${pl.recent ? '<i class="dot-live"></i>' : ''}${int(pl.people)}</span></div>`).join('') : '<p class="faint" style="margin:0">Lights appear on the globe as people visit.</p>'}</div>
+    <div class="minibars">${d.minutes.map((m) => `<i class="${m.pageviews ? '' : 'zero'}" style="height:${m.pageviews ? Math.max(6, (m.pageviews / max) * 100) : 3}%" data-tip-title="${esc(fmtTime(new Date(m.t)))}" data-tip-rows="${esc(m.pageviews + '|page views')}"></i>`).join('')}</div>
+    <div class="minibars-axis"><span>30 min ago</span><span>now</span></div>`;
+  $('[data-live-pages]', host).innerHTML = card('On the site right now', barList(d.pages, { dim: 'page', head: 'Page', empty: 'Nobody is on the site right now.', cols: [{ label: 'Visitors', get: (x) => num(x.visitors) }], share: (x) => x.visitors, link: (x) => 'https://sleepmoore.app' + x.key }));
+  $('[data-live-feed]', host).innerHTML = d.feed.length ? d.feed.map((e) => {
+    const key = e.ts + e.name;
+    if (key === seen) fresh = false;
+    const isNew = fresh && seen && !first;
+    const what = e.name === 'pageview' ? (pageName(e.path) || e.path) : e.name === 'play' ? soundName(e.label) : e.label || e.target || e.path;
+    return `<div class="feed-row ${isNew ? 'is-new' : ''}"><span class="feed-ico k-${esc(e.name)}">${icon(KIND_ICON[e.name] ?? 'cursor')}</span>
+      <div class="feed-main"><div class="t">${esc(KIND_LABEL[e.name] ?? e.name)} <b>${esc(what)}</b>${e.name === 'pageview' && pageName(e.path) ? ` <span class="faint">${esc(e.path)}</span>` : ''}</div>
+      <div class="s">${[e.country ? countryName(e.country) : '', e.device, e.browser, e.source].filter(Boolean).map(esc).join(' · ')} · visit ${esc(e.visit)}</div></div>
+      <span class="feed-time">${esc(ago(e.ts))}</span></div>`;
+  }).join('') : emptyBox('Nothing yet. Open sleepmoore.app in another browser to see it appear here.', 'broadcast');
   bindTips(host);
 }
 

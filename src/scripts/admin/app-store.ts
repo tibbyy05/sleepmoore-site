@@ -22,7 +22,12 @@ export type AppCtx = {
   handleError: (e: unknown, host?: HTMLElement) => void;
   onCleanup: (fn: () => void) => void;
   isCurrent: () => boolean;
+  compare: () => boolean;
+  delta: (cur: number | null | undefined, prev: number | null | undefined, lowerIsBetter?: boolean) => string;
+  brief: (b: Brief) => string;
+  trendTitle: (noun: string, cur: number | null | undefined, prev: number | null | undefined) => Pick<Brief, 'title' | 'tone'>;
 };
+type Brief = { title: string; tone: 'up' | 'down' | 'flat'; facts: string[]; alerts?: string[] };
 
 type Group = {
   id: string; name: string; internal: boolean; link_enabled: boolean; link: string; link_limit: number | null; feedback_enabled: boolean;
@@ -83,7 +88,9 @@ const METRICS: { id: MetricId; label: string; help: string; bad?: boolean }[] = 
   { id: 'feedback', label: 'Feedback', help: 'Screenshots and crash reports testers sent from the app.' },
 ];
 
-let cache: { key: string; at: number; data: Data } | null = null;
+// The period before has the same length and ends where this one starts; only its totals and series are used.
+type Loaded = { data: Data; prev: Data | null };
+let cache: { key: string; at: number; data: Loaded } | null = null;
 let metric: MetricId = 'joined';
 let syncing = false;
 // One click handler and one chart at a time, however often the section is redrawn.
@@ -92,18 +99,22 @@ let chartOff: (() => void) | null = null;
 
 async function load(ctx: AppCtx, force: boolean) {
   const p = ctx.period();
-  const key = `${p.from.toISOString()}|${p.to.toISOString()}`;
+  const compare = ctx.compare();
+  const key = `${p.from.toISOString()}|${p.to.toISOString()}|${compare}`;
   if (!force && cache && cache.key === key && Date.now() - cache.at < 60000) return cache.data;
-  const { data, error } = await ctx.db.rpc('admin_appstore', { p_from: p.from.toISOString(), p_to: p.to.toISOString(), p_tz: ctx.tz });
-  if (error) throw error;
-  cache = { key, at: Date.now(), data: data as Data };
+  const days = Math.round((p.to.getTime() - p.from.getTime()) / 86400000);
+  const prevFrom = new Date(p.from.getFullYear(), p.from.getMonth(), p.from.getDate() - days);
+  const call = (from: Date, to: Date) => ctx.db.rpc('admin_appstore', { p_from: from.toISOString(), p_to: to.toISOString(), p_tz: ctx.tz });
+  const [cur, prev] = await Promise.all([call(p.from, p.to), compare ? call(prevFrom, p.from) : null]);
+  if (cur.error) throw cur.error;
+  cache = { key, at: Date.now(), data: { data: cur.data as Data, prev: prev && !prev.error ? (prev.data as Data) : null } };
   return cache.data;
 }
 
 export async function renderApp(host: HTMLElement, ctx: AppCtx, force = false) {
   if (!host.innerHTML) host.innerHTML = `<div class="card"><div class="card-body"><span class="skel" style="width:40%"></span><span class="skel" style="width:70%;margin-top:12px"></span></div></div>`;
   else host.classList.add('loading-veil');
-  let d: Data;
+  let d: Loaded;
   try { d = await load(ctx, force); } catch (e) {
     // Before the appstore migration is applied the function does not exist yet (PostgREST PGRST202):
     // show what is missing instead of a generic error.
@@ -120,7 +131,9 @@ export async function renderApp(host: HTMLElement, ctx: AppCtx, force = false) {
   draw(host, ctx, d);
 }
 
-function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
+function draw(host: HTMLElement, ctx: AppCtx, loaded: Loaded) {
+  const d = loaded.data, prev = loaded.prev;
+  const pt = prev?.totals;
   const st = d.state;
   const neverSynced = !st.synced_at;
   const notConfigured = st.errors.some((e) => e.step === 'config');
@@ -131,6 +144,7 @@ function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
   const live = latest ? LIVE.has(latest.external_state) : false;
 
   host.innerHTML = `
+    ${neverSynced || notConfigured ? '' : summary(ctx, d, prev, latest, linkGroup, live)}
     ${neverSynced || notConfigured ? setupCard(ctx, notConfigured) : ''}
     ${!neverSynced && !notConfigured && st.errors.length ? `<div class="card app-alert"><div class="card-body">${icon('warning-circle')}<div><b>The last sync could not read everything.</b><ul>${st.errors.slice(0, 5).map((e) => `<li><span class="muted">${esc(e.step)}:</span> ${esc(e.message)}</li>`).join('')}</ul></div></div></div>` : ''}
 
@@ -152,10 +166,11 @@ function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
         <button class="kpi" type="button" aria-pressed="${m.id === metric}" data-app-metric="${m.id}" title="${esc(m.help)}">
           <span class="kpi-label">${esc(m.label)}</span>
           <span class="kpi-value num">${esc(num(d.totals[m.id] ?? 0))}</span>
-          <span class="kpi-prev">${esc(ctx.period().label)}</span>
+          <span class="kpi-prev">${pt ? `${ctx.delta(d.totals[m.id], pt[m.id], m.bad)} <span class="faint">vs ${esc(num(pt[m.id] ?? 0))}</span>` : esc(ctx.period().label)}</span>
         </button>`).join('')}
-        <div class="kpi kpi-static" title="Share of people who opened the public link and then joined."><span class="kpi-label">Join rate</span><span class="kpi-value num">${d.totals.views ? esc(pct(((d.totals.joined ?? 0) / d.totals.views) * 100)) : '—'}</span><span class="kpi-prev">of link views</span></div>
+        <div class="kpi kpi-static" title="Share of people who opened the public link and then joined."><span class="kpi-label">Join rate</span><span class="kpi-value num">${esc(pct(rate(d.totals)))}</span><span class="kpi-prev">${pt ? `${ctx.delta(rate(d.totals), rate(pt))} <span class="faint">of link views</span>` : 'of link views'}</span></div>
       </div>
+      ${prev ? `<div class="chart-top"><div class="legend"><span><i></i>${esc(ctx.period().label)}</span><span><i class="prev"></i>Previous period</span></div></div>` : ''}
       <div class="chart-wrap"><div class="chart" id="app-chart"></div></div>
       <p class="note" style="padding:0 18px 14px;margin:0">${icon('info')} <span id="app-help">${esc(METRICS.find((m) => m.id === metric)!.help)} Apple publishes these once a day, so today fills in tomorrow.</span></p>
     </div>
@@ -169,7 +184,7 @@ function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
 
     <div class="section-gap">${ctx.card('Tester feedback', feedbackHtml(d.feedback, ctx), { sub: d.feedback_total ? `${int(d.feedback_total)} in total` : '', end: `<a class="btn btn-sm btn-ghost app-asc" href="${ASC}" target="_blank" rel="noopener">${icon('arrow-up-right')}App Store Connect</a>` })}</div>`;
 
-  drawChart(host, d);
+  drawChart(host, d, prev);
 
   // Screenshots: short-lived signed links from the private bucket.
   const paths = d.feedback.flatMap((f) => f.images.map((i) => i.path)).slice(0, 120);
@@ -196,7 +211,7 @@ function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
       metric = m.dataset.appMetric as MetricId;
       host.querySelectorAll('[data-app-metric]').forEach((b) => b.setAttribute('aria-pressed', String(b === m)));
       host.querySelector('#app-help')!.textContent = METRICS.find((x) => x.id === metric)!.help + ' Apple publishes these once a day, so today fills in tomorrow.';
-      drawChart(host, d);
+      drawChart(host, d, prev);
       return;
     }
     const copy = t.closest<HTMLElement>('[data-app-copy]');
@@ -215,15 +230,44 @@ function draw(host: HTMLElement, ctx: AppCtx, d: Data) {
   });
 }
 
-function drawChart(host: HTMLElement, d: Data) {
+function drawChart(host: HTMLElement, d: Data, prev: Data | null) {
   chartOff?.();
   const now = new Date();
   const cur: Point[] = d.series.map((s) => { const [y, m, dd] = s.day.split('-').map(Number); const t = new Date(y, m - 1, dd); return { t, v: t > now ? null : s[metric] }; });
   const chart = host.querySelector<HTMLElement>('#app-chart')!;
   chart.innerHTML = '';
   const label = METRICS.find((m) => m.id === metric)!.label;
-  chartOff = lineChart(chart, { cur, prev: null, bucket: 'day', fmt: num, label });
+  const before: Point[] | null = prev ? prev.series.map((s) => { const [y, m, dd] = s.day.split('-').map(Number); return { t: new Date(y, m - 1, dd), v: s[metric] }; }) : null;
+  chartOff = lineChart(chart, { cur, prev: before, bucket: 'day', fmt: num, label });
   if (!cur.some((p) => (p.v ?? 0) > 0)) chart.insertAdjacentHTML('beforeend', `<div class="chart-empty">No ${esc(label.toLowerCase())} in this period</div>`);
+}
+
+/** Join rate in points: joined as a share of link views. */
+const rate = (t: Data['totals']) => (t.views ? ((t.joined ?? 0) / t.views) * 100 : null);
+
+/** The strip at the top: are installs up or down, the numbers behind it, and anything that needs a look. */
+function summary(ctx: AppCtx, d: Data, prev: Data | null, latest: Build | undefined, link: Group | undefined, live: boolean) {
+  const t = d.totals, pt = prev?.totals;
+  const dl = (id: MetricId, bad = false) => (pt ? ' ' + ctx.delta(t[id], pt[id], bad) : '');
+  const plural = (n: number | null | undefined, one: string, many: string) => `<b class="num">${esc(int(n ?? 0))}</b> ${(n ?? 0) === 1 ? one : many}`;
+  const alerts: string[] = [];
+  if (latest && !latest.expired) {
+    const days = Math.ceil((new Date(latest.expires).getTime() - Date.now()) / 86400000);
+    if (days <= 14) alerts.push(`Build ${esc(latest.version)} (${esc(latest.number)}) stops working in ${days <= 0 ? 'under a day' : `${days} day${days === 1 ? '' : 's'}`}`);
+  }
+  if ((t.crashes ?? 0) > 0 && (!pt || (t.crashes ?? 0) > (pt.crashes ?? 0))) alerts.push(`${int(t.crashes)} crash${t.crashes === 1 ? '' : 'es'} to look at`);
+  if (link?.link_enabled && !live) alerts.push('Public link is waiting for Apple');
+  if (d.runs[0]?.ok === false) alerts.push('Last sync failed');
+  return ctx.brief({
+    ...ctx.trendTitle('Installs', t.installs, pt ? pt.installs : null),
+    facts: [
+      `${plural(t.installs, 'install', 'installs')}${dl('installs')}`,
+      `${plural(t.joined, 'new tester', 'new testers')}${dl('joined')}`,
+      `${plural(t.crashes, 'crash', 'crashes')}${dl('crashes', true)}`,
+      `${plural(t.feedback, 'feedback note', 'feedback notes')}`,
+    ],
+    alerts,
+  });
 }
 
 async function syncNow(host: HTMLElement, ctx: AppCtx) {

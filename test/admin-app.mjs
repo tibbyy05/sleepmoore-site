@@ -51,6 +51,10 @@ const fixture = {
   scheduled: true,
 };
 
+// The period before: fewer installs and testers, no crashes, so the arrows and summary have something to say.
+const before = { ...fixture, series: series.map((s) => ({ ...s, installs: Math.round(s.installs * 0.7), joined: Math.round(s.joined * 0.8), crashes: 0 })) };
+before.totals = Object.fromEntries(Object.keys(fixture.totals).map((k) => [k, before.series.reduce((a, s) => a + s[k], 0)]));
+
 const session = {
   access_token: 'test', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: 'test',
   user: { id: '00000000-0000-0000-0000-000000000000', aud: 'authenticated', role: 'authenticated', email: 'admin@example.com' },
@@ -71,7 +75,7 @@ for (const size of [{ name: 'desktop', vp: { width: 1440, height: 1000 } }, { na
     if (!url.startsWith(SUPA)) return req.continue();
     const json = (body, status = 200) => req.respond({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
     if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
-    if (url.includes('/rpc/admin_appstore')) return json(fixture);
+    if (url.includes('/rpc/admin_appstore')) return json(new Date(JSON.parse(req.postData() || '{}').p_to).getTime() < Date.now() - 86400000 ? before : fixture);
     if (url.includes('/rpc/admin_live')) return json({ now: 0, pages: [], minutes: [], feed: [] });
     if (req.method() === 'POST' && url.includes('/storage/v1/object/sign/appstore-feedback')) return json(fixture.feedback.flatMap((f) => f.images.map((i) => i.path)).map((p) => ({ path: p, signedURL: `/object/sign/appstore-feedback/${p}?token=t`, error: null })));
     if (url.includes('/storage/v1/object/sign/')) return req.respond({ status: 200, contentType: 'image/webp', headers: { 'access-control-allow-origin': '*' }, body: shot });
@@ -97,6 +101,10 @@ for (const size of [{ name: 'desktop', vp: { width: 1440, height: 1000 } }, { na
       feedback: v?.querySelectorAll('.app-fb').length,
       shot: (v?.querySelector('.app-shots img')?.naturalWidth ?? 0) > 0,
       chart: !!v?.querySelector('#app-chart svg'),
+      brief: v?.querySelector('.brief-title')?.textContent ?? '',
+      alerts: v?.querySelectorAll('.brief-alerts .pill').length ?? 0,
+      deltas: v?.querySelectorAll('.app-kpis .delta').length ?? 0,
+      buildCard: getComputedStyle(v?.querySelector('table[data-table="app-builds"] tbody tr') ?? document.body).display,
     };
   });
   if (checks.overflow > 0) problems.push(`${size.name}: horizontal overflow ${checks.overflow}px`);
@@ -106,6 +114,10 @@ for (const size of [{ name: 'desktop', vp: { width: 1440, height: 1000 } }, { na
   if (checks.feedback !== 2) problems.push(`${size.name}: expected 2 feedback items, got ${checks.feedback}`);
   if (!checks.shot) problems.push(`${size.name}: screenshot not loaded from storage`);
   if (!checks.chart) problems.push(`${size.name}: chart missing`);
+  if (!/^Installs up \d+% on the week before$/.test(checks.brief)) problems.push(`${size.name}: summary headline was "${checks.brief}"`);
+  if (checks.alerts !== 1) problems.push(`${size.name}: expected 1 summary alert (crashes), got ${checks.alerts}`);
+  if (checks.deltas !== 8) problems.push(`${size.name}: expected 8 up/down arrows on the numbers, got ${checks.deltas}`);
+  if (size.name === 'phone' && checks.buildCard !== 'grid') problems.push(`phone: builds should show as cards, row display is ${checks.buildCard}`);
   // Switching the chart metric must not add duplicate handlers or break the chart.
   await page.click('[data-app-metric="installs"]');
   await page.click('[data-app-metric="web_clicks"]');

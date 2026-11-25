@@ -7,6 +7,8 @@ const names = [
   'lightning', 'device-mobile', 'desktop', 'device-tablet', 'moon-stars', 'info', 'eye-slash', 'lock-simple', 'cursor',
   // App section
   'apple-logo', 'bug', 'chat-circle-text', 'copy', 'link', 'hourglass', 'check-circle', 'x-circle', 'warning-circle', 'package', 'user-plus', 'image',
+  // Summary strip
+  'trend-up', 'trend-down', 'minus',
 ];
 const svgs = import.meta.glob<string>('/node_modules/@phosphor-icons/core/assets/regular/*.svg', { query: '?raw', import: 'default', eager: true });
 const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
