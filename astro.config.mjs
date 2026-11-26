@@ -22,5 +22,15 @@ export default defineConfig({
       subsets: ['latin'],
       fallbacks: ['sans-serif'],
     },
+    // The admin's typeface (owner's mock): a book serif that stays readable at table sizes.
+    {
+      provider: fontProviders.google(),
+      name: 'Source Serif 4',
+      cssVariable: '--font-serif',
+      weights: [400, 600, 700],
+      styles: ['normal'],
+      subsets: ['latin'],
+      fallbacks: ['serif'],
+    },
   ],
 });

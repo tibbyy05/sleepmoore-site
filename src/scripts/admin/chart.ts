@@ -129,3 +129,17 @@ export function bindTips(root: HTMLElement) {
     el.addEventListener('blur', () => (tip().hidden = true));
   });
 }
+
+let sparkId = 0;
+/** A small trend line with a soft fill, for number tiles. Colour comes from the CSS `color`. */
+export function sparkline(vals: number[]) {
+  if (vals.length < 2) return '';
+  const w = 120, h = 36;
+  const max = Math.max(...vals), min = Math.min(0, ...vals), span = max - min || 1;
+  // Nothing moved: a quiet dotted line through the middle rather than a block or a line on the floor.
+  if (vals.every((v) => v === vals[0])) return `<svg class="spark flat" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="M0 ${h / 2}H${w}" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity=".45"/></svg>`;
+  const pts = vals.map((v, i) => [(i / (vals.length - 1)) * w, h - 2 - ((v - min) / span) * (h - 6)]);
+  const d = pts.map((q, i) => `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join('');
+  const id = `spk${++sparkId}`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".26"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="${d}L${w} ${h}L0 ${h}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
+}

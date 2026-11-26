@@ -7,8 +7,11 @@ import { bindTips, lineChart, type Point } from './chart';
 import { globe } from './globe';
 import {
   ago, countryName, DEVICE_ICON, dur, esc, fmtDate, fmtTime, icon, int, KIND_ICON, KIND_LABEL, langName, ms, num, pageName, pct,
-  soundKind, soundName, tzCity,
+  soundArt, soundKind, soundName, tzCity,
 } from './format';
+import { onlineChip, renderHome } from './home';
+import { CENTROIDS } from './geo-data';
+import { MIXES_BY_ID } from '../../data/worlds';
 
 const SUPABASE_URL = 'https://texlatkkshmbyojkjbnc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Fd-GSdk9lCWpm24x7vJTwg_DYceEbPa';
@@ -35,11 +38,20 @@ type Report = {
   first_seen: string | null;
 } & Record<string, any>;
 
-const VIEWS = ['overview', 'live', 'visits', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance', 'appstore', 'settings'] as const;
+const VIEWS = ['home', 'overview', 'live', 'visits', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance', 'appstore', 'settings'] as const;
 type View = (typeof VIEWS)[number];
 const TITLES: Record<View, string> = {
-  overview: 'Overview', live: 'Live', visits: 'Visits', pages: 'Pages', sources: 'Sources', audience: 'Audience',
-  clicks: 'Clicks & goals', sounds: 'Sounds', performance: 'Speed', appstore: 'App', settings: 'Settings',
+  home: 'Home', overview: 'Overview', live: 'Live', visits: 'Visits', pages: 'Pages', sources: 'Sources', audience: 'Audience',
+  clicks: 'Clicks & goals', sounds: 'Sounds', performance: 'Speed', appstore: 'TestFlight', settings: 'Settings',
+};
+/** The sidebar group each section belongs to, shown above the page title. */
+const GROUP_OF: Partial<Record<View, string>> = {
+  overview: 'Website', live: 'Website', visits: 'Website', pages: 'Website', sources: 'Website', audience: 'Website', clicks: 'Website', performance: 'Website',
+  sounds: 'Content', appstore: 'App', settings: 'Account',
+};
+const ICON_OF: Record<View, string> = {
+  home: 'house', overview: 'chart-line', live: 'broadcast', visits: 'footprints', pages: 'file-text', sources: 'share-network', audience: 'globe',
+  clicks: 'cursor-click', sounds: 'music-notes', performance: 'gauge', appstore: 'apple-logo', settings: 'gear',
 };
 const USES_REPORT = new Set<View>(['overview', 'pages', 'sources', 'audience', 'clicks', 'sounds', 'performance']);
 
@@ -70,7 +82,7 @@ const METRICS: Metric[] = [
 
 // ---------- State ----------
 const S = {
-  view: 'overview' as View,
+  view: 'home' as View,
   range: '7d',
   cfrom: '', cto: '',
   bucket: '',
@@ -93,7 +105,7 @@ let loadSeq = 0;
 function readUrl() {
   const p = new URLSearchParams(location.search);
   const h = location.hash.slice(1) as View;
-  S.view = VIEWS.includes(h) ? h : 'overview';
+  S.view = VIEWS.includes(h) ? h : 'home';
   S.range = p.get('range') || '7d';
   S.cfrom = p.get('from') || '';
   S.cto = p.get('to') || '';
@@ -320,6 +332,7 @@ async function refresh(force = false) {
   if (S.view === 'live') return renderLive(host, true);
   if (S.view === 'visits') return renderVisits(host);
   if (S.view === 'appstore') return renderApp(host, appCtx(seq), force).then(() => bindTips(host));
+  if (S.view === 'home') return renderHome(host, { ...appCtx(seq), isCurrent: () => seq === loadSeq && S.view === 'home', report: loadReport, online: () => onlineNow, prevName }, force);
   if (!host.innerHTML) host.innerHTML = skeleton();
   else host.classList.add('loading-veil');
   try {
@@ -365,13 +378,18 @@ function skeleton() {
 function renderChrome() {
   document.title = `${TITLES[S.view]} · Sleep Moore Admin`;
   $('#title').textContent = TITLES[S.view];
+  $('#crumb').textContent = GROUP_OF[S.view] ?? '';
+  $('#crumb').hidden = !GROUP_OF[S.view];
   $$('[data-nav]').forEach((a) => (a.dataset.nav === S.view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
   $$('[data-view]').forEach((v) => (v.hidden = v.dataset.view !== S.view));
   const p = period();
   $('#range-label').textContent = p.label;
   $('#tools').hidden = S.view === 'settings' || S.view === 'live';
-  ($('#compare') as HTMLInputElement).checked = S.compare;
-  $('#compare').closest('label')!.hidden = !((USES_REPORT.has(S.view) && S.view !== 'performance') || S.view === 'appstore');
+  $('#compare').setAttribute('aria-pressed', String(S.compare));
+  $('#compare').hidden = !((USES_REPORT.has(S.view) && S.view !== 'performance') || S.view === 'appstore' || S.view === 'home');
+  // Home keeps the bar to the date range and Compare (owner's mock); refresh lives in search.
+  $('#refresh').hidden = S.view === 'home';
+  $('[data-online-pill]').hidden = !onlineNow || S.view === 'home';
   const chips = $('#chips');
   const entries = Object.entries(S.filters);
   chips.hidden = !entries.length || S.view === 'settings' || S.view === 'live';
@@ -648,17 +666,13 @@ function renderSounds(host: HTMLElement, r: Report) {
     <div class="section-gap">${card('Worlds, stories and meditations', table('sounds', rows, cols, { sort: 'plays' }) + `<p class="note">${icon('info')} Listening time keeps counting with the screen locked, as long as the browser keeps the page alive.</p>`, { end: exportBtn('sounds', rows, cols) })}</div>`;
 }
 
-/** Built into the page by index.astro: each sound's square thumb, wide banner and average colour. */
-const ART: Record<string, { thumb: string; wide: string; color: string }> = (() => {
-  try { return JSON.parse(document.getElementById('sound-art')?.textContent || '{}'); } catch { return {}; }
-})();
 
 /** The most played sounds like a music chart: number one large on its own picture, the next seven beside it. */
 function soundChart(rows: Row[]) {
   const ranked = [...rows].sort((a, b) => b.plays - a.plays).slice(0, 8);
   const [top, ...rest] = ranked;
   const max = Math.max(top.plays, 1);
-  const art = (id: string) => ART[id] ?? { thumb: '', wide: '', color: '#151a24' };
+  const art = soundArt;
   const a = art(top.id);
   return `<div class="card sound-chart">
     <div class="sound-hero" style="--tone:${esc(a.color)}">
@@ -743,6 +757,7 @@ async function renderLive(host: HTMLElement, first = false) {
   if (S.view !== 'live' || !host.querySelector('[data-live-side]')) return;
   const d = data as { now: number; pages: Row[]; minutes: { t: string; pageviews: number }[]; feed: Record<string, any>[] };
   setOnline(d.now);
+  setPulse(d.minutes);
   const max = Math.max(...d.minutes.map((m) => m.pageviews), 1);
   const topKey = d.feed[0] ? d.feed[0].ts + d.feed[0].name : '';
   const seen = lastFeedTop;
@@ -782,16 +797,37 @@ async function renderLive(host: HTMLElement, first = false) {
   bindTips(host);
 }
 
+let onlineNow = 0;
 function setOnline(n: number) {
+  onlineNow = n;
+  document.querySelector('[data-home-online]')?.insertAdjacentHTML('afterend', onlineChip(n));
+  document.querySelector('[data-home-online]')?.remove();
   const pill = $('[data-online-pill]');
-  pill.hidden = !n;
+  pill.hidden = !n || S.view === 'home';
   $('[data-online-text]').textContent = `${n} online now`;
   $$('[data-online]').forEach((b) => { b.hidden = !n; b.textContent = String(n); });
+  $$('[data-live-dot]').forEach((d) => d.classList.toggle('is-quiet', !n));
+}
+/** The sidebar's live card: people on the site now and page views per minute for the last half hour. */
+function setPulse(minutes: { t: string; pageviews: number }[]) {
+  const bars = $$('[data-pulse-bars] i');
+  if (!bars.length) return;
+  const max = Math.max(1, ...minutes.map((m) => m.pageviews));
+  const last = minutes.slice(-bars.length);
+  bars.forEach((b, i) => {
+    const v = last[i - (bars.length - last.length)]?.pageviews ?? 0;
+    b.style.height = v ? `${Math.max(14, (v / max) * 100)}%` : '';
+    b.classList.toggle('on', v > 0);
+  });
+  const views = minutes.reduce((a, m) => a + m.pageviews, 0);
+  $('[data-pulse-sub]').textContent = `on the site now · ${int(views)} ${views === 1 ? 'view' : 'views'} in 30 min`;
 }
 async function pollOnline() {
   if (document.visibilityState !== 'visible' || S.view === 'live') return;
   const { data } = await db.rpc('admin_live');
-  if (data) setOnline((data as { now: number }).now);
+  if (!data) return;
+  setOnline((data as { now: number }).now);
+  setPulse((data as { minutes: { t: string; pageviews: number }[] }).minutes ?? []);
 }
 
 // ---------- Visits ----------
@@ -916,7 +952,7 @@ function bindShell() {
     writeUrl();
     refresh();
   });
-  $('#compare').addEventListener('change', (e) => { S.compare = (e.target as HTMLInputElement).checked; writeUrl(); refresh(); });
+  $('#compare').addEventListener('click', () => { S.compare = !S.compare; writeUrl(); refresh(); });
   $('#refresh').addEventListener('click', () => { refresh(true); toast('Updated'); });
 
   $('#chips').addEventListener('click', (e) => {
@@ -987,6 +1023,103 @@ function bindShell() {
   refreshTimer = window.setInterval(() => {
     if (document.visibilityState === 'visible' && S.range === 'today' && USES_REPORT.has(S.view)) refresh(true);
   }, 120000);
+}
+
+// ---------- Sidebar ----------
+const store = {
+  get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* blocked */ } },
+};
+function bindSidebar() {
+  const shell = $('.shell'), btn = $('#rail-toggle');
+  const setRail = (on: boolean) => {
+    shell.classList.toggle('is-rail', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.setAttribute('aria-label', on ? 'Expand sidebar' : 'Collapse sidebar');
+    btn.dataset.label = on ? 'Expand' : 'Collapse';
+  };
+  setRail(store.get('sm-admin-rail') === '1');
+  btn.addEventListener('click', () => { const on = !shell.classList.contains('is-rail'); setRail(on); store.set('sm-admin-rail', on ? '1' : '0'); });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === '\\') { e.preventDefault(); btn.click(); }
+  });
+  const closed = new Set((store.get('sm-admin-groups') ?? '').split(',').filter(Boolean));
+  const paint = () => $$('[data-group-toggle]').forEach((b) => {
+    const g = b.dataset.groupToggle!;
+    // The group holding the current page always stays open.
+    const open = !closed.has(g) || !!b.parentElement!.querySelector('[aria-current="page"]');
+    b.setAttribute('aria-expanded', String(open));
+    b.parentElement!.classList.toggle('is-closed', !open);
+  });
+  $$('[data-group-toggle]').forEach((b) => b.addEventListener('click', () => {
+    const g = b.dataset.groupToggle!;
+    if (b.getAttribute('aria-expanded') === 'true') closed.add(g); else closed.delete(g);
+    store.set('sm-admin-groups', [...closed].join(','));
+    paint();
+  }));
+  window.addEventListener('hashchange', paint);
+  paint();
+}
+
+// ---------- Search (Ctrl K) ----------
+type PItem = { group: string; label: string; sub?: string; icon: string; run: () => void; keys: string };
+function paletteItems(): PItem[] {
+  const go = (v: View) => () => { location.hash = v; };
+  const items: PItem[] = VIEWS.map((v) => ({ group: 'Pages', label: TITLES[v], sub: GROUP_OF[v], icon: ICON_OF[v], run: go(v), keys: `${TITLES[v]} ${GROUP_OF[v] ?? ''}` }));
+  RANGES.forEach((r) => items.push({ group: 'Date range', label: r.label, icon: 'calendar-blank', keys: r.label, run: () => { S.range = r.id; S.bucket = ''; S.visitsPage = 0; writeUrl(); refresh(); } }));
+  items.push({ group: 'Actions', label: S.compare ? 'Stop comparing with the period before' : 'Compare with the period before', icon: 'arrows-clockwise', keys: 'compare previous period', run: () => { S.compare = !S.compare; writeUrl(); refresh(); } });
+  items.push({ group: 'Actions', label: 'Refresh the numbers', icon: 'arrows-clockwise', keys: 'refresh reload update', run: () => { refresh(true); toast('Updated'); } });
+  items.push({ group: 'Actions', label: 'Open sleepmoore.app', icon: 'arrow-up-right', keys: 'website site open', run: () => window.open('/', '_blank', 'noopener') });
+  Object.keys(MIXES_LIST).forEach((id) => items.push({ group: 'Sounds', label: soundName(id), sub: soundKind(id), icon: 'music-notes', keys: `${soundName(id)} ${soundKind(id)}`, run: go('sounds') }));
+  Object.keys(CENTROIDS).forEach((cc) => items.push({ group: 'Countries', label: countryName(cc), sub: 'Filter visitors', icon: 'globe', keys: `${countryName(cc)} ${cc}`, run: () => { if (!USES_REPORT.has(S.view)) S.view = 'overview'; S.filters.country = cc; writeUrl(); refresh(); } }));
+  return items;
+}
+const MIXES_LIST: Record<string, true> = Object.fromEntries(Object.keys(MIXES_BY_ID).filter((id) => id !== 'my-scene').map((id) => [id, true]));
+
+function bindPalette() {
+  const box = $('#palette'), q = $<HTMLInputElement>('#palette-q'), list = $('#palette-list');
+  let all: PItem[] = [], shown: PItem[] = [], at = 0, opener: HTMLElement | null = null;
+  const draw = () => {
+    const words = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const match = (it: PItem) => words.every((w) => it.keys.toLowerCase().includes(w));
+    // Empty search shows the pages and actions; typing searches everything, best groups first.
+    shown = (words.length ? all.filter(match) : all.filter((i) => i.group === 'Pages' || i.group === 'Actions')).slice(0, 40);
+    at = Math.min(at, Math.max(0, shown.length - 1));
+    let last = '';
+    list.innerHTML = shown.length ? shown.map((it, i) => {
+      const head = it.group !== last ? `<div class="palette-group">${esc(it.group)}</div>` : '';
+      last = it.group;
+      return `${head}<button type="button" id="po-${i}" data-active="${i === at}" data-pi="${i}">${icon(it.icon)}<span>${esc(it.label)}</span>${it.sub ? `<span class="faint">${esc(it.sub)}</span>` : ''}<kbd>Enter</kbd></button>`;
+    }).join('') : `<div class="palette-empty">Nothing matches “${esc(q.value)}”.</div>`;
+    list.querySelector('[data-active="true"]')?.scrollIntoView({ block: 'nearest' });
+  };
+  const open = () => {
+    opener = document.activeElement as HTMLElement;
+    all = paletteItems();
+    q.value = ''; at = 0;
+    box.hidden = false;
+    draw();
+    q.focus();
+  };
+  const close = () => { box.hidden = true; opener?.focus?.(); };
+  const pick = (i: number) => { const it = shown[i]; if (!it) return; close(); it.run(); };
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); box.hidden ? open() : close(); return; }
+    if (e.key === '/' && box.hidden && !(e.target as Element).closest('input, textarea, select')) { e.preventDefault(); open(); }
+  });
+  $$('[data-palette]').forEach((b) => b.addEventListener('click', open));
+  box.addEventListener('click', (e) => {
+    if (e.target === box) return close();
+    const b = (e.target as Element).closest<HTMLElement>('[data-pi]');
+    if (b) pick(Number(b.dataset.pi));
+  });
+  q.addEventListener('input', () => { at = 0; draw(); });
+  q.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); at = Math.min(shown.length - 1, at + 1); draw(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); at = Math.max(0, at - 1); draw(); }
+    else if (e.key === 'Enter') { e.preventDefault(); pick(at); }
+    else if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
 }
 
 // ---------- Sign-in ----------
@@ -1079,7 +1212,9 @@ function showApp(session: Session) {
   $('#app').hidden = false;
   // The person running the site should not show up in its numbers.
   try { if (localStorage.getItem('sm-no-track') === null) localStorage.setItem('sm-no-track', '1'); } catch { /* blocked */ }
-  if (!shellBound) { bindShell(); shellBound = true; }
+  if (!shellBound) { bindShell(); bindPalette(); bindSidebar(); shellBound = true; }
+  const email = session.user.email ?? '';
+  $('[data-owner]').title = email;
   readUrl();
   writeUrl(true);
   refresh();

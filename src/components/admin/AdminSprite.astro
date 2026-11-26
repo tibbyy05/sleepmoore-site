@@ -9,14 +9,27 @@ const names = [
   'apple-logo', 'bug', 'chat-circle-text', 'copy', 'link', 'hourglass', 'check-circle', 'x-circle', 'warning-circle', 'package', 'user-plus', 'image',
   // Summary strip
   'trend-up', 'trend-down', 'minus',
+  // Shell, Home and search
+  'house', 'magnifying-glass', 'arrow-right', 'gear-six', 'sidebar-simple',
+  // Owner's mock: sidebar and Home icons
+  'chart-bar', 'monitor', 'stack', 'target', 'app-store-logo', 'user', 'play-circle',
 ];
 const svgs = import.meta.glob<string>('/node_modules/@phosphor-icons/core/assets/regular/*.svg', { query: '?raw', import: 'default', eager: true });
+// Solid versions of the sidebar icons: the page you are on shows its icon filled.
+const filled = ['house', 'chart-bar', 'monitor', 'trend-up', 'file-text', 'stack', 'users', 'target', 'lightning', 'music-notes', 'app-store-logo', 'gear-six'];
+const fills = import.meta.glob<string>('/node_modules/@phosphor-icons/core/assets/fill/*.svg', { query: '?raw', import: 'default', eager: true });
 const inner = (svg: string) => svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
 const symbols = names
   .map((n) => {
     const svg = svgs[`/node_modules/@phosphor-icons/core/assets/regular/${n}.svg`];
     if (!svg) throw new Error(`Missing Phosphor icon: ${n}`);
     return `<symbol id="a-${n}" viewBox="0 0 256 256">${inner(svg)}</symbol>`;
+  })
+  .join('') + filled
+  .map((n) => {
+    const svg = fills[`/node_modules/@phosphor-icons/core/assets/fill/${n}-fill.svg`];
+    if (!svg) throw new Error(`Missing Phosphor fill icon: ${n}`);
+    return `<symbol id="a-${n}-fill" viewBox="0 0 256 256">${inner(svg)}</symbol>`;
   })
   .join('');
 ---

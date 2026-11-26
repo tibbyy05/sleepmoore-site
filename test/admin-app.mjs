@@ -115,7 +115,7 @@ for (const size of [{ name: 'desktop', vp: { width: 1440, height: 1000 } }, { na
   if (!checks.shot) problems.push(`${size.name}: screenshot not loaded from storage`);
   if (!checks.chart) problems.push(`${size.name}: chart missing`);
   if (!/^Installs up \d+% on the week before$/.test(checks.brief)) problems.push(`${size.name}: summary headline was "${checks.brief}"`);
-  if (checks.alerts !== 1) problems.push(`${size.name}: expected 1 summary alert (crashes), got ${checks.alerts}`);
+  if (checks.alerts !== 2) problems.push(`${size.name}: expected 2 summary alerts (the tester's crash report and the crash count), got ${checks.alerts}`);
   if (checks.deltas !== 8) problems.push(`${size.name}: expected 8 up/down arrows on the numbers, got ${checks.deltas}`);
   if (size.name === 'phone' && checks.buildCard !== 'grid') problems.push(`phone: builds should show as cards, row display is ${checks.buildCard}`);
   // Switching the chart metric must not add duplicate handlers or break the chart.

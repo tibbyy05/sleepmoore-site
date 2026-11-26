@@ -5,6 +5,7 @@ import { Font } from 'astro:assets';
 import AdminSprite from '../../components/admin/AdminSprite.astro';
 import '../../styles/admin.css';
 import { getImage } from 'astro:assets';
+import brandIcon from '../../assets/brand/sleep-moore-icon.png';
 import { MEDITATIONS, SOUND_MIXES, STORIES, WORLDS } from '../../data/worlds';
 import { MEDITATION_COVERS, MEDITATION_COLORS, SCENE_COLORS, SCENES, STORY_COLORS, STORY_COVERS, TILE_COLORS, TILES } from '../../data/scenes';
 
@@ -20,22 +21,31 @@ const ART = Object.fromEntries(await Promise.all(sources.map(async ([id, src, co
     getImage({ src: src!, width: 112, height: 112, fit: 'cover', position, format: 'webp' }),
     getImage({ src: src!, width: 960, height: 400, fit: 'cover', position, format: 'webp' }),
   ]);
-  return [id, { thumb: thumb.src, wide: wide.src, color: color ?? '#151a24' }];
+  const card = await getImage({ src: src!, width: 352, height: 200, fit: 'cover', position, format: 'webp' });
+  return [id, { thumb: thumb.src, wide: wide.src, card: card.src, color: color ?? '#151a24' }];
 })));
 
-const NAV = [
-  { id: 'overview', label: 'Overview', icon: 'chart-line' },
-  { id: 'live', label: 'Live', icon: 'broadcast' },
-  { id: 'visits', label: 'Visits', icon: 'footprints' },
-  { id: 'pages', label: 'Pages', icon: 'file-text' },
-  { id: 'sources', label: 'Sources', icon: 'share-network' },
-  { id: 'audience', label: 'Audience', icon: 'globe' },
-  { id: 'clicks', label: 'Clicks & goals', icon: 'cursor-click' },
-  { id: 'sounds', label: 'Sounds', icon: 'music-notes' },
-  { id: 'performance', label: 'Speed', icon: 'gauge' },
-  { id: 'appstore', label: 'App', icon: 'apple-logo' },
-  { id: 'settings', label: 'Settings', icon: 'gear' },
+// The sidebar: Home on its own, then one group per part of the business. Settings sits with the account.
+const GROUPS = [
+  { label: '', items: [{ id: 'home', label: 'Home', icon: 'house' }] },
+  { label: 'Website', items: [
+    { id: 'overview', label: 'Overview', icon: 'chart-bar' },
+    { id: 'live', label: 'Live', icon: 'monitor' },
+    { id: 'visits', label: 'Visits', icon: 'trend-up' },
+    { id: 'pages', label: 'Pages', icon: 'file-text' },
+    { id: 'sources', label: 'Sources', icon: 'stack' },
+    { id: 'audience', label: 'Audience', icon: 'users' },
+    { id: 'clicks', label: 'Clicks & goals', icon: 'target' },
+    { id: 'performance', label: 'Speed', icon: 'lightning' },
+  ] },
+  { label: 'Content', items: [{ id: 'sounds', label: 'Sounds', icon: 'music-notes' }] },
+  { label: 'App', items: [{ id: 'appstore', label: 'TestFlight', icon: 'app-store-logo' }] },
 ];
+const NAV = [...GROUPS.flatMap((g) => g.items), { id: 'settings', label: 'Settings', icon: 'gear-six' }];
+// On phones: the five most used, and Search for everything else.
+const TABS = ['home', 'overview', 'live', 'sounds', 'appstore'].map((id) => NAV.find((n) => n.id === id)!);
+
+const logo = await getImage({ src: brandIcon, width: 80, height: 80, format: 'webp' });
 ---
 <!doctype html>
 <html lang="en">
@@ -48,14 +58,15 @@ const NAV = [
 <title>Sleep Moore Admin</title>
 <meta name="description" content="Private visitor analytics for sleepmoore.app.">
 <link rel="icon" type="image/png" href="/favicon.png">
-<Font cssVariable="--font-sans" preload={[{ weight: 400, style: 'normal' }, { weight: 700, style: 'normal' }]} />
+<Font cssVariable="--font-sans" />
+<Font cssVariable="--font-serif" preload={[{ weight: 400, style: 'normal' }, { weight: 600, style: 'normal' }]} />
 </head>
 <body class="is-booting">
 <AdminSprite />
 
 <div class="login" id="login" hidden>
   <div class="login-card">
-    <div class="brand"><svg class="i" aria-hidden="true"><use href="#a-moon-stars" /></svg><span>Sleep Moore</span><span class="brand-tag">Admin</span></div>
+    <div class="brand"><img class="brand-logo" src={logo.src} alt="" width="40" height="40"><span class="brand-name">Sleep Moore<span class="brand-sub">Admin</span></span></div>
 
     <form id="login-form" data-pane="login" novalidate>
       <h2>Sign in</h2>
@@ -94,21 +105,42 @@ const NAV = [
 
 <div class="shell" id="app" hidden>
   <aside class="side" aria-label="Sidebar">
-    <div class="brand"><svg class="i" aria-hidden="true"><use href="#a-moon-stars" /></svg><span>Sleep Moore</span><span class="brand-tag">Admin</span></div>
+    <div class="side-top">
+      <a class="ws" href="#home" aria-label="Sleep Moore admin, home">
+        <img class="ws-logo" src={logo.src} alt="" width="40" height="40">
+        <span class="ws-name">Sleep Moore</span>
+      </a>
+      <button class="rail-btn" type="button" id="rail-toggle" aria-label="Collapse sidebar" aria-pressed="false" data-label="Collapse"><svg class="i" aria-hidden="true"><use href="#a-sidebar-simple" /></svg></button>
+    </div>
+    <button class="search-btn" type="button" data-palette data-label="Search"><svg class="i" aria-hidden="true"><use href="#a-magnifying-glass" /></svg><span>Search</span><kbd>Ctrl K</kbd></button>
     <nav class="nav" aria-label="Sections">
-      {NAV.map((n) => (
-        <a href={`#${n.id}`} data-nav={n.id}><svg class="i" aria-hidden="true"><use href={`#a-${n.icon}`} /></svg><span>{n.label}</span>{n.id === 'live' && <b class="nav-live" data-online hidden></b>}</a>
+      {GROUPS.map((g) => (
+        <div class="nav-group" data-group={g.label || 'top'}>
+          {g.label && <button class="nav-label" type="button" aria-expanded="true" data-group-toggle={g.label}><span>{g.label}</span><svg class="i" aria-hidden="true"><use href="#a-caret-down" /></svg></button>}
+          <div class="nav-items">
+            {g.items.map((n) => (
+              <a href={`#${n.id}`} data-nav={n.id} data-label={n.label}>
+                <span class="nav-ico"><svg class="i off" aria-hidden="true"><use href={`#a-${n.icon}`} /></svg><svg class="i on" aria-hidden="true"><use href={`#a-${n.icon}-fill`} /></svg></span>
+                <span class="nav-txt">{n.label}</span>
+                {n.id === 'live' && <i class="nav-dot" data-live-dot></i>}
+                {n.id === 'live' && <b class="nav-live" data-online hidden></b>}
+              </a>
+            ))}
+          </div>
+        </div>
       ))}
     </nav>
     <div class="side-foot">
-      <a class="side-link" href="/" target="_blank" rel="noopener">sleepmoore.app <svg class="i" aria-hidden="true"><use href="#a-arrow-up-right" /></svg></a>
+      <a class="foot-row" href="#live" data-label="Live"><span class="foot-ico"><i class="dot-live" data-live-dot></i></span><span class="foot-txt">Live</span><b class="foot-num num" data-online hidden></b></a>
+      <a class="foot-row" href="#settings" data-label="Owner" data-owner><span class="foot-ico"><svg class="i" aria-hidden="true"><use href="#a-user" /></svg></span><span class="foot-txt">Owner</span></a>
+      <a class="foot-row" href="#settings" data-nav="settings" data-label="Settings"><span class="foot-ico"><svg class="i" aria-hidden="true"><use href="#a-gear-six" /></svg></span><span class="foot-txt">Settings</span></a>
     </div>
   </aside>
 
   <div class="main">
     <header class="bar">
       <div class="bar-row">
-        <h1 id="title">Overview</h1>
+        <div class="title"><span class="crumb" id="crumb"></span><h1 id="title">Home</h1></div>
         <span class="online" data-online-pill hidden><i></i><span data-online-text></span></span>
         <div class="bar-tools" id="tools">
           <div class="range" id="range">
@@ -117,9 +149,7 @@ const NAV = [
             </button>
             <div class="menu" id="range-menu" hidden></div>
           </div>
-          <label class="switch" title="Compare with the period before">
-            <input type="checkbox" id="compare" checked><span class="switch-ui" aria-hidden="true"></span><span>Compare</span>
-          </label>
+          <button class="btn cmp-btn" type="button" id="compare" aria-pressed="true" title="Compare with the period before">Compare</button>
           <button class="btn btn-icon" type="button" id="refresh" aria-label="Refresh"><svg class="i" aria-hidden="true"><use href="#a-arrows-clockwise" /></svg></button>
         </div>
       </div>
@@ -131,12 +161,19 @@ const NAV = [
     </main>
   </div>
   <nav class="tabbar" aria-label="Sections, bottom bar">
-    {NAV.map((n) => (
-      <a href={`#${n.id}`} data-nav={n.id}><svg class="i" aria-hidden="true"><use href={`#a-${n.icon}`} /></svg><span>{n.label}</span></a>
+    {TABS.map((n) => (
+      <a href={`#${n.id}`} data-nav={n.id}><svg class="i" aria-hidden="true"><use href={`#a-${n.icon}`} /></svg><span>{n.id === 'appstore' ? 'App' : n.label}</span></a>
     ))}
+    <button type="button" data-palette><svg class="i" aria-hidden="true"><use href="#a-magnifying-glass" /></svg><span>More</span></button>
   </nav>
 </div>
 
+<div class="palette" id="palette" hidden>
+  <div class="palette-card" role="dialog" aria-modal="true" aria-label="Search">
+    <div class="palette-top"><svg class="i" aria-hidden="true"><use href="#a-magnifying-glass" /></svg><input id="palette-q" type="text" placeholder="Go to a page, sound, country or date range" autocomplete="off" spellcheck="false"><kbd>Esc</kbd></div>
+    <div class="palette-list" id="palette-list"></div>
+  </div>
+</div>
 <div class="tip" id="tip" role="status" hidden></div>
 <div class="toast" id="toast" role="status" hidden></div>
 

@@ -90,6 +90,7 @@ const METRICS: { id: MetricId; label: string; help: string; bad?: boolean }[] = 
 
 // The period before has the same length and ends where this one starts; only its totals and series are used.
 type Loaded = { data: Data; prev: Data | null };
+export type AppLoaded = Loaded;
 let cache: { key: string; at: number; data: Loaded } | null = null;
 let metric: MetricId = 'joined';
 let syncing = false;
@@ -97,7 +98,7 @@ let syncing = false;
 let bound: { host: HTMLElement; fn: (e: Event) => void } | null = null;
 let chartOff: (() => void) | null = null;
 
-async function load(ctx: AppCtx, force: boolean) {
+export async function loadApp(ctx: AppCtx, force: boolean) {
   const p = ctx.period();
   const compare = ctx.compare();
   const key = `${p.from.toISOString()}|${p.to.toISOString()}|${compare}`;
@@ -115,7 +116,7 @@ export async function renderApp(host: HTMLElement, ctx: AppCtx, force = false) {
   if (!host.innerHTML) host.innerHTML = `<div class="card"><div class="card-body"><span class="skel" style="width:40%"></span><span class="skel" style="width:70%;margin-top:12px"></span></div></div>`;
   else host.classList.add('loading-veil');
   let d: Loaded;
-  try { d = await load(ctx, force); } catch (e) {
+  try { d = await loadApp(ctx, force); } catch (e) {
     // Before the appstore migration is applied the function does not exist yet (PostgREST PGRST202):
     // show what is missing instead of a generic error.
     const err = e as { code?: string; message?: string };
@@ -246,18 +247,40 @@ function drawChart(host: HTMLElement, d: Data, prev: Data | null) {
 const rate = (t: Data['totals']) => (t.views ? ((t.joined ?? 0) / t.views) * 100 : null);
 
 /** The strip at the top: are installs up or down, the numbers behind it, and anything that needs a look. */
+/** What needs a look on the app side; Home shows these too. */
+export function appAlerts(app: Loaded) {
+  const d = app.data, st = d.state;
+  const builds = [...st.builds].sort((a, b) => b.uploaded.localeCompare(a.uploaded));
+  const latest = builds.find((b) => !b.expired) ?? builds[0];
+  const external = st.groups.filter((g) => !g.internal);
+  const link = external.find((g) => g.link_enabled) ?? external[0];
+  return alertsFor(d, app.prev, latest, link, latest ? LIVE.has(latest.external_state) : false);
+}
+
+/** One thing that needs a look: a headline, a line of detail and where to go about it. Text is already escaped. */
+export type Alert = { title: string; detail: string; action: string; href: string; external?: boolean };
+
+function alertsFor(d: Data, prev: Data | null, latest: Build | undefined, link: Group | undefined, live: boolean): Alert[] {
+  const t = d.totals, pt = prev?.totals;
+  const alerts: Alert[] = [];
+  // A tester's own crash report comes first: it says what they were doing.
+  const crash = d.feedback.find((f) => f.kind === 'crash' && Date.now() - new Date(f.created_at).getTime() < 7 * 86400000);
+  if (crash) alerts.push({ title: `Tester reported a crash${crash.build ? ` on build ${esc(crash.build)}` : ''}`, detail: crash.comment ? `“${esc(crash.comment.slice(0, 90))}${crash.comment.length > 90 ? '…' : ''}”` : esc([crash.device, crash.os && `iOS ${crash.os}`].filter(Boolean).join(' · ') || 'No comment'), action: 'Review report', href: '#appstore' });
+  if ((t.crashes ?? 0) > 0 && (!pt || (t.crashes ?? 0) > (pt.crashes ?? 0))) alerts.push({ title: `${int(t.crashes)} app crash${t.crashes === 1 ? '' : 'es'} this period`, detail: pt ? `Up from ${int(pt.crashes ?? 0)} the period before` : 'Recorded by TestFlight', action: 'See crashes', href: ASC, external: true });
+  if (latest && !latest.expired) {
+    const days = Math.ceil((new Date(latest.expires).getTime() - Date.now()) / 86400000);
+    if (days <= 14) alerts.push({ title: `Build ${esc(latest.version)} (${esc(latest.number)}) stops working ${days <= 0 ? 'today' : `in ${days} day${days === 1 ? '' : 's'}`}`, detail: 'Upload a new build so testers can keep using the app', action: 'Open TestFlight', href: '#appstore' });
+  }
+  if (link?.link_enabled && !live) alerts.push({ title: 'Public link is waiting for Apple', detail: 'People who open it are told the beta is not accepting testers yet', action: 'Check status', href: '#appstore' });
+  if (d.runs[0]?.ok === false) alerts.push({ title: 'App Store sync failed', detail: esc((d.runs[0].error || 'The last sync could not read App Store Connect').slice(0, 90)), action: 'Open TestFlight', href: '#appstore' });
+  return alerts;
+}
+
 function summary(ctx: AppCtx, d: Data, prev: Data | null, latest: Build | undefined, link: Group | undefined, live: boolean) {
   const t = d.totals, pt = prev?.totals;
   const dl = (id: MetricId, bad = false) => (pt ? ' ' + ctx.delta(t[id], pt[id], bad) : '');
   const plural = (n: number | null | undefined, one: string, many: string) => `<b class="num">${esc(int(n ?? 0))}</b> ${(n ?? 0) === 1 ? one : many}`;
-  const alerts: string[] = [];
-  if (latest && !latest.expired) {
-    const days = Math.ceil((new Date(latest.expires).getTime() - Date.now()) / 86400000);
-    if (days <= 14) alerts.push(`Build ${esc(latest.version)} (${esc(latest.number)}) stops working in ${days <= 0 ? 'under a day' : `${days} day${days === 1 ? '' : 's'}`}`);
-  }
-  if ((t.crashes ?? 0) > 0 && (!pt || (t.crashes ?? 0) > (pt.crashes ?? 0))) alerts.push(`${int(t.crashes)} crash${t.crashes === 1 ? '' : 'es'} to look at`);
-  if (link?.link_enabled && !live) alerts.push('Public link is waiting for Apple');
-  if (d.runs[0]?.ok === false) alerts.push('Last sync failed');
+  const alerts = alertsFor(d, prev, latest, link, live).map((a) => a.title);
   return ctx.brief({
     ...ctx.trendTitle('Installs', t.installs, pt ? pt.installs : null),
     facts: [

@@ -95,3 +95,12 @@ export const esc = (v: unknown) =>
   String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 export const icon = (name: string, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="#a-${name}"/></svg>`;
+
+/** Built into the page by index.astro: each sound's square thumb, wide banner and average colour. */
+let artCache: Record<string, { thumb: string; wide: string; card: string; color: string }> | null = null;
+export function soundArt(id: string) {
+  if (!artCache) {
+    try { artCache = JSON.parse(document.getElementById('sound-art')?.textContent || '{}'); } catch { artCache = {}; }
+  }
+  return artCache![id] ?? { thumb: '', wide: '', card: '', color: '#151a24' };
+}
