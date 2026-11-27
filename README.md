@@ -1,6 +1,8 @@
 # sleepmoore.app
 
-The public website for the Sleep Moore app: home, support and privacy policy. Built with [Astro](https://astro.build) 7 and served by GitHub Pages at https://sleepmoore.app (DNS at Namecheap). The app itself lives in a separate private repository.
+**Looking for Sleep Moore, the free sleep sounds app? The official website is https://sleepmoore.app.** This repository holds only the website's source code.
+
+The public website for the Sleep Moore app: home, sound library, stories, meditations, guides, support and privacy policy. Built with [Astro](https://astro.build) 7 and served by GitHub Pages at https://sleepmoore.app (DNS at Namecheap). The app itself lives in a separate private repository.
 
 ## How it fits together
 

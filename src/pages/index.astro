@@ -23,7 +23,10 @@ const graph = {
       '@type': 'Organization',
       ...org,
       name: 'Sleep Moore',
+      alternateName: ['Sleep Moore: Sound Worlds', 'Sleep Moore app'],
       url: `${site}/`,
+      // Our other official homes, so search engines treat them as this brand, not a different one.
+      sameAs: ['https://www.youtube.com/@sleepmooreapp', 'https://github.com/tibbyy05/sleepmoore-site'],
       logo: { '@type': 'ImageObject', url: `${site}/apple-touch-icon.png`, width: 180, height: 180 },
       email: EMAIL,
       contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: EMAIL, url: `${site}/support/` },
